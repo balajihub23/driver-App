@@ -1,131 +1,93 @@
 <div class="splash-screen-wrapper">
-  <!-- Mobile Screen Container -->
-  <div class="splash-card">
-
-    <!-- Top Status Bar -->
-    <!-- <div class="status-bar">
-      <span class="time">9:41</span>
-      <div class="status-icons">
-        <svg class="icon-signal" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3L2 21h20L12 3z"/></svg>
-        <svg class="icon-wifi" viewBox="0 0 24 24"><path fill="currentColor" d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>
-        <div class="battery"><div class="battery-level"></div></div>
-      </div>
-    </div> -->
-
-    <!-- Header Logo Section -->
-    <div class="logo-header">
-      <div class="logo-mark">
-        <svg viewBox="0 0 200 200" class="r-logo-svg">
-          <defs>
-            <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#FF7A00" />
-              <stop offset="100%" stop-color="#E8500E" />
-            </linearGradient>
-          </defs>
-          <path d="M 40 30 L 120 30 C 160 30 160 90 120 90 L 70 90 L 70 170 L 40 170 Z" fill="url(#orangeGrad)" />
-          <path d="M 40 30 L 70 30 L 70 170 L 40 170 Z" fill="#0F172A" />
-          <path d="M 70 90 L 140 170 L 105 170 L 40 95 Z" fill="#1E293B" />
-          <path d="M 50 170 Q 75 110 135 45" stroke="#FFFFFF" stroke-width="8" stroke-dasharray="12 8" fill="none"
-            stroke-linecap="round" />
-        </svg>
-      </div>
-      <h1 class="brand-title">RENTRON</h1>
-      <p class="brand-tagline">— Drive. Ride. Build. We've Got You. —</p>
-    </div>
-
-    <!-- Hero Vehicles & Skyline Showcase Stage -->
-    <div class="hero-stage">
-      <!-- City Skyline Backdrop -->
-      <div class="skyline-backdrop">
-        <svg viewBox="0 0 500 200" preserveAspectRatio="none" class="skyline-svg">
-          <path fill="#E2E8F0" opacity="0.6"
-            d="M0 200 L0 120 L20 120 L20 100 L40 100 L40 150 L60 150 L60 80 L80 80 L80 180 L100 180 L100 60 L120 60 L120 30 L130 10 L140 30 L140 200 Z" />
-          <path fill="#CBD5E1" opacity="0.5"
-            d="M140 200 L140 90 L160 90 L160 140 L180 140 L180 70 L210 70 L210 40 L220 20 L230 40 L230 200 Z" />
-          <path fill="#94A3B8" opacity="0.4"
-            d="M230 200 L230 110 L250 110 L250 85 L280 85 L280 150 L310 150 L310 50 L320 30 L330 50 L330 200 Z" />
-          <path fill="#CBD5E1" opacity="0.6"
-            d="M330 200 L330 100 L350 100 L350 70 L380 70 L380 140 L410 140 L410 80 L420 60 L430 80 L430 200 Z" />
-          <path fill="#E2E8F0" opacity="0.7"
-            d="M430 200 L430 120 L450 120 L450 90 L480 90 L480 160 L500 160 L500 200 Z" />
-        </svg>
-      </div>
-
-      <!-- Vehicle Assets Layer -->
-      <div class="vehicles-showcase">
-        <img src="assets/images/white_sedan.png" alt="Car" class="vehicle sedan-car" />
-        <img src="assets/images/black_bike.png" alt="Bike" class="vehicle black-bike" />
-        <img src="assets/images/jcb_loader.png" alt="JCB" class="vehicle jcb-loader" />
-      </div>
-
-      <!-- Ground Shadow & Platform Glow -->
-      <div class="ground-shadow"></div>
-    </div>
-
-    <!-- Category Badges Section -->
-    <div class="categories-section">
-      <h3 class="categories-title">One App. Many Possibilities.</h3>
-      <div class="category-pills">
-
-        <!-- Cars Pill -->
-        <div class="pill-item">
-          <div class="icon-circle orange-bg">
-            <svg viewBox="0 0 24 24" class="pill-icon">
-              <path fill="currentColor"
-                d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4h14v4z" />
-              <circle cx="7.5" cy="14.5" r="1.5" fill="currentColor" />
-              <circle cx="16.5" cy="14.5" r="1.5" fill="currentColor" />
-            </svg>
-          </div>
-          <span class="pill-label">CARS</span>
+  @if (showInitialSplash) {
+    <!-- Initial Splash Loader Screen (Figma Screen 1) -->
+    <div class="splash-card initial-splash">
+      <div class="logo-header">
+        <div class="logo-mark-yellow">
+          <svg viewBox="0 0 100 100" class="r-logo-svg">
+            <path d="M 20 15 L 65 15 C 85 15 85 50 65 50 L 40 50 L 40 85 L 20 85 Z" fill="#FFC107" />
+            <path d="M 40 50 L 75 85 L 55 85 L 20 50 Z" fill="#FFC107" />
+          </svg>
         </div>
+        <h1 class="brand-title-yellow">Rentron</h1>
+        <p class="brand-subtitle-yellow">OPERATOR</p>
+      </div>
 
-        <div class="pill-divider"></div>
-
-        <!-- Bikes Pill -->
-        <div class="pill-item">
-          <div class="icon-circle navy-bg">
-            <svg viewBox="0 0 24 24" class="pill-icon">
-              <path fill="currentColor"
-                d="M19.44 9.24L15.42 5H11v2h3.42l2.56 2.7-3.48 3.3-3.5-3.5H6c-1.1 0-2 .9-2 2v3h2v-3h3.09l3.5 3.5H6.82C6.4 13.84 5.27 13 4 13c-1.66 0-3 1.34-3 3s1.34 3 3 3c1.33 0 2.46-.86 2.87-2h7.95c.41 1.14 1.54 2 2.87 2 1.66 0 3-1.34 3-3 0-1.33-.86-2.46-2.01-2.87l3.76-3.89zM4 17c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm13.69-.13l-1.57-1.57c.27-.4.43-.88.43-1.4 0-1.38-1.12-2.5-2.5-2.5s-2.5 1.12-2.5 2.5 1.12 2.5 2.5 2.5c.52 0 1-.16 1.4-.43l1.57 1.57-1.4 1.4c-.45.45-1.05.69-1.67.69s-1.22-.24-1.67-.69l-1.4-1.4-1.42 1.42 1.4 1.4c.83.83 1.94 1.29 3.09 1.29s2.26-.46 3.09-1.29l1.4-1.4 1.42 1.42z" />
-            </svg>
-          </div>
-          <span class="pill-label">BIKES</span>
+      <div class="loader-box">
+        <div class="spinner-ring"></div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" [style.width.%]="progress"></div>
         </div>
-
-        <div class="pill-divider"></div>
-
-        <!-- JCB Pill -->
-        <div class="pill-item">
-          <div class="icon-circle orange-bg">
-            <svg viewBox="0 0 24 24" class="pill-icon">
-              <path fill="currentColor"
-                d="M19 13h-2V9h-2v4H9V5H7v8H5c-1.1 0-2 .9-2 2v4h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-4c0-1.1-.9-2-2-2zM8 19c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm11 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
-            </svg>
-          </div>
-          <span class="pill-label">JCB</span>
-        </div>
-
+        <span class="loading-text">{{ loadingText }}</span>
+        <span class="version-text">v2.4.1 (build 482) • © 2026 Rentron Heavy Machinery</span>
       </div>
     </div>
-
-    <!-- Bottom Dark Navy Wave Footer -->
-    <div class="footer-wave-container">
-      <div class="wave-stroke"></div>
-
-      <!-- Footer Content -->
-      <div class="footer-content">
-        <div class="loader-box">
-          <div class="progress-bar-track">
-            <div class="progress-bar-fill" [style.width.%]="progress"></div>
+  } @else {
+    <!-- Onboarding Slide Carousel / Welcome Login Screen (Figma Screens 2-6) -->
+    <div class="splash-card onboarding-card" [class.welcome-mode]="activeSlideIndex === 3">
+      @if (activeSlideIndex < 3) {
+        <div class="slide-container">
+          <div class="slide-image-box">
+            <img [src]="slides[activeSlideIndex].image" [alt]="slides[activeSlideIndex].title" class="slide-illustration-img" />
           </div>
-          <div class="spinner-row">
-            <div class="spinner-ring"></div>
-            <span class="loading-text">{{ loadingText }}</span>
+
+          <div class="slide-content">
+            <h2>{{ slides[activeSlideIndex].title }}</h2>
+            <p>{{ slides[activeSlideIndex].description }}</p>
+
+            <div class="dots-indicator">
+              <span [class.active]="activeSlideIndex === 0"></span>
+              <span [class.active]="activeSlideIndex === 1"></span>
+              <span [class.active]="activeSlideIndex === 2"></span>
+            </div>
+
+            <div class="slide-footer">
+              @if (activeSlideIndex < 2) {
+                <button class="btn-skip" (click)="skipSlides()">Skip</button>
+              } @else {
+                <div></div>
+              }
+              <button class="btn-next" (click)="nextSlide()">
+                {{ activeSlideIndex === 2 ? 'Get Started' : 'Next →' }}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      } @else {
+        <!-- Welcome / Login Choice Screen (Figma Screen 5 & 6) -->
+        <div class="welcome-screen">
+          <div class="welcome-logo-header">
+            <img src="assets/images/rentron_logo.png" alt="Rentron Operator" class="welcome-logo-img" />
+          </div>
 
-  </div>
+          <div class="welcome-body-content">
+            <h3>Welcome to Rentron</h3>
+            <p>Your rides, jobs, and earnings in one place.</p>
+          </div>
+
+          <div class="welcome-actions">
+            <button class="btn-primary login-btn" (click)="onSelectAction('LOGIN')">
+              Login <span class="arrow-icon">➔</span>
+            </button>
+
+            <button class="btn-secondary create-btn" (click)="onSelectAction('REGISTER')">
+              Create Account
+            </button>
+
+            <div class="divider"><span>or continue with</span></div>
+
+            <button class="btn-google" (click)="onSelectAction('LOGIN')">
+              <svg class="google-icon" width="18" height="18" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.14C3.25 21.27 7.31 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.59H1.27C.46 8.2.01 10.04.01 12c0 1.96.45 3.8 1.26 5.41l4.01-3.14z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.73 1.27 6.59l4.01 3.14c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              Continue with Google
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
 </div>

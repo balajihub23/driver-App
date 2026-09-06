@@ -1,0 +1,32 @@
+.notifications-header {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+  position: sticky; top: 0; z-index: 100;
+}
+
+.header-top { display: flex; justify-content: space-between; align-items: center; }
+.back-link { font-size: 22px; text-decoration: none; color: var(--text-primary); font-weight: 700; }
+h2 { font-size: 18px; font-weight: 800; color: var(--text-primary); }
+.mark-all-btn { background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.notifications-content { padding: 16px 16px 80px; }
+.notifications-list { display: flex; flex-direction: column; gap: 10px; }
+
+.notification-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  background-color: var(--surface); border: 1px solid var(--border);
+  padding: 14px; border-radius: var(--radius-md); cursor: pointer;
+  position: relative;
+  
+  &.unread { background-color: var(--surface-secondary); border-color: var(--primary); }
+}
+
+.icon { font-size: 24px; }
+.notif-body { flex: 1; }
+.notif-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.notif-title-row h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.time { font-size: 11px; color: var(--text-secondary); }
+.notif-body p { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+.unread-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--primary); margin-top: 4px; }
+.empty-inbox { text-align: center; padding: 60px 16px; color: var(--text-secondary); .bell-icon { font-size: 48px; display: block; margin-bottom: 12px; } }

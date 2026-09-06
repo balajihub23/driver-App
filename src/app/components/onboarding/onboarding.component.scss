@@ -1,0 +1,303 @@
+.onboarding-wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--surface);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.onboarding-card {
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.onboarding-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.step-indicator {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.step-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--text-primary);
+  font-size: 15px;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+}
+
+.continue-btn {
+  margin-top: auto;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+/* Selection Grid & Cards */
+.selection-grid, .radio-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.option-card, .op-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.selected {
+    border-color: var(--primary);
+    background-color: var(--surface-secondary);
+  }
+}
+
+.option-card .icon, .op-card .icon { font-size: 28px; }
+.option-card h4, .op-card h4 { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.option-card p, .op-card p { font-size: 12px; color: var(--text-secondary); }
+
+/* Machinery Sub Tabs & Models */
+.sub-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.sub-tabs .tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  
+  &.active {
+    background-color: var(--primary);
+    color: #111827;
+  }
+}
+
+.selection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.model-item {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  cursor: pointer;
+  
+  &.selected {
+    border-color: var(--primary);
+    background-color: var(--surface-secondary);
+  }
+  strong { color: var(--text-primary); }
+  p { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+}
+
+.section-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 16px; }
+
+.radio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  
+  &.active {
+    border-color: var(--primary);
+  }
+}
+
+/* Fleet Info Card */
+.fleet-icon-box {
+  width: 64px; height: 64px;
+  background-color: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; margin-bottom: 16px;
+}
+
+.info-card-yellow {
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 24px;
+  
+  h4 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+  ol { padding-left: 20px; font-size: 13px; line-height: 1.8; color: var(--text-secondary); }
+}
+
+/* Document List */
+.doc-section { margin-bottom: 24px; }
+.section-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.doc-icon { font-size: 22px; }
+.doc-info { flex: 1; }
+.doc-info h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.req { color: var(--danger); font-size: 10px; margin-left: 4px; }
+.doc-info p { font-size: 11px; color: var(--text-secondary); }
+.status-indicator {
+  font-size: 12px; font-weight: 700; color: var(--text-secondary);
+  &.done { color: var(--success); }
+}
+
+/* Terms */
+.shield-icon { font-size: 48px; margin-bottom: 12px; text-align: center; }
+.checkbox-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  margin-bottom: 12px;
+  cursor: pointer;
+  
+  input { margin-top: 3px; accent-color: var(--primary); }
+  strong { font-size: 14px; color: var(--text-primary); }
+  p { font-size: 11px; color: var(--text-secondary); }
+}
+
+/* Verification Submitted */
+.text-center { text-align: center; }
+.success-shield-pulse {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  margin: 40px auto 24px;
+  box-shadow: 0 0 0 16px rgba(255, 193, 7, 0.2);
+}
+
+.check-icon { font-size: 40px; font-weight: 900; color: #111827; }
+
+.app-id-card {
+  background-color: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin: 24px 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.id-label { font-size: 12px; color: var(--text-secondary); }
+.id-value { font-size: 22px; font-weight: 800; color: var(--text-primary); }
+
+.status-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  &.warning { background-color: var(--warning-light); color: var(--warning); }
+}

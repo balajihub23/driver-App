@@ -1,0 +1,354 @@
+.mobile-app-wrapper {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding-bottom: 80px;
+}
+
+.dashboard-content {
+  padding: 16px 20px;
+}
+
+.service-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 16px;
+
+  .tab-item {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+  }
+}
+
+/* Active Job Card (Screenshot 3, Left) */
+.active-job-card {
+  background: #ffffff;
+  border: 1.5px solid #22c55e;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.12);
+
+  .card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    .active-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .badge-in-progress {
+      background: #dcfce7;
+      color: #15803d;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+  }
+
+  .card-body-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .yellow-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: #fffbeb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+      }
+
+      .lbl {
+        font-size: 11px;
+        color: #94a3b8;
+        display: block;
+      }
+
+      .val {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+    }
+  }
+
+  .card-actions-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    .btn-yellow-nav {
+      flex: 1.2;
+      padding: 12px;
+      background: #facc15;
+      color: #1e293b;
+      font-size: 14px;
+      font-weight: 800;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+
+      &:hover {
+        background: #eab308;
+      }
+    }
+
+    .btn-outline-call {
+      flex: 1;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 20px;
+      cursor: pointer;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+    }
+  }
+
+  .btn-dark-view-details {
+    width: 100%;
+    padding: 13px;
+    background: #1e293b;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+
+    &:hover {
+      background: #0f172a;
+    }
+  }
+}
+
+/* Today's Summary Yellow Card (Screenshot 3, Bottom) */
+.summary-card-yellow {
+  background: #facc15;
+  border-radius: 22px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  color: #1e293b;
+
+  .summary-header {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+
+  .metrics-grid {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    .metric-box {
+      text-align: center;
+
+      .icon {
+        font-size: 20px;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .value {
+        font-size: 20px;
+        font-weight: 900;
+        display: block;
+      }
+
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0.8;
+      }
+    }
+
+    .metric-divider {
+      width: 1px;
+      height: 36px;
+      background: rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.offline-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  .icon {
+    font-size: 24px;
+  }
+
+  h4 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #92400e;
+    margin: 0;
+  }
+
+  p {
+    font-size: 12px;
+    color: #b45309;
+    margin: 2px 0 0 0;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .link-all {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+    text-decoration: none;
+  }
+}
+
+.recent-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .job-item-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px 16px;
+    cursor: pointer;
+
+    .job-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+
+      .job-num {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+      }
+
+      .chip {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 10px;
+
+        &.chip-active {
+          background: #f1f5f9;
+          color: #475569;
+        }
+
+        &.chip-pending {
+          background: #dcfce7;
+          color: #15803d;
+        }
+      }
+    }
+
+    .job-item-body {
+      h4 {
+        font-size: 15px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 2px 0;
+      }
+
+      p {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0;
+      }
+    }
+
+    .job-item-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed #f1f5f9;
+
+      .date {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      .amount {
+        font-size: 16px;
+        font-weight: 800;
+        color: #15803d;
+      }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    background: #ffffff;
+    border-radius: 16px;
+
+    .icon {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px;
+      color: #64748b;
+      margin: 0;
+    }
+  }
+}

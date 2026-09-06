@@ -1,0 +1,54 @@
+@if (isOpen) {
+  <div class="modal-backdrop" (click)="close()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ title || 'Upload Document' }}</h3>
+        <button class="close-btn" (click)="close()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (activeMode === 'SELECT') {
+          <div class="choice-container">
+            <button class="choice-card" (click)="triggerFileInput()">
+              <span class="icon">📁</span>
+              <div class="choice-info">
+                <h4>Choose from File</h4>
+                <p>Select image or PDF from device storage</p>
+              </div>
+            </button>
+
+            <button class="choice-card" (click)="openCamera()">
+              <span class="icon">📷</span>
+              <div class="choice-info">
+                <h4>Capture Photo</h4>
+                <p>Use camera to take clear picture</p>
+              </div>
+            </button>
+            <input #fileInput type="file" [accept]="accept" style="display: none" (change)="onFileSelected($event)" />
+          </div>
+        } @else if (activeMode === 'CAMERA') {
+          <div class="camera-container">
+            <video #videoElement class="camera-preview" autoplay playsinline></video>
+            <div class="camera-actions">
+              <button class="btn-secondary" (click)="activeMode = 'SELECT'">Cancel</button>
+              <button class="btn-primary" (click)="takePhoto()">Snap Photo 📸</button>
+            </div>
+          </div>
+        } @else if (activeMode === 'PREVIEW') {
+          <div class="preview-container">
+            @if (selectedFile) {
+              <div class="file-summary">
+                <span class="file-name">📄 {{ selectedFile.name }}</span>
+                <span class="file-size">({{ (selectedFile.size / 1024).toFixed(1) }} KB)</span>
+              </div>
+            }
+            <div class="preview-actions">
+              <button class="btn-secondary" (click)="activeMode = 'SELECT'">Re-select</button>
+              <button class="btn-primary" (click)="confirmUpload()">Confirm & Upload</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

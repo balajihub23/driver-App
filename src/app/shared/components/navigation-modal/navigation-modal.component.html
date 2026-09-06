@@ -1,0 +1,65 @@
+@if (isOpen) {
+  <div class="navigation-backdrop animate-fade-in">
+    <!-- Top Header Bar -->
+    <div class="nav-top-bar">
+      <button class="btn-back" (click)="onCloseClick()">←</button>
+      <div class="nav-status-pill">
+        <span class="green-dot">•</span> NAVIGATING
+      </div>
+      <div class="top-icons">
+        <button class="icon-btn">🔊</button>
+        <div class="compass-btn">N</div>
+      </div>
+    </div>
+
+    <!-- Interactive Navigation Map Area -->
+    <div class="map-view-canvas">
+      <!-- Simulated Route Polyline & Location Markers -->
+      <div class="site-marker-pin">
+        <div class="pin-bubble">
+          <strong>SITE B - EXCAVATOR</strong>
+          <span>ETA 14 min / 3.2 km</span>
+        </div>
+        <div class="pin-head">🏗️</div>
+      </div>
+
+      <svg class="route-line-svg" viewBox="0 0 400 600">
+        <path d="M 80 480 Q 200 300 320 120" stroke="#0284c7" stroke-width="8" fill="none" stroke-linecap="round" />
+      </svg>
+
+      <div class="driver-location-dot">
+        <div class="pulse-ring"></div>
+        <div class="driver-icon">🚜</div>
+      </div>
+
+      <div class="gps-coordinates-overlay">
+        <span>Driver GPS: {{ driverLat.toFixed(4) }}, {{ driverLng.toFixed(4) }}</span>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Card (Screenshot 3, Right) -->
+    <div class="nav-bottom-sheet animate-slide-up">
+      <div class="sheet-drag-handle"></div>
+
+      <div class="eta-header-row">
+        <div>
+          <h2 class="eta-main-time">{{ etaMinutes }} mins</h2>
+          <p class="site-address-text">{{ customerAddress }}</p>
+        </div>
+        <div class="eta-right">
+          <span class="distance-value">{{ distanceKm }}</span>
+          <span class="clock-eta">ETA {{ estimatedTimeText }}</span>
+        </div>
+      </div>
+
+      <div class="nav-sheet-actions">
+        <button class="btn-arrived-flag" (click)="onArrivedClick()">
+          🚩 Arrived
+        </button>
+        <button class="btn-call-dark" (click)="onCallCustomer()">
+          📞 Call
+        </button>
+      </div>
+    </div>
+  </div>
+}

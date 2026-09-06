@@ -1,20 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { SplashComponent } from './components/splash/splash.component';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SplashComponent],
+  imports: [CommonModule, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'driverApp';
-  showSplash = true;
-
-  onSplashFinish(): void {
-    console.log('Splash screen completed loading');
-    // keep splash or transition to main driver app view
-  }
+  title = 'Rentron Driver App';
+  themeService = inject(ThemeService);
 }

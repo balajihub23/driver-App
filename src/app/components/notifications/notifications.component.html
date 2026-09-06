@@ -1,0 +1,37 @@
+<div class="mobile-app-wrapper">
+  <header class="notifications-header">
+    <div class="header-top">
+      <a routerLink="/dashboard" class="back-link">←</a>
+      <h2>Notifications</h2>
+      <button class="mark-all-btn" (click)="onMarkAllRead()">Mark all read</button>
+    </div>
+  </header>
+
+  <main class="notifications-content">
+    <div class="notifications-list">
+      @for (n of notifications; track n.id) {
+        <div class="notification-card" [class.unread]="!n.isRead" (click)="onNotificationTap(n)">
+          <span class="icon">{{ getNotificationIcon(n.notificationType) }}</span>
+          <div class="notif-body">
+            <div class="notif-title-row">
+              <h4>{{ n.title }}</h4>
+              <span class="time">Just now</span>
+            </div>
+            <p>{{ n.message }}</p>
+          </div>
+          @if (!n.isRead) {
+            <span class="unread-dot"></span>
+          }
+        </div>
+      } @empty {
+        <div class="empty-inbox">
+          <span class="bell-icon">🔔</span>
+          <h3>No Notifications Yet</h3>
+          <p>Updates on booking offers, payments, and support replies will appear here.</p>
+        </div>
+      }
+    </div>
+  </main>
+
+  <app-bottom-navigation></app-bottom-navigation>
+</div>

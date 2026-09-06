@@ -1,0 +1,331 @@
+<div class="mobile-app-wrapper">
+  <header class="jobs-header" *ngIf="!selectedJob">
+    <h2>My Jobs</h2>
+
+    <div class="jobs-tabs">
+      <button class="tab" [class.active]="activeTab === 'ONGOING'" (click)="activeTab = 'ONGOING'">Ongoing</button>
+      <button class="tab" [class.active]="activeTab === 'SCHEDULED'" (click)="activeTab = 'SCHEDULED'">Scheduled</button>
+      <button class="tab" [class.active]="activeTab === 'COMPLETED'" (click)="activeTab = 'COMPLETED'">Completed</button>
+      <button class="tab" [class.active]="activeTab === 'CANCELLED'" (click)="activeTab = 'CANCELLED'">Cancelled</button>
+    </div>
+  </header>
+
+  <main class="jobs-content">
+    @if (!selectedJob) {
+      <!-- Filtered Jobs List -->
+      <div class="jobs-list">
+        @for (job of filteredJobs(); track job.id) {
+          <div class="job-card-item" (click)="selectJob(job)">
+            <div class="card-top">
+              <span class="booking-num">#{{ job.bookingNumber || ('BK-100' + job.id) }}</span>
+              <span class="status-badge" [class]="getStatusClass(job.status)">{{ job.status }}</span>
+            </div>
+
+            <div class="card-body">
+              <h4>{{ job.productName || 'Equipment / Ride Job' }}</h4>
+              <p class="location">📍 {{ job.pickupLocation || 'Sector 62, Noida' }}</p>
+              <p class="date">🕒 {{ job.bookingDate || 'May 15, 2024' }}</p>
+            </div>
+
+            <div class="card-footer">
+              <span class="est-label">Est. Earning</span>
+              <strong class="est-amount">₹{{ (job.totalAmount || 2400) | number }}</strong>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-jobs">
+            <span class="icon">📦</span>
+            <h3>No {{ activeTab.toLowerCase() }} jobs</h3>
+            <p>New job requests will appear here once assigned.</p>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Job Lifecycle Screens -->
+
+      <!-- VIEW 1: YOU HAVE ARRIVED! SCREEN (Screenshot 4, Left) -->
+      @if (viewMode === 'ARRIVED') {
+        <div class="arrived-screen animate-fade-in">
+          <button class="back-link" (click)="selectedJob = null">← Back to Jobs</button>
+
+          <div class="arrived-card text-center">
+            <div class="arrived-icon-circle">
+              <span class="check-icon">✓</span>
+            </div>
+
+            <h2 class="arrived-title">You have Arrived!</h2>
+            <p class="arrived-subtitle">Arrival confirmed. Customer notified. Start the job once they confirm your arrival.</p>
+
+            <div class="arrived-details-box text-left">
+              <div class="box-row">
+                <span class="box-icon">📍</span>
+                <div>
+                  <span class="lbl">Site Name</span>
+                  <strong class="val">{{ selectedJob.pickupLocation || 'Metro Construction Site' }}</strong>
+                  <p class="sub-val">Sector 21, North Industrial Zone</p>
+                </div>
+              </div>
+
+              <div class="box-row">
+                <span class="box-icon">🚜</span>
+                <div>
+                  <span class="lbl">Assigned Vehicle</span>
+                  <strong class="val">{{ selectedJob.productName || 'JCB 3DX Backhoe Loader' }}</strong>
+                  <span class="badge-cleared">Cleared for Operation</span>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-yellow-full mt-4" (click)="onStartJobClick()">
+              ➔ Start Job
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- VIEW 2: JOB IN PROGRESS TIMER SCREEN (Screenshot 4, Right) -->
+      @if (viewMode === 'IN_PROGRESS') {
+        <div class="in-progress-screen animate-fade-in">
+          <div class="screen-header-row">
+            <button class="back-link" (click)="selectedJob = null">← Job Details</button>
+            <button class="btn-options">⋮</button>
+          </div>
+
+          <!-- Status Banner -->
+          <div class="in-progress-banner">
+            <div>
+              <h3>Job In Progress</h3>
+              <p>{{ selectedJob.pickupLocation || 'Metro construction site' }}</p>
+            </div>
+            <span class="badge-active-dot">• Active</span>
+          </div>
+
+          <!-- Large Timer Display Card -->
+          <div class="timer-display-card">
+            <span class="timer-label">ELAPSED TIME</span>
+            <h1 class="timer-digits">{{ formatTimer(elapsedSeconds) }}</h1>
+
+            <div class="timer-sub-metrics">
+              <div>
+                <span class="sub-lbl">Est. Completion</span>
+                <strong class="sub-val">05:00 PM</strong>
+              </div>
+              <div class="sub-divider"></div>
+              <div>
+                <span class="sub-lbl">Idle Time</span>
+                <strong class="sub-val">00:00:00</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Work Schedule Card -->
+          <div class="card info-card">
+            <div class="card-row-head">
+              <span>📅 Work Schedule</span>
+            </div>
+            <h4 class="card-main-text">{{ selectedJob.bookingDate || 'May 15, 2024' }}</h4>
+            <div class="schedule-badge-row">
+              <span class="sched-time">🕒 09:00 AM - 05:00 PM</span>
+              <span class="hours-badge">8 Hrs</span>
+            </div>
+          </div>
+
+          <!-- Customer Card -->
+          <div class="card customer-card">
+            <div class="customer-info-left">
+              <div class="avatar-circle">UI</div>
+              <div>
+                <span class="lbl-cust">Customer</span>
+                <h4 class="cust-name">{{ selectedJob.customerName || 'Urban Infra Projects' }}</h4>
+              </div>
+            </div>
+            <div class="customer-actions-right">
+              <button class="btn-circle-action" (click)="onMessageCustomer()">💬</button>
+              <button class="btn-circle-action" (click)="onCallCustomer()">📞</button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="timer-actions-row">
+            @if (!isPaused) {
+              <button class="btn-outline-pause" (click)="pauseJobTimer()">⏸️ Pause/Break</button>
+            } @else {
+              <button class="btn-yellow-resume" (click)="resumeJobTimer()">▶️ Resume Job</button>
+            }
+            <button class="btn-yellow-end" (click)="onOpenEndJobModal()">End Job</button>
+          </div>
+        </div>
+      }
+
+      <!-- VIEW 3: FULL JOB DETAILS VIEW (Screenshot 5) -->
+      @if (viewMode === 'DETAILS') {
+        <div class="job-details-screen animate-fade-in">
+          <div class="screen-header-row">
+            <button class="back-link" (click)="selectedJob = null">← Job Details</button>
+            <button class="btn-options">⋮</button>
+          </div>
+
+          <div class="job-details-title-row">
+            <span class="booking-ref">#{{ selectedJob.bookingNumber || 'RD-8824' }}</span>
+            <h2>{{ selectedJob.pickupLocation || 'Metro Construction Site' }}</h2>
+          </div>
+
+          <!-- Estimated Earnings Banner -->
+          <div class="earnings-banner-card">
+            <div class="earnings-left">
+              <span class="cash-icon">💰</span>
+              <div>
+                <span class="lbl">Estimated Earnings</span>
+                <h2 class="earning-amount">₹{{ (selectedJob.totalAmount || 2400) | number }}</h2>
+              </div>
+            </div>
+          </div>
+
+          <!-- Work Schedule -->
+          <div class="card info-card">
+            <div class="card-row-head">
+              <span>📅 Work Schedule</span>
+            </div>
+            <h4 class="card-main-text">{{ selectedJob.bookingDate || 'May 15, 2024' }}</h4>
+            <div class="schedule-badge-row">
+              <span class="sched-time">🕒 09:00 AM - 05:00 PM</span>
+              <span class="hours-badge">8 Hrs</span>
+            </div>
+          </div>
+
+          <!-- Customer Card -->
+          <div class="card customer-card">
+            <div class="customer-info-left">
+              <div class="avatar-circle">UI</div>
+              <div>
+                <span class="lbl-cust">Customer</span>
+                <h4 class="cust-name">{{ selectedJob.customerName || 'Urban Infra Projects' }}</h4>
+              </div>
+            </div>
+            <div class="customer-actions-right">
+              <button class="btn-circle-action" (click)="onMessageCustomer()">💬</button>
+              <button class="btn-circle-action" (click)="onCallCustomer()">📞</button>
+            </div>
+          </div>
+
+          <!-- Site Location with Map Snapshot -->
+          <div class="card site-location-card">
+            <span class="card-lbl">📍 Site Location</span>
+            <div class="map-snapshot-box" (click)="openNavigationMap()">
+              <div class="map-img-placeholder">
+                <div class="map-pin-overlay">📍</div>
+              </div>
+              <div class="map-addr-pill">
+                <strong>{{ selectedJob.pickupLocation || 'Sector 18, Noida' }}</strong>
+                <p>Uttar Pradesh, India</p>
+              </div>
+            </div>
+            <button class="btn-outline map-btn mt-2" (click)="openNavigationMap()">
+              🗺️ Open Interactive Navigation Map
+            </button>
+          </div>
+
+          <!-- Selected Vehicle Specs -->
+          <div class="card vehicle-specs-card">
+            <span class="card-lbl">🚜 Selected Vehicle</span>
+            <div class="vehicle-specs-body">
+              <div class="vehicle-thumb-placeholder">🚜</div>
+              <div class="vehicle-details-col">
+                <h4>{{ selectedJob.productName || 'JCB 3DX' }}</h4>
+                <div class="tags-row">
+                  <span class="v-tag">Diesel</span>
+                  <span class="v-tag">74 HP</span>
+                  <span class="v-tag">Excavation</span>
+                  <span class="v-tag green">Online</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add-ons / Extras Card -->
+          <div class="card addons-card">
+            <span class="card-lbl">➕ Add-ons / Extras</span>
+
+            <div class="addon-item">
+              <div class="addon-left">
+                <span class="addon-icon">🛠️</span>
+                <div>
+                  <strong>Extra Bucket Set</strong>
+                  <p>Heavy duty digging</p>
+                </div>
+              </div>
+              <span class="addon-price">+₹500</span>
+            </div>
+
+            <div class="addon-item">
+              <div class="addon-left">
+                <span class="addon-icon">🏗️</span>
+                <div>
+                  <strong>Extended Reach Arm</strong>
+                  <p>+2m reach depth</p>
+                </div>
+              </div>
+              <span class="addon-price">+₹800</span>
+            </div>
+
+            <div class="addon-item">
+              <div class="addon-left">
+                <span class="addon-icon">🚚</span>
+                <div>
+                  <strong>Transport: ₹80/km</strong>
+                  <p>Distance: 25 km</p>
+                </div>
+              </div>
+              <span class="addon-price">+₹2,000</span>
+            </div>
+          </div>
+
+          <!-- Payment Gateway Section -->
+          <div class="card payment-card mt-3">
+            <h3>Payment Gateway (Razorpay)</h3>
+            <p>Status: <strong>{{ selectedJob.paymentStatus || 'PENDING' }}</strong></p>
+            <p>Total Amount: <strong>₹{{ (selectedJob.totalAmount || 2400) | number }}</strong></p>
+
+            <div *ngIf="selectedJob.paymentStatus !== 'PAID'" style="margin-top: 12px;">
+              <app-razor-pay
+                [bookingId]="selectedJob.id"
+                [finalAmount]="selectedJob.totalAmount || 2400"
+                [contact]="{ name: selectedJob.customerName || 'Customer', contact: selectedJob.customerPhone || '' }"
+                [buttonText]="'Pay ₹' + (selectedJob.totalAmount || 2400) + ' via Razorpay'"
+                (paymentStatus)="onPaymentCompleted($event)">
+              </app-razor-pay>
+            </div>
+          </div>
+
+          <!-- Action Buttons (Screenshot 5) -->
+          <div class="dispatch-actions-row">
+            <button class="btn-ack-dispatch" (click)="onAcknowledgeDispatch()">
+              ✓ Acknowledge Dispatch
+            </button>
+            <button class="btn-decline-job" (click)="onDeclineJob()">
+              ✖ Decline Job
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </main>
+
+  <app-bottom-navigation></app-bottom-navigation>
+
+  <!-- Interactive Navigation Map Modal (Screenshot 3) -->
+  <app-navigation-modal
+    [isOpen]="showNavModal"
+    [jobData]="selectedJob"
+    (close)="showNavModal = false"
+    (arrivedAtSite)="onArrivedFromMap()"
+  ></app-navigation-modal>
+
+  <!-- End Job Confirmation Modal (Screenshot 4) -->
+  <app-end-job-modal
+    [isOpen]="showEndJobModal"
+    [jobData]="selectedJob"
+    (close)="showEndJobModal = false"
+    (jobEnded)="onJobEndedWithProof($event)"
+  ></app-end-job-modal>
+</div>

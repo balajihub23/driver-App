@@ -1,0 +1,162 @@
+@if (isOpen && offerData) {
+  <div class="offer-backdrop animate-fade-in">
+
+    <!-- 1. NEW JOB REQUEST MODAL (Screenshot 1, Left) -->
+    @if (currentStep === 'NEW_REQUEST') {
+      <div class="offer-sheet animate-slide-up">
+        <div class="sheet-drag-handle"></div>
+
+        <!-- Timer Circle Ring -->
+        <div class="timer-ring-wrapper">
+          <svg class="ring-svg" viewBox="0 0 100 100">
+            <circle class="ring-bg" cx="50" cy="50" r="40" />
+            <circle 
+              class="ring-progress" 
+              cx="50" 
+              cy="50" 
+              r="40" 
+              [style.strokeDashoffset]="strokeDashoffset" 
+            />
+          </svg>
+          <div class="ring-text">
+            <span class="seconds">{{ remainingSeconds }}</span>
+          </div>
+          <div class="clock-badge">🕒</div>
+        </div>
+
+        <h3 class="offer-title">New Job Request!</h3>
+        <p class="offer-subtitle">Accept quickly to enquiry the job</p>
+
+        <!-- Offer Attributes Box -->
+        <div class="attributes-box">
+          <div class="attr-row">
+            <div class="attr-left">
+              <span class="attr-icon yellow-icon">📍</span>
+              <div>
+                <span class="attr-label">Location</span>
+                <strong class="attr-value">{{ offerData.pickupLocation || 'Sector 18, Noida' }}</strong>
+              </div>
+            </div>
+            <span class="distance-badge">{{ offerData.distance || '2.4 km' }}</span>
+          </div>
+
+          <div class="attr-row">
+            <div class="attr-left">
+              <span class="attr-icon yellow-icon">⇄</span>
+              <div>
+                <span class="attr-label">Vehicle Required</span>
+                <strong class="attr-value">{{ offerData.productName || 'JCB 3DX' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="attr-row">
+            <div class="attr-left">
+              <span class="attr-icon yellow-icon">🕒</span>
+              <div>
+                <span class="attr-label">Duration</span>
+                <strong class="attr-value">{{ offerData.duration || '4 hours' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="attr-row">
+            <div class="attr-left">
+              <span class="attr-icon yellow-icon">💰</span>
+              <div>
+                <span class="attr-label">Estimated Earning</span>
+                <strong class="attr-value price-text">₹{{ (offerData.estimatedEarning || offerData.totalAmount || 2400) | number }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="sheet-actions">
+          <button class="btn-decline-pill" (click)="onDeclineClick()">Decline</button>
+          <button class="btn-review-pill" (click)="onReviewConnectClick()">Review & Connect</button>
+        </div>
+      </div>
+    }
+
+    <!-- 2. DECLINE JOB REASON MODAL (Screenshot 1, Right) -->
+    @if (currentStep === 'DECLINE_REASONS') {
+      <div class="offer-sheet animate-slide-up">
+        <div class="sheet-drag-handle"></div>
+
+        <h3 class="offer-title">Decline Job</h3>
+        <p class="offer-subtitle">Select a reason to help us find better matches.</p>
+
+        <div class="reasons-pill-list">
+          @for (reason of declineReasons; track reason) {
+            <label class="reason-pill" [class.active]="selectedDeclineReason === reason" (click)="selectedDeclineReason = reason">
+              <input type="radio" name="declineReason" [checked]="selectedDeclineReason === reason" />
+              <span class="radio-circle"></span>
+              <span class="reason-text">{{ reason }}</span>
+            </label>
+          }
+        </div>
+
+        <div class="decline-actions">
+          <button 
+            class="btn-confirm-decline" 
+            [disabled]="!selectedDeclineReason" 
+            (click)="onConfirmDecline()">
+            Confirm Decline
+          </button>
+          <button class="btn-goback-pill" (click)="currentStep = 'NEW_REQUEST'">Go Back</button>
+        </div>
+      </div>
+    }
+
+    <!-- 3. JOB DECLINED CONFIRMATION MODAL (Screenshot 2, Left) -->
+    @if (currentStep === 'DECLINED_CONFIRMATION') {
+      <div class="offer-sheet text-center animate-slide-up">
+        <div class="sheet-drag-handle"></div>
+
+        <div class="declined-icon-badge">
+          <span class="cross-icon">✕</span>
+        </div>
+
+        <h3 class="offer-title mt-3">Job Declined</h3>
+        <p class="offer-subtitle">Job request removed. We'll notify you when a matching opportunity is available.</p>
+
+        <button class="btn-yellow-full mt-4" (click)="onCloseDone()">Done</button>
+      </div>
+    }
+
+    <!-- 4. REVIEW & CONNECT MODAL (Screenshot 2, Right) -->
+    @if (currentStep === 'REVIEW_CONNECT') {
+      <div class="offer-sheet animate-slide-up">
+        <div class="sheet-drag-handle"></div>
+
+        <div class="review-icon-badge text-center">
+          <span class="check-icon">✓</span>
+        </div>
+
+        <h3 class="offer-title text-center mt-2">Review & Connect</h3>
+        <p class="offer-subtitle text-center">Review the job details and connect with the customer before confirming the dispatch.</p>
+
+        <div class="review-summary-card">
+          <div class="summary-row">
+            <span class="lbl">📍 Location</span>
+            <strong class="val">{{ offerData.pickupLocation || 'Sector 18, Noida' }}</strong>
+          </div>
+          <div class="summary-row">
+            <span class="lbl">🛠️ Vehicle</span>
+            <strong class="val">{{ offerData.productName || 'JCB 3DX' }}</strong>
+          </div>
+          <div class="summary-row">
+            <span class="lbl">💳 Earning</span>
+            <strong class="val price-highlight">₹{{ (offerData.estimatedEarning || offerData.totalAmount || 2400) | number }}</strong>
+          </div>
+        </div>
+
+        <button class="btn-yellow-full mt-3" (click)="onViewJobDetailsClick()">
+          📄 View Job Details
+        </button>
+      </div>
+    }
+
+  </div>
+}

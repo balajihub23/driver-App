@@ -1,0 +1,50 @@
+@if (isOpen) {
+  <div class="end-job-backdrop animate-fade-in">
+    <div class="end-job-card animate-slide-up">
+      <div class="card-header">
+        <h3>End Job & Confirm Completion</h3>
+        <button class="btn-close" (click)="onClose()">✕</button>
+      </div>
+
+      <p class="subtitle">Attach site completion photo and notes to confirm job completion.</p>
+
+      <!-- Site Photo Upload -->
+      <div class="upload-section">
+        <label class="section-label">Site Completion Photo <span class="req">*Required</span></label>
+        
+        @if (!photoPreviewUrl) {
+          <div class="upload-box" (click)="fileInput.click()">
+            <span class="camera-icon">📷</span>
+            <strong class="upload-title">Take or Upload Site Photo</strong>
+            <span class="upload-hint">Upload photo of finished work or site state</span>
+            <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;" />
+          </div>
+        } @else {
+          <div class="preview-box">
+            <img [src]="photoPreviewUrl" alt="Site Proof Preview" class="preview-img" />
+            <button class="btn-remove-photo" (click)="removePhoto()">✕ Remove Photo</button>
+          </div>
+        }
+      </div>
+
+      <!-- Description Note -->
+      <div class="form-group mt-3">
+        <label class="section-label">Work Completion Notes <span class="req">*Required</span></label>
+        <textarea 
+          class="description-textarea" 
+          rows="3" 
+          placeholder="Enter work details, hours logged, or site handover remarks..."
+          [(ngModel)]="completionDescription">
+        </textarea>
+      </div>
+
+      <!-- Submit Action -->
+      <button 
+        class="btn-yellow-submit mt-3" 
+        [disabled]="(!photoPreviewUrl && !selectedFile) || !completionDescription.trim() || isSubmitting"
+        (click)="onSubmitCompletion()">
+        {{ isSubmitting ? 'Submitting Proof...' : 'Confirm & Complete Job ➔' }}
+      </button>
+    </div>
+  </div>
+}

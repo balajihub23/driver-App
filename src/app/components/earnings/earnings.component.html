@@ -1,0 +1,177 @@
+<div class="mobile-app-wrapper">
+  <header class="earnings-header">
+    <h2>Earnings & Payouts</h2>
+  </header>
+
+  <main class="earnings-content">
+    <!-- Earnings Stats Banner -->
+    <div class="card stats-card">
+      <span class="card-label">TOTAL EARNINGS</span>
+      <h1 class="total-amount">₹{{ earningsData?.totalEarnings || 0 }}</h1>
+
+      <div class="stats-row">
+        <div class="stat-col">
+          <span class="val">₹{{ earningsData?.withdrawableAmount || 0 }}</span>
+          <span class="lbl">Withdrawable</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col">
+          <span class="val">{{ earningsData?.totalJobs || 0 }}</span>
+          <span class="lbl">Total Jobs</span>
+        </div>
+      </div>
+
+      <button class="btn-primary withdraw-btn" (click)="showWithdrawModal = true">
+        Request Payout Withdrawal ➔
+      </button>
+    </div>
+
+    <!-- Weekly Earnings Chart Visualizer -->
+    <div class="card chart-card">
+      <div class="chart-header">
+        <h3>Weekly Summary</h3>
+        <span class="week-text">This Week</span>
+      </div>
+
+      <div class="chart-bars">
+        <div class="bar-col">
+          <div class="bar-fill" style="height: 60%"></div>
+          <span class="day">M</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-fill" style="height: 85%"></div>
+          <span class="day">T</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-fill" style="height: 40%"></div>
+          <span class="day">W</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-fill" style="height: 95%"></div>
+          <span class="day">T</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-fill active" style="height: 100%"></div>
+          <span class="day">F</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-fill" style="height: 70%"></div>
+          <span class="day">S</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-fill" style="height: 30%"></div>
+          <span class="day">S</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Account Manager -->
+    <div class="card bank-card">
+      <div class="bank-header">
+        <h3>Bank Account</h3>
+        <button class="btn-link" (click)="showBankModal = true">
+          {{ bankAccount ? 'Change' : '+ Add Bank' }}
+        </button>
+      </div>
+
+      @if (bankAccount) {
+        <div class="bank-details-box">
+          <div class="bank-row">
+            <span class="icon">🏦</span>
+            <div>
+              <strong>{{ bankAccount.accountHolderName }}</strong>
+              <p>A/C: {{ bankAccount.accountNumberMasked }} • IFSC: {{ bankAccount.ifscCode }}</p>
+              @if (bankAccount.upiId) {
+                <p class="upi-text">UPI: {{ bankAccount.upiId }}</p>
+              }
+            </div>
+          </div>
+          <span class="verified-badge">✓ Verified</span>
+        </div>
+      } @else {
+        <p class="no-bank-text">No bank account linked. Add your bank details to receive withdrawals.</p>
+      }
+    </div>
+
+    <!-- Withdrawal History -->
+    <div class="section-header">
+      <h3>Payout History</h3>
+    </div>
+
+    <div class="history-list">
+      @for (wd of withdrawals; track wd.id) {
+        <div class="history-item">
+          <div class="h-left">
+            <strong>₹{{ wd.amount }}</strong>
+            <p>Ref: {{ wd.referenceNumber }}</p>
+          </div>
+          <span class="chip" [class.chip-active]="wd.status === 'PROCESSED'" [class.chip-pending]="wd.status === 'PENDING'">
+            {{ wd.status }}
+          </span>
+        </div>
+      } @empty {
+        <div class="empty-history">
+          <p>No payout withdrawals requested yet</p>
+        </div>
+      }
+    </div>
+  </main>
+
+  <app-bottom-navigation></app-bottom-navigation>
+
+  <!-- Add / Change Bank Modal -->
+  @if (showBankModal) {
+    <div class="modal-backdrop" (click)="showBankModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>Bank Account Details</h3>
+
+        <div class="form-group">
+          <label class="form-label">Account Holder Name</label>
+          <input type="text" class="form-control" [(ngModel)]="bankForm.accountHolderName" placeholder="Name as per bank" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Account Number</label>
+          <input type="text" class="form-control" [(ngModel)]="bankForm.accountNumberMasked" placeholder="Enter bank account number" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">IFSC Code</label>
+          <input type="text" class="form-control" [(ngModel)]="bankForm.ifscCode" placeholder="e.g. HDFC0001234" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">UPI ID (Optional)</label>
+          <input type="text" class="form-control" [(ngModel)]="bankForm.upiId" placeholder="e.g. name@bank" />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="showBankModal = false">Cancel</button>
+          <button class="btn-primary" (click)="onSaveBank()">Save Bank Account</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Withdrawal Modal -->
+  @if (showWithdrawModal) {
+    <div class="modal-backdrop" (click)="showWithdrawModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>Request Payout Withdrawal</h3>
+        <p class="sub">Withdrawable Balance: ₹{{ earningsData?.withdrawableAmount || 0 }}</p>
+
+        <div class="form-group">
+          <label class="form-label">Enter Amount (₹)</label>
+          <input type="number" class="form-control" [(ngModel)]="withdrawAmount" placeholder="e.g. 5000" />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="showWithdrawModal = false">Cancel</button>
+          <button class="btn-primary" [disabled]="!withdrawAmount || withdrawAmount <= 0" (click)="onRequestWithdrawal()">
+            Confirm Withdrawal
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

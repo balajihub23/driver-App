@@ -1,0 +1,188 @@
+<div class="mobile-app-wrapper">
+  <app-driver-header
+    [driverName]="driverProfile?.fullName || 'Suren'"
+    [locationName]="currentLocation"
+    [isOnline]="isOnline"
+    (onlineToggle)="onToggleOnlineStatus($event)"
+  ></app-driver-header>
+
+  <main class="dashboard-content">
+    <!-- Service Filter Tabs -->
+    <div class="service-tabs">
+      <button
+        class="tab-item"
+        [class.active]="selectedService === 'ALL'"
+        (click)="selectedService = 'ALL'"
+      >
+        All Services
+      </button>
+      <button
+        class="tab-item"
+        [class.active]="selectedService === 'CAB'"
+        (click)="selectedService = 'CAB'"
+      >
+        🚖 Cab
+      </button>
+      <button
+        class="tab-item"
+        [class.active]="selectedService === 'BIKE'"
+        (click)="selectedService = 'BIKE'"
+      >
+        🛵 Bike Taxi
+      </button>
+
+      <button
+        class="tab-item"
+        [class.active]="selectedService === 'EQUIPMENT'"
+        (click)="selectedService = 'EQUIPMENT'"
+      >
+        🚜 Equipment
+      </button>
+    </div>
+
+    <!-- Active Job Banner Card (Screenshot 3, Left) -->
+    @if (activeJob && isOnline) {
+      <div class="active-job-card animate-fade-in">
+        <div class="card-header-row">
+          <h3 class="active-title">Active Job</h3>
+          <span class="badge-in-progress">IN PROGRESS</span>
+        </div>
+
+        <div class="card-body-details">
+          <div class="detail-item">
+            <span class="icon yellow-icon">📍</span>
+            <div>
+              <span class="lbl">Site Location</span>
+              <strong class="val">{{ activeJob.pickupLocation || 'Metro Construction Site, Sector 21' }}</strong>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="icon yellow-icon">🚜</span>
+            <div>
+              <span class="lbl">Vehicle</span>
+              <strong class="val">{{ activeJob.productName || 'JCB 3DX' }}</strong>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="icon yellow-icon">🕒</span>
+            <div>
+              <span class="lbl">Work Duration</span>
+              <strong class="val">{{ activeJob.elapsedTimeText || '2h 15m elapsed' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card-actions-row">
+          <button class="btn-yellow-nav" (click)="openNavigationMap(activeJob)">
+            🧭 Navigate
+          </button>
+          <button class="btn-outline-call" (click)="onCallCustomer(activeJob.customerPhone)">
+            📞 Call
+          </button>
+        </div>
+
+        <button class="btn-dark-view-details" (click)="goToJobDetails(activeJob.id)">
+          📄 View Job Details
+        </button>
+      </div>
+    }
+
+    <!-- Performance Summary Banner (Screenshot 3, Bottom Yellow Card) -->
+    <div class="summary-card-yellow">
+      <div class="summary-header">
+        <span>Today's Summary</span>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <span class="icon">💼</span>
+          <span class="value">{{ earningsSummary?.totalJobs || 2 }}</span>
+          <span class="label">Jobs Done</span>
+        </div>
+
+        <div class="metric-divider"></div>
+
+        <div class="metric-box">
+          <span class="icon">🕒</span>
+          <span class="value">{{ earningsSummary?.workHours || 6.5 }}h</span>
+          <span class="label">Hours</span>
+        </div>
+
+        <div class="metric-divider"></div>
+
+        <div class="metric-box">
+          <span class="icon">₹</span>
+          <span class="value">₹{{ (earningsSummary?.totalEarnings || 4800) | number }}</span>
+          <span class="label">Earned</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offline Info Banner when offline -->
+    @if (!isOnline) {
+      <div class="offline-banner">
+        <span class="icon">🌙</span>
+        <div>
+          <h4>You are currently Offline</h4>
+          <p>Toggle switch above to start receiving ride & equipment booking requests</p>
+        </div>
+      </div>
+    }
+
+    <!-- Active / Recent Jobs Section -->
+    <div class="section-header">
+      <h3>Recent Jobs</h3>
+      <a routerLink="/jobs" class="link-all">View All</a>
+    </div>
+
+    <div class="recent-jobs-list">
+      @for (job of recentJobs; track job.id) {
+        <div class="job-item-card" [routerLink]="['/jobs']" [queryParams]="{ jobId: job.id }">
+          <div class="job-item-top">
+            <span class="job-num">#{{ job.bookingNumber || ('BK-108' + job.id) }}</span>
+            <span class="chip" [class.chip-active]="job.status === 'COMPLETED'" [class.chip-pending]="job.status === 'IN_PROGRESS'">
+              {{ job.status || 'COMPLETED' }}
+            </span>
+          </div>
+
+          <div class="job-item-body">
+            <h4>{{ job.productName || 'Equipment / Ride Job' }}</h4>
+            <p>Location: {{ job.pickupLocation || 'Sector 62, Noida' }}</p>
+          </div>
+
+          <div class="job-item-footer">
+            <span class="date">{{ job.bookingDate || 'Today' }}</span>
+            <strong class="amount">₹{{ job.totalAmount || 2400 }}</strong>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <span class="icon">📦</span>
+          <p>No recent jobs found</p>
+        </div>
+      }
+    </div>
+  </main>
+
+  <app-bottom-navigation></app-bottom-navigation>
+
+  <!-- Incoming Booking Offer Modal (Screenshots 1 & 2) -->
+  <app-booking-offer-modal
+    [isOpen]="showIncomingOffer"
+    [offerData]="incomingOfferData"
+    (accepted)="onAcceptOffer($event)"
+    (declined)="showIncomingOffer = false"
+    (viewDetails)="goToJobDetails($event?.bookingId)"
+  ></app-booking-offer-modal>
+
+  <!-- Interactive Navigation Map View (Screenshot 3) -->
+  <app-navigation-modal
+    [isOpen]="showNavModal"
+    [jobData]="activeJob"
+    (close)="showNavModal = false"
+    (arrivedAtSite)="onArrivedFromMap()"
+  ></app-navigation-modal>
+</div>

@@ -1,0 +1,101 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--surface);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.modal-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.choice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.choice-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease;
+
+  &:hover, &:active {
+    border-color: var(--primary);
+  }
+}
+.choice-card .icon {
+  font-size: 28px;
+}
+.choice-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.choice-info p {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.camera-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.camera-preview {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background-color: #000;
+}
+.camera-actions, .preview-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+.file-summary {
+  padding: 16px;
+  background-color: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+.file-name { font-weight: 700; font-size: 14px; }
+.file-size { font-size: 12px; color: var(--text-secondary); margin-left: 6px; }

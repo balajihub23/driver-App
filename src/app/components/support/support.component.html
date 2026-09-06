@@ -1,0 +1,288 @@
+<div class="mobile-app-wrapper">
+  
+  <!-- Main Header for List / FAQ view -->
+  @if (viewMode === 'LIST') {
+    <header class="support-header">
+      <div class="header-top">
+        <a routerLink="/profile" class="btn-back">‹</a>
+        <h2>Support</h2>
+        <span class="spacer"></span>
+      </div>
+
+      <!-- Segmented Sub Tabs: Tickets / FAQ -->
+      <div class="sub-tabs-container">
+        <button class="tab-btn" [class.active]="activeSubTab === 'TICKETS'" (click)="activeSubTab = 'TICKETS'">Tickets</button>
+        <button class="tab-btn" [class.active]="activeSubTab === 'FAQ'" (click)="activeSubTab = 'FAQ'">FAQ</button>
+      </div>
+    </header>
+  }
+
+  <!-- ==================== SUB-TAB 1: FAQ ==================== -->
+  @if (viewMode === 'LIST' && activeSubTab === 'FAQ') {
+    <main class="support-content animate-fade-in">
+      <h3 class="section-title">Frequently Asked Questions</h3>
+
+      <div class="faq-accordion-group">
+        <div class="faq-card" (click)="toggleFaq(1)">
+          <div class="faq-header">
+            <h4>How do I report a breakdown during a job?</h4>
+            <span class="arr">{{ expandedFaqId === 1 ? '▲' : '▼' }}</span>
+          </div>
+          @if (expandedFaqId === 1) {
+            <p class="faq-body">Immediately stop the vehicle in a safe location, turn on hazard lights, and notify customer care or use the Support ticket feature to inform dispatch.</p>
+          }
+        </div>
+
+        <div class="faq-card" (click)="toggleFaq(2)">
+          <div class="faq-header">
+            <h4>When are payouts processed?</h4>
+            <span class="arr">{{ expandedFaqId === 2 ? '▲' : '▼' }}</span>
+          </div>
+          @if (expandedFaqId === 2) {
+            <p class="faq-body">Payouts for completed trip assignments are instantly credited to your Rentron wallet and can be withdrawn directly to your linked UPI or bank account.</p>
+          }
+        </div>
+
+        <div class="faq-card" (click)="toggleFaq(3)">
+          <div class="faq-header">
+            <h4>What if I'm running late for an assignment?</h4>
+            <span class="arr">{{ expandedFaqId === 3 ? '▲' : '▼' }}</span>
+          </div>
+          @if (expandedFaqId === 3) {
+            <p class="faq-body">Contact site supervisors via in-app call or raise a quick ticket so customer support can update your site arrival ETA window.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Still Need Help Box -->
+      <div class="still-help-card">
+        <h4>Still need help?</h4>
+        <p>Our support team is available 24/7 for urgent matters.</p>
+        <a href="tel:18001234567" class="btn-call-support">📞 Call Support</a>
+      </div>
+    </main>
+  }
+
+  <!-- ==================== SUB-TAB 2: TICKETS LIST ==================== -->
+  @if (viewMode === 'LIST' && activeSubTab === 'TICKETS') {
+    <main class="support-content animate-fade-in">
+      <!-- Search Input -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Search messages..." 
+          [(ngModel)]="searchQuery"
+          (input)="filterTickets()" 
+        />
+      </div>
+
+      <!-- Ticket Items List or Empty State -->
+      @if (filteredTickets.length > 0) {
+        <div class="tickets-list">
+          @for (t of filteredTickets; track t.id) {
+            <div class="ticket-card" (click)="openTicketDetails(t)">
+              <div class="t-avatar-box">
+                <span class="t-initial">{{ (t.category || 'P')[0] }}</span>
+              </div>
+
+              <div class="t-center-info">
+                <div class="t-row-1">
+                  <h4 class="t-subject">{{ t.subject || ('Payout Issue - #' + t.ticketNumber) }}</h4>
+                  <span class="t-time">{{ t.createdAt || '10:42 AM' }}</span>
+                </div>
+                <p class="t-preview">{{ t.description || 'Please credit the payment soon' }}</p>
+              </div>
+
+              <div class="t-right-status">
+                <span class="status-pill"
+                  [class.pill-open]="t.status === 'OPEN' || t.status === 'REOPENED'"
+                  [class.pill-pending]="t.status === 'IN_PROGRESS'"
+                  [class.pill-resolved]="t.status === 'RESOLVED' || t.status === 'CLOSED'">
+                  {{ t.status }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Figma Empty State -->
+        <div class="empty-tickets-view">
+          <div class="search-illustration">
+            <span class="illustration-icon">🔍</span>
+          </div>
+          <h3>No tickets yet</h3>
+          <p>When you raise a support ticket, it will appear here for you to track and manage.</p>
+          <button class="btn-primary-yellow btn-raise-inline" (click)="viewMode = 'RAISE_TICKET'">+ Raise a Ticket</button>
+        </div>
+      }
+
+      <!-- Floating Action Button '+' (Matching Figma Screen 3) -->
+      <button class="fab-btn" (click)="viewMode = 'RAISE_TICKET'" title="Raise New Ticket">+</button>
+    </main>
+  }
+
+  <!-- ==================== VIEWMODE 2: RAISE TICKET FORM ==================== -->
+  @if (viewMode === 'RAISE_TICKET') {
+    <header class="sub-header">
+      <button class="btn-back" (click)="viewMode = 'LIST'">‹</button>
+      <h2>Raise Ticket</h2>
+      <span class="spacer"></span>
+    </header>
+
+    <main class="support-content animate-fade-in">
+      <div class="form-card">
+        <div class="form-group">
+          <label class="form-label">Issue Category</label>
+          <select class="form-input form-select" [(ngModel)]="newTicket.category">
+            <option value="" disabled selected>Select an issue category</option>
+            <option value="Payout Issue">Payout Issue</option>
+            <option value="Job Assignment">Job Assignment</option>
+            <option value="App Technical Issue">App Technical Issue</option>
+            <option value="Vehicle / Equipment">Vehicle / Equipment</option>
+            <option value="Other">Other Query</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-input form-select" [(ngModel)]="newTicket.priority">
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <input type="text" class="form-input" placeholder="Brief summary of the issue" [(ngModel)]="newTicket.subject" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea 
+            class="form-input form-textarea" 
+            rows="4" 
+            placeholder="Provide detailed information to help us receive the issue faster..." 
+            [(ngModel)]="newTicket.description"></textarea>
+        </div>
+
+        <!-- Attach Photos/Videos Dropzone (Matching Figma Screen 4) -->
+        <div class="form-group">
+          <label class="form-label">Attach Photos/Videos</label>
+          <div class="upload-dropzone">
+            @if (!attachmentPreviewName) {
+              <label class="drop-label">
+                <input type="file" accept="image/*,video/*" (change)="onFileAttachmentSelected($event)" style="display: none;" />
+                <span class="upload-icon">📁</span>
+                <strong>Upload File</strong>
+                <p>Max size: 10MB. Formats: JPG, PNG, MP4.</p>
+              </label>
+            } @else {
+              <div class="uploaded-file-chip">
+                <span>📎 {{ attachmentPreviewName }}</span>
+                <button class="btn-remove" (click)="removeAttachment()">✕</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <button 
+          class="btn-primary-yellow" 
+          [disabled]="!newTicket.category || !newTicket.subject || !newTicket.description" 
+          (click)="onSubmitTicket()">
+          Submit Ticket
+        </button>
+      </div>
+    </main>
+  }
+
+  <!-- ==================== VIEWMODE 3: TICKET RAISED CONFIRMATION ==================== -->
+  @if (viewMode === 'TICKET_CONFIRMATION') {
+    <main class="support-content animate-fade-in center-confirmation-wrapper">
+      <div class="success-card">
+        <div class="success-icon-circle">✓</div>
+        <h3>Ticket Raised !</h3>
+        <p class="sub-desc">
+          Your ticket <strong>{{ lastCreatedTicketNumber }}</strong> has been submitted. Our support team will respond within 2-4 hours.
+        </p>
+
+        <button class="btn-primary-yellow" (click)="viewMode = 'LIST'">✓ Done</button>
+        <button class="btn-link-home" routerLink="/dashboard">Back to Home</button>
+      </div>
+    </main>
+  }
+
+  <!-- ==================== VIEWMODE 4: TICKET CHAT THREAD ==================== -->
+  @if (viewMode === 'CHAT_THREAD' && selectedTicket) {
+    <header class="sub-header chat-header">
+      <button class="btn-back" (click)="viewMode = 'LIST'">‹</button>
+      <h2>{{ selectedTicket.subject || ('Payout Issue - #' + selectedTicket.ticketNumber) }}</h2>
+      <button class="btn-menu-dots" (click)="showTicketMenu = !showTicketMenu">⋮</button>
+
+      <!-- 3-Dots Dropdown Menu -->
+      @if (showTicketMenu) {
+        <div class="dropdown-menu">
+          <button (click)="onReopenTicket()">🔄 Re-Open Ticket</button>
+        </div>
+      }
+    </header>
+
+    <main class="chat-thread-container animate-fade-in">
+      <!-- Date Banner -->
+      <div class="date-divider">
+        <span>TODAY, 08:30 AM</span>
+      </div>
+
+      <!-- Chat Bubbles List -->
+      <div class="messages-list">
+        @for (msg of chatMessages; track msg.id) {
+          <div class="msg-bubble-wrapper" [class.msg-driver]="msg.senderRole === 'DRIVER'" [class.msg-admin]="msg.senderRole !== 'DRIVER'">
+            <div class="bubble-content">
+              <p>{{ msg.message }}</p>
+              
+              <!-- Image attachment preview if any -->
+              @if (msg.attachmentUrl) {
+                <img [src]="msg.attachmentUrl" alt="Attachment" class="chat-attached-img" />
+              }
+
+              <span class="msg-time-stamp">{{ msg.createdAt || '08:32 AM' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Reopen Notice Banner if ticket is RESOLVED or CLOSED -->
+      @if (selectedTicket.status === 'RESOLVED' || selectedTicket.status === 'CLOSED') {
+        <div class="reopen-notice-bar">
+          <p>You can't make a conversation until re-open the ticket</p>
+          <button class="btn-reopen-pill" (click)="onReopenTicket()">Re-Open</button>
+        </div>
+      }
+
+      <!-- Bottom Chat Bar -->
+      @if (selectedTicket.status !== 'CLOSED' && selectedTicket.status !== 'RESOLVED') {
+        <div class="chat-input-bar">
+          <label class="btn-chat-attach">
+            <input type="file" (change)="onFileAttachmentSelected($event)" style="display: none;" />
+            <span>+</span>
+          </label>
+
+          <input 
+            type="text" 
+            class="chat-input-field" 
+            placeholder="Type a message..." 
+            [(ngModel)]="newMessageText"
+            (keyup.enter)="onSendMessage()" 
+          />
+
+          <button class="btn-chat-send" [disabled]="!newMessageText.trim()" (click)="onSendMessage()">▶</button>
+        </div>
+      }
+    </main>
+  }
+
+  <!-- Bottom Navigation -->
+  <app-bottom-navigation></app-bottom-navigation>
+</div>
