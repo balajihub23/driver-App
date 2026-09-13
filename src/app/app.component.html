@@ -1,3 +1,25 @@
 <div class="main-app-container">
+
+  <!-- Floating STOMP WebSocket Support Notification Banner -->
+  @if (notificationService.activeSupportNotification(); as banner) {
+    <div class="ws-support-banner animate-slide-down" (click)="onBannerClick(banner.ticketId)">
+      <div class="banner-icon-box">
+        <span class="chat-icon">💬</span>
+      </div>
+      
+      <div class="banner-body">
+        <div class="banner-header">
+          <span class="banner-title">Support Reply #{{ banner.ticketNumber }}</span>
+          @if (banner.count > 1) {
+            <span class="banner-count-badge">{{ banner.count }} new messages</span>
+          }
+        </div>
+        <p class="banner-preview">{{ banner.latestMessage }}</p>
+      </div>
+
+      <button class="banner-close-btn" (click)="$event.stopPropagation(); dismissBanner()" title="Dismiss">✕</button>
+    </div>
+  }
+
   <router-outlet></router-outlet>
 </div>

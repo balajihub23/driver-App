@@ -89,7 +89,7 @@
 
               <div class="t-center-info">
                 <div class="t-row-1">
-                  <h4 class="t-subject">{{ t.subject || ('Payout Issue - #' + t.ticketNumber) }}</h4>
+                  <h4 class="t-subject">{{ t.subject || ('Payout Issue - #' + (t.ticketNumber || t.id)) }}</h4>
                   <span class="t-time">{{ t.createdAt || '10:42 AM' }}</span>
                 </div>
                 <p class="t-preview">{{ t.description || 'Please credit the payment soon' }}</p>
@@ -107,7 +107,7 @@
           }
         </div>
       } @else {
-        <!-- Figma Empty State -->
+        <!-- Empty State -->
         <div class="empty-tickets-view">
           <div class="search-illustration">
             <span class="illustration-icon">🔍</span>
@@ -118,7 +118,7 @@
         </div>
       }
 
-      <!-- Floating Action Button '+' (Matching Figma Screen 3) -->
+      <!-- Floating Action Button '+' -->
       <button class="fab-btn" (click)="viewMode = 'RAISE_TICKET'" title="Raise New Ticket">+</button>
     </main>
   }
@@ -133,32 +133,73 @@
 
     <main class="support-content animate-fade-in">
       <div class="form-card">
+
+        <!-- Issue Category Dropdown -->
         <div class="form-group">
           <label class="form-label">Issue Category</label>
-          <select class="form-input form-select" [(ngModel)]="newTicket.category">
-            <option value="" disabled selected>Select an issue category</option>
-            <option value="Payout Issue">Payout Issue</option>
-            <option value="Job Assignment">Job Assignment</option>
-            <option value="App Technical Issue">App Technical Issue</option>
-            <option value="Vehicle / Equipment">Vehicle / Equipment</option>
-            <option value="Other">Other Query</option>
-          </select>
+          <div class="custom-dropdown-container">
+            <div 
+              class="custom-dropdown-trigger" 
+              [class.has-value]="!!newTicket.category" 
+              (click)="toggleCategoryDropdown()">
+              <span>{{ newTicket.category || 'Select an issue category' }}</span>
+              <span class="dropdown-chevron" [class.open]="isCategoryDropdownOpen">▼</span>
+            </div>
+
+            @if (isCategoryDropdownOpen) {
+              <div class="custom-dropdown-menu animate-fade-in">
+                @for (cat of categoryOptions; track cat) {
+                  <div 
+                    class="dropdown-item" 
+                    [class.selected]="newTicket.category === cat" 
+                    (click)="selectCategory(cat)">
+                    <span>{{ cat }}</span>
+                    @if (newTicket.category === cat) {
+                      <span class="check-icon">✓</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
 
+        <!-- Priority Dropdown -->
         <div class="form-group">
           <label class="form-label">Priority</label>
-          <select class="form-input form-select" [(ngModel)]="newTicket.priority">
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LOW">Low</option>
-          </select>
+          <div class="custom-dropdown-container">
+            <div 
+              class="custom-dropdown-trigger has-value" 
+              (click)="togglePriorityDropdown()">
+              <span>{{ getPriorityLabel(newTicket.priority) }}</span>
+              <span class="dropdown-chevron" [class.open]="isPriorityDropdownOpen">▼</span>
+            </div>
+
+            @if (isPriorityDropdownOpen) {
+              <div class="custom-dropdown-menu animate-fade-in">
+                @for (p of priorityOptions; track p.value) {
+                  <div 
+                    class="dropdown-item" 
+                    [class.selected]="newTicket.priority === p.value" 
+                    (click)="selectPriority(p.value)">
+                    <span>{{ p.label }}</span>
+                    @if (newTicket.priority === p.value) {
+                      <span class="check-icon">✓</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
 
+        <!-- Subject Input -->
         <div class="form-group">
           <label class="form-label">Subject</label>
           <input type="text" class="form-input" placeholder="Brief summary of the issue" [(ngModel)]="newTicket.subject" />
         </div>
 
+        <!-- Description Input -->
         <div class="form-group">
           <label class="form-label">Description</label>
           <textarea 
@@ -168,7 +209,7 @@
             [(ngModel)]="newTicket.description"></textarea>
         </div>
 
-        <!-- Attach Photos/Videos Dropzone (Matching Figma Screen 4) -->
+        <!-- Attach Photos/Videos Dropzone -->
         <div class="form-group">
           <label class="form-label">Attach Photos/Videos</label>
           <div class="upload-dropzone">
@@ -190,9 +231,9 @@
 
         <button 
           class="btn-primary-yellow" 
-          [disabled]="!newTicket.category || !newTicket.subject || !newTicket.description" 
+          [disabled]="!newTicket.category || !newTicket.subject || !newTicket.description || isSubmitting" 
           (click)="onSubmitTicket()">
-          Submit Ticket
+          {{ isSubmitting ? 'Submitting...' : 'Submit Ticket' }}
         </button>
       </div>
     </main>
@@ -214,11 +255,11 @@
     </main>
   }
 
-  <!-- ==================== VIEWMODE 4: TICKET CHAT THREAD ==================== -->
+  <!-- ==================== VIEWMODE 4: TICKET CHAT THREAD (MATCHING SCREENSHOT 2) ==================== -->
   @if (viewMode === 'CHAT_THREAD' && selectedTicket) {
     <header class="sub-header chat-header">
       <button class="btn-back" (click)="viewMode = 'LIST'">‹</button>
-      <h2>{{ selectedTicket.subject || ('Payout Issue - #' + selectedTicket.ticketNumber) }}</h2>
+      <h2 class="chat-header-title">{{ selectedTicket.subject || ('Payout Issue - #' + (selectedTicket.ticketNumber || selectedTicket.id)) }}</h2>
       <button class="btn-menu-dots" (click)="showTicketMenu = !showTicketMenu">⋮</button>
 
       <!-- 3-Dots Dropdown Menu -->
@@ -229,27 +270,57 @@
       }
     </header>
 
-    <main class="chat-thread-container animate-fade-in">
+    <main class="chat-thread-container animate-fade-in" #chatMessagesContainer>
       <!-- Date Banner -->
       <div class="date-divider">
         <span>TODAY, 08:30 AM</span>
       </div>
 
-      <!-- Chat Bubbles List -->
+      <!-- Chat Messages Thread -->
       <div class="messages-list">
         @for (msg of chatMessages; track msg.id) {
-          <div class="msg-bubble-wrapper" [class.msg-driver]="msg.senderRole === 'DRIVER'" [class.msg-admin]="msg.senderRole !== 'DRIVER'">
-            <div class="bubble-content">
-              <p>{{ msg.message }}</p>
-              
-              <!-- Image attachment preview if any -->
-              @if (msg.attachmentUrl) {
-                <img [src]="msg.attachmentUrl" alt="Attachment" class="chat-attached-img" />
-              }
-
-              <span class="msg-time-stamp">{{ msg.createdAt || '08:32 AM' }}</span>
+          @if (msg.isCard && msg.cardType === 'LOCATION') {
+            <!-- Special Location Card Bubble -->
+            <div class="chat-card-bubble animate-fade-in">
+              <div class="card-icon-wrapper">
+                <span class="loc-pin">📍</span>
+              </div>
+              <div class="card-content">
+                <h4 class="card-title">{{ msg.title }}</h4>
+                <p class="card-subtitle">{{ msg.subtitle }}</p>
+              </div>
+              <button class="card-action-link">{{ msg.actionText || 'View Map' }}</button>
             </div>
-          </div>
+          } @else {
+            <!-- Message Bubble (Driver / Support) -->
+            <div 
+              class="msg-bubble-wrapper" 
+              [class.msg-driver]="msg.senderRole === 'DRIVER'" 
+              [class.msg-admin]="msg.senderRole !== 'DRIVER'">
+              
+              <div class="bubble-content">
+                <!-- Image Attachment if present -->
+                @if (msg.attachmentUrl) {
+                  <div class="chat-attached-img-wrapper">
+                    <img [src]="msg.attachmentUrl" [alt]="msg.attachmentName || 'Attachment'" class="chat-attached-img" />
+                  </div>
+                }
+
+                <!-- Text Message -->
+                @if (msg.message) {
+                  <p class="msg-text">{{ msg.message }}</p>
+                }
+                
+                <!-- Timestamp & Delivery Checks -->
+                <div class="msg-footer">
+                  <span class="msg-time-stamp">{{ msg.createdAt || '08:32 AM' }}</span>
+                  @if (msg.senderRole === 'DRIVER') {
+                    <span class="msg-double-checks">✓✓</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
         }
       </div>
 
@@ -261,23 +332,48 @@
         </div>
       }
 
-      <!-- Bottom Chat Bar -->
+      <!-- Bottom Chat Bar Matching Screenshot 2 -->
       @if (selectedTicket.status !== 'CLOSED' && selectedTicket.status !== 'RESOLVED') {
-        <div class="chat-input-bar">
-          <label class="btn-chat-attach">
-            <input type="file" (change)="onFileAttachmentSelected($event)" style="display: none;" />
-            <span>+</span>
-          </label>
+        <div class="chat-input-wrapper-fixed">
+          
+          <!-- Attachment Preview Chip if file selected in chat -->
+          @if (chatAttachmentPreviewName) {
+            <div class="chat-attachment-preview-bar">
+              <span class="att-filename">📷 {{ chatAttachmentPreviewName }}</span>
+              <button class="btn-close-att" (click)="removeChatAttachment()">✕</button>
+            </div>
+          }
 
-          <input 
-            type="text" 
-            class="chat-input-field" 
-            placeholder="Type a message..." 
-            [(ngModel)]="newMessageText"
-            (keyup.enter)="onSendMessage()" 
-          />
+          <div class="chat-input-bar">
+            <!-- Plus Button -->
+            <label class="btn-chat-plus" title="Add attachment">
+              <input type="file" accept="image/*" (change)="onChatFileSelected($event)" style="display: none;" />
+              <span class="plus-circle-icon">+</span>
+            </label>
 
-          <button class="btn-chat-send" [disabled]="!newMessageText.trim()" (click)="onSendMessage()">▶</button>
+            <!-- Input Field -->
+            <input 
+              type="text" 
+              class="chat-input-field" 
+              placeholder="Type a message..." 
+              [(ngModel)]="newMessageText"
+              (keyup.enter)="onSendMessage()" 
+            />
+
+            <!-- Camera Icon Button -->
+            <label class="btn-chat-camera" title="Take or upload photo">
+              <input type="file" accept="image/*" (change)="onChatFileSelected($event)" style="display: none;" />
+              <span class="camera-icon">📷</span>
+            </label>
+
+            <!-- Send Yellow Circle Button -->
+            <button 
+              class="btn-chat-send-yellow" 
+              [disabled]="!newMessageText.trim() && !chatAttachmentFile" 
+              (click)="onSendMessage()">
+              <span class="send-arrow">➤</span>
+            </button>
+          </div>
         </div>
       }
     </main>

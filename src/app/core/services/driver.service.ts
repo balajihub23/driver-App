@@ -58,11 +58,30 @@ export class DriverService {
     return this.http.get<any>(`${this.baseUrl}/api/v1/drivers/me/earnings/bank-account`);
   }
 
-  saveBankAccount(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/api/v1/drivers/me/earnings/bank-account`, data);
+  getBankAccounts(): Observable<any> {
+    if (!isPlatformBrowser(this.platformId) || !this.authService.getAccessToken()) {
+      return of({ success: false, data: null });
+    }
+    return this.http.get<any>(`${this.baseUrl}/api/v1/drivers/me/earnings/bank-accounts`);
   }
 
-  requestWithdrawal(amount: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/api/v1/drivers/me/earnings/withdraw?amount=${amount}`, null);
+  saveBankAccount(data: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/api/v1/drivers/me/earnings/bank-accounts`, data);
+  }
+
+  deleteBankAccount(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/api/v1/drivers/me/earnings/bank-accounts/${id}`);
+  }
+
+  setPrimaryBankAccount(id: number): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/api/v1/drivers/me/earnings/bank-accounts/${id}/primary`, null);
+  }
+
+  requestWithdrawal(amount: number, bankAccountId?: number | null): Observable<any> {
+    let url = `${this.baseUrl}/api/v1/drivers/me/earnings/withdraw?amount=${amount}`;
+    if (bankAccountId) {
+      url += `&bankAccountId=${bankAccountId}`;
+    }
+    return this.http.post<any>(url, null);
   }
 }

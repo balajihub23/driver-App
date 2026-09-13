@@ -24,9 +24,14 @@ export class NotificationsComponent implements OnInit {
   loadInbox(): void {
     this.notificationService.getInbox().subscribe({
       next: (res) => {
-        if (res.success && res.data && res.data.length > 0) {
+        if (res && res.success && res.data) {
           this.notifications = res.data;
+        } else {
+          this.notifications = [];
         }
+      },
+      error: () => {
+        this.notifications = [];
       }
     });
   }
@@ -45,6 +50,9 @@ export class NotificationsComponent implements OnInit {
     this.notificationService.markAllAsRead().subscribe({
       next: () => {
         this.notifications.forEach(n => n.isRead = true);
+      },
+      error: () => {
+        this.notifications.forEach(n => n.isRead = true);
       }
     });
   }
@@ -55,8 +63,17 @@ export class NotificationsComponent implements OnInit {
       this.notificationService.markAsRead(notification.id).subscribe();
     }
 
-    if (notification.notificationType === 'BOOKING') this.router.navigate(['/jobs']);
-    else if (notification.notificationType === 'PAYMENT') this.router.navigate(['/earnings']);
-    else if (notification.notificationType === 'SUPPORT') this.router.navigate(['/support']);
+    if (notification.notificationType === 'BOOKING') {
+      this.router.navigate(['/jobs']);
+    } else if (notification.notificationType === 'PAYMENT') {
+      this.router.navigate(['/earnings']);
+    } else if (notification.notificationType === 'SUPPORT') {
+      const ticketId = notification.ticketId || notification.targetId;
+      if (ticketId) {
+        this.router.navigate(['/support'], { queryParams: { ticketId } });
+      } else {
+        this.router.navigate(['/support']);
+      }
+    }
   }
 }

@@ -5,6 +5,14 @@ import { Observable, tap, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
+export interface ActiveSupportBanner {
+  ticketId: number;
+  ticketNumber: string;
+  subject?: string;
+  latestMessage: string;
+  count: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,6 +23,7 @@ export class NotificationService {
   private readonly baseUrl = environment.serverApi;
 
   unreadCount = signal<number>(0);
+  activeSupportNotification = signal<ActiveSupportBanner | null>(null);
 
   getInbox(): Observable<any> {
     if (!isPlatformBrowser(this.platformId) || !this.authService.getAccessToken()) {
@@ -35,6 +44,32 @@ export class NotificationService {
       },
       error: () => {}
     });
+  }
+
+  showSupportBanner(ticketId: number, ticketNumber: string, messageText: string, subject?: string): void {
+    const current = this.activeSupportNotification();
+    if (current && current.ticketId === ticketId) {
+      // Update existing notification with new message & increment counter!
+      this.activeSupportNotification.set({
+        ticketId,
+        ticketNumber: ticketNumber || current.ticketNumber,
+        subject: subject || current.subject,
+        latestMessage: messageText,
+        count: current.count + 1
+      });
+    } else {
+      this.activeSupportNotification.set({
+        ticketId,
+        ticketNumber: ticketNumber || ('INC-' + ticketId),
+        subject: subject || 'Support Update',
+        latestMessage: messageText,
+        count: 1
+      });
+    }
+  }
+
+  dismissSupportBanner(): void {
+    this.activeSupportNotification.set(null);
   }
 
   markAsRead(id: number): Observable<any> {

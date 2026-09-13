@@ -28,12 +28,21 @@ export class SupportService {
     return this.http.get<any>(`${this.baseUrl}/api/v1/support/tickets/${id}`);
   }
 
-  createTicket(category: string, subject: string, description: string, priority: string = 'MEDIUM'): Observable<any> {
+  createTicket(
+    category: string, 
+    subject: string, 
+    description: string, 
+    priority: string = 'MEDIUM', 
+    attachmentUrl?: string, 
+    attachmentName?: string
+  ): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/api/v1/support/tickets`, {
       category,
       subject,
       description,
-      priority
+      priority,
+      attachmentUrl,
+      attachmentName
     });
   }
 
