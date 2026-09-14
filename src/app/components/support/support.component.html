@@ -58,7 +58,7 @@
       <div class="still-help-card">
         <h4>Still need help?</h4>
         <p>Our support team is available 24/7 for urgent matters.</p>
-        <a href="tel:18001234567" class="btn-call-support">📞 Call Support</a>
+        <a [href]="'tel:' + supportPhone" class="btn-call-support">📞 Call Support ({{ supportPhone }})</a>
       </div>
     </main>
   }

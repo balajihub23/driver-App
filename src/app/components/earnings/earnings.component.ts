@@ -19,6 +19,21 @@ export class EarningsComponent implements OnInit {
   bankAccounts: any[] = [];
   withdrawals: any[] = [];
 
+  get currentDayIndex(): number {
+    const day = new Date().getDay(); // 0: Sun, 1: Mon ... 6: Sat
+    return day === 0 ? 6 : day - 1; // Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6
+  }
+
+  weeklyBars = [
+    { day: 'M', height: '60%', index: 0 },
+    { day: 'T', height: '85%', index: 1 },
+    { day: 'W', height: '40%', index: 2 },
+    { day: 'T', height: '95%', index: 3 },
+    { day: 'F', height: '80%', index: 4 },
+    { day: 'S', height: '70%', index: 5 },
+    { day: 'S', height: '30%', index: 6 }
+  ];
+
   showBankModal: boolean = false;
   showWithdrawModal: boolean = false;
   withdrawAmount: number | null = null;

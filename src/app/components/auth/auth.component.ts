@@ -60,6 +60,21 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
   }
 
+  onOtpPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') || '';
+    const digits = pastedText.replace(/[^0-9]/g, '').slice(0, 6).split('');
+    digits.forEach((digit, i) => {
+      if (i < 6) {
+        this.otpDigits[i] = digit;
+      }
+    });
+    this.errorMessage = '';
+    if (this.isOtpComplete()) {
+      this.onVerifyOtp();
+    }
+  }
+
   onSendOtp(): void {
     if (this.phoneNumber.length < 10) {
       this.errorMessage = 'Please enter a valid 10-digit mobile number.';
@@ -129,18 +144,25 @@ export class AuthComponent implements OnInit, OnDestroy {
         if (res && (res.success || res.accessToken || res.data?.accessToken)) {
           this.checkDriverProfileAndNavigate();
         } else if (res && res.message) {
-          this.errorMessage = res.message;
-          this.otpDigits = ['', '', '', '', '', ''];
+          const msg = (res.message || '').toLowerCase();
+          if (msg.includes('incomplete') || msg.includes('registration')) {
+            this.authService.clearSession();
+            this.router.navigate(['/onboarding'], { queryParams: { phone: this.phoneNumber } });
+          } else {
+            this.errorMessage = res.message;
+            this.otpDigits = ['', '', '', '', '', ''];
+          }
         }
       },
       error: (err) => {
         this.loading = false;
-        const msg = err.error?.message || err.message || '';
+        const msg = (err.error?.message || err.message || '').toLowerCase();
 
-        if (msg.includes('registration incomplete') || msg.includes('incomplete for phone')) {
-          this.router.navigate(['/onboarding']);
+        if (msg.includes('incomplete') || msg.includes('registration')) {
+          this.authService.clearSession();
+          this.router.navigate(['/onboarding'], { queryParams: { phone: this.phoneNumber } });
         } else {
-          this.errorMessage = msg || 'Invalid OTP code entered. Please check and try again.';
+          this.errorMessage = err.error?.message || err.message || 'Invalid OTP code entered. Please check and try again.';
           this.otpDigits = ['', '', '', '', '', ''];
         }
       }
@@ -162,11 +184,11 @@ export class AuthComponent implements OnInit, OnDestroy {
         )) {
           this.router.navigate(['/dashboard']);
         } else {
-          this.router.navigate(['/onboarding']);
+          this.router.navigate(['/onboarding'], { queryParams: { phone: this.phoneNumber } });
         }
       },
       error: () => {
-        this.router.navigate(['/onboarding']);
+        this.router.navigate(['/onboarding'], { queryParams: { phone: this.phoneNumber } });
       }
     });
   }
@@ -194,8 +216,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.authService.registerDriverPartner(payload).subscribe({
       next: (res) => {
         this.loading = false;
-        alert('Account registered! Proceeding to account verification progress (partner_approvals).');
-        this.router.navigate(['/onboarding'], { queryParams: { step: 'SUBMITTED', phone: this.phoneNumber } });
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loading = false;

@@ -91,6 +91,8 @@
               [value]="otpDigits[$index]"
               (input)="onOtpInput($event, $index)"
               (keyup)="onOtpKeyUp($event, $index)"
+              (paste)="onOtpPaste($event)"
+              (keyup.enter)="onVerifyOtp()"
             />
           }
         </div>

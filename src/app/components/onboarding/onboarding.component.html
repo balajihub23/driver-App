@@ -23,33 +23,68 @@
           <input type="email" class="form-control" placeholder="e.g., john@gmail.com" [(ngModel)]="formData.email" />
         </div>
 
-        <div class="form-group">
+        <div class="form-group custom-select-group">
           <label class="form-label">City</label>
-          <select class="form-control" [(ngModel)]="formData.city">
-            <option value="">Select your city</option>
-            <option value="Gurugram">Gurugram</option>
-            <option value="Noida">Noida</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Bengaluru">Bengaluru</option>
-            <option value="Hyderabad">Hyderabad</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Mumbai">Mumbai</option>
-          </select>
+          <div class="custom-dropdown" [class.open]="isCityDropdownOpen">
+            <div class="dropdown-trigger" (click)="toggleCityDropdown()">
+              <span>{{ formData.city || 'Select your city' }}</span>
+              <span class="arrow-icon">▾</span>
+            </div>
+
+            @if (isCityDropdownOpen) {
+              <div class="dropdown-menu">
+                <div class="dropdown-search-box">
+                  <input
+                    type="text"
+                    class="dropdown-search-input"
+                    placeholder="Search city..."
+                    [(ngModel)]="citySearchQuery"
+                    (click)="$event.stopPropagation()"
+                  />
+                </div>
+                <div class="dropdown-options-list">
+                  @for (city of filteredCities; track city) {
+                    <div
+                      class="dropdown-option"
+                      [class.selected]="formData.city === city"
+                      (click)="selectCity(city)"
+                    >
+                      {{ city }}
+                    </div>
+                  }
+                  @if (filteredCities.length === 0) {
+                    <div class="dropdown-no-results">No cities found</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group custom-select-group">
           <label class="form-label">Language</label>
-          <select class="form-control" [(ngModel)]="formData.language">
-            <option value="">Select your preferred language</option>
-            <option value="English">English</option>
-            <option value="Hindi">Hindi</option>
-            <option value="Tamil">Tamil</option>
-            <option value="Telugu">Telugu</option>
-            <option value="Kannada">Kannada</option>
-            <option value="Malayalam">Malayalam</option>
-            <option value="Marathi">Marathi</option>
-            <option value="Gujarati">Gujarati</option>
-          </select>
+          <div class="custom-dropdown" [class.open]="isLanguageDropdownOpen">
+            <div class="dropdown-trigger" (click)="toggleLanguageDropdown()">
+              <span>{{ formData.language || 'Select your preferred language' }}</span>
+              <span class="arrow-icon">▾</span>
+            </div>
+
+            @if (isLanguageDropdownOpen) {
+              <div class="dropdown-menu">
+                <div class="dropdown-options-list">
+                  @for (lang of languagesList; track lang) {
+                    <div
+                      class="dropdown-option"
+                      [class.selected]="formData.language === lang"
+                      (click)="selectLanguage(lang)"
+                    >
+                      {{ lang }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
         </div>
 
         <div class="form-group">
@@ -238,6 +273,12 @@
         <h2>Complete your profile</h2>
         <p class="subtitle">Upload required documents to verify identity and start accepting jobs</p>
 
+        @if (docValidationError) {
+          <div class="error-alert">
+            {{ docValidationError }}
+          </div>
+        }
+
         <div class="doc-section">
           <span class="section-badge">IDENTITY & PERSONAL DETAILS</span>
 
@@ -303,7 +344,7 @@
           }
         </div>
 
-        <button class="btn-primary continue-btn" (click)="currentStep = 'BANK_DETAILS'">
+        <button class="btn-primary continue-btn" [disabled]="!areRequiredDocsUploaded()" (click)="onDocumentNext()">
           Continue ➔
         </button>
       </div>

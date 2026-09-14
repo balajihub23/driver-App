@@ -1,0 +1,27 @@
+<div class="service-error-container">
+  <div class="error-card">
+    <div class="error-icon-wrapper">
+      <div class="icon-circle">
+        <span class="warning-icon">⚠️</span>
+      </div>
+      <span class="error-badge">{{ errorCode }}</span>
+    </div>
+
+    <h1 class="error-title">{{ errorTitle }}</h1>
+    <p class="error-description">{{ errorMessage }}</p>
+
+    <div class="info-box">
+      <p>💡 <strong>What happened?</strong> Your session token may have expired, or the service is temporarily
+        unreachable.</p>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-logout" (click)="onLogout()">
+        <span class="btn-icon">🚪</span> Log Out & Re-login
+      </button>
+      <!-- <button class="btn-retry" (click)="onRetry()">
+        <span class="btn-icon">🔄</span> Retry Connection
+      </button> -->
+    </div>
+  </div>
+</div>

@@ -97,62 +97,76 @@ export class ProfileComponent implements OnInit {
     { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી' }
   ];
 
-  // Documents state (Only set fileUrl if real document exists)
+  isSameDocType(docTypeKey: string, backendDocType: string): boolean {
+    if (!docTypeKey || !backendDocType) return false;
+    const key = docTypeKey.toUpperCase().trim();
+    const bType = backendDocType.toUpperCase().trim();
+
+    if (key === bType) return true;
+    if (key === 'AADHAAR' && (bType.includes('AADHAAR') || bType.includes('GOVERNMENT ID'))) return true;
+    if (key === 'LICENSE' && (bType.includes('LICENSE') || bType.includes('DRIVING'))) return true;
+    if (key === 'PAN' && bType.includes('PAN')) return true;
+    if (key === 'RC' && (bType.includes('RC') || bType.includes('EQUIPMENT') || bType.includes('VEHICLE'))) return true;
+    if (key === 'PHOTO' && (bType.includes('PHOTO') || bType.includes('PROFILE'))) return true;
+    if (key === 'INSURANCE' && bType.includes('INSURANCE')) return true;
+    return bType.includes(key) || key.includes(bType);
+  }
+
+  // Documents state
   documentsList: DocumentItem[] = [
     {
       docTypeKey: 'AADHAAR',
       title: 'Aadhaar Card',
-      status: 'VERIFIED',
-      docNumber: 'TX-892-441-B',
+      status: 'NOT_UPLOADED',
+      docNumber: '',
       expiryDate: 'Oct 12, 2027',
       issuingAuthority: 'Government of India',
-      submittedOn: 'Oct 24, 2023',
-      fileName: 'aadhaar_scan_v2.jpg',
+      submittedOn: '',
+      fileName: '',
       fileUrl: ''
     },
     {
       docTypeKey: 'LICENSE',
       title: 'Driving License',
-      status: 'VERIFIED',
-      docNumber: 'DL-9082-2021',
+      status: 'NOT_UPLOADED',
+      docNumber: '',
       expiryDate: 'Dec 15, 2028',
       issuingAuthority: 'State RTO',
-      submittedOn: 'Nov 01, 2023',
-      fileName: 'driver_license_front.png',
+      submittedOn: '',
+      fileName: '',
       fileUrl: ''
     },
     {
       docTypeKey: 'PAN',
       title: 'PAN Card',
-      status: 'UNDER_REVIEW',
-      docNumber: 'ABCDE1234F',
+      status: 'NOT_UPLOADED',
+      docNumber: '',
       expiryDate: 'N/A',
       issuingAuthority: 'Income Tax Dept',
-      submittedOn: 'Jan 10, 2024',
-      fileName: 'pan_card_doc.jpg',
+      submittedOn: '',
+      fileName: '',
       fileUrl: ''
     },
     {
       docTypeKey: 'RC',
       title: 'Vehicle RC',
-      status: 'VERIFIED',
-      docNumber: 'TN-09-AB-1234',
+      status: 'NOT_UPLOADED',
+      docNumber: '',
       expiryDate: 'Aug 20, 2030',
       issuingAuthority: 'Transport Dept',
-      submittedOn: 'Oct 15, 2023',
-      fileName: 'vehicle_rc.jpg',
+      submittedOn: '',
+      fileName: '',
       fileUrl: ''
     },
     {
       docTypeKey: 'PHOTO',
       title: 'Photo',
-      status: 'REJECTED',
-      rejectionReason: 'Image is blurry or edges are cut off.',
-      docNumber: 'P-98721',
+      status: 'NOT_UPLOADED',
+      docNumber: '',
       expiryDate: 'N/A',
       issuingAuthority: 'Self Upload',
-      submittedOn: 'Jan 18, 2024',
-      fileName: 'photo_draft.jpg',
+      submittedOn: '',
+      fileName: '',
       fileUrl: ''
     },
     {
@@ -179,7 +193,6 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
-    this.loadBackendDocuments();
   }
 
   loadProfile(): void {
@@ -207,6 +220,10 @@ export class ProfileComponent implements OnInit {
             this.selectedLanguage = data.preferredLanguage;
           }
         }
+        this.loadBackendDocuments();
+      },
+      error: () => {
+        this.loadBackendDocuments();
       }
     });
 
@@ -224,25 +241,27 @@ export class ProfileComponent implements OnInit {
     const driverId = this.driverProfile?.id || 1;
     this.documentService.getDocumentsForEntity('DRIVER', driverId).subscribe({
       next: (res) => {
-        if (res.success && res.data && res.data.length > 0) {
-          // Merge uploaded backend documents into default list
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
           res.data.forEach((doc: any) => {
             const matchIndex = this.documentsList.findIndex(
-              d => d.docTypeKey.toUpperCase() === (doc.documentType || '').toUpperCase()
+              d => this.isSameDocType(d.docTypeKey, doc.documentType)
             );
+            const downloadLink = this.documentService.downloadUrl(doc.id);
             const docObj: DocumentItem = {
               id: doc.id,
               docTypeKey: doc.documentType || 'DOC',
               title: this.getDocTitle(doc.documentType),
-              status: 'VERIFIED',
-              docNumber: doc.documentNumber || 'TX-' + doc.id,
+              status: 'UNDER_REVIEW',
+              docNumber: doc.documentNumber || 'DOC-' + doc.id,
               expiryDate: 'Oct 12, 2027',
               issuingAuthority: 'Government Authority',
               submittedOn: new Date(doc.createdAt || Date.now()).toLocaleDateString(),
               fileName: doc.fileName,
-              fileUrl: this.documentService.downloadUrl(doc.id)
+              fileUrl: downloadLink
             };
             if (matchIndex >= 0) {
+              docObj.docTypeKey = this.documentsList[matchIndex].docTypeKey;
+              docObj.title = this.documentsList[matchIndex].title;
               this.documentsList[matchIndex] = docObj;
             } else {
               this.documentsList.push(docObj);

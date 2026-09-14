@@ -1,8 +1,9 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-driver-header',
@@ -15,13 +16,31 @@ export class DriverHeaderComponent {
   @Input() driverName: string = '';
   @Input() locationName: string = '';
   @Input() isOnline: boolean = false;
+  @Input() isPendingVerification: boolean = false;
   @Output() onlineToggle = new EventEmitter<boolean>();
 
   notificationService = inject(NotificationService);
   themeService = inject(ThemeService);
+  authService = inject(AuthService);
+  router = inject(Router);
+
+  onLogout(): void {
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth']),
+      error: () => {
+        this.authService.clearSession();
+        this.router.navigate(['/auth']);
+      }
+    });
+  }
 
   onToggleOnline(event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
+    const input = event.target as HTMLInputElement;
+    if (this.isPendingVerification) {
+      input.checked = false;
+      return;
+    }
+    const checked = input.checked;
     this.onlineToggle.emit(checked);
   }
 

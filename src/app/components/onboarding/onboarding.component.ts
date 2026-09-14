@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -34,6 +34,20 @@ export class OnboardingComponent implements OnInit {
   documentService = inject(DocumentService);
   router = inject(Router);
   route = inject(ActivatedRoute);
+  elementRef = inject(ElementRef);
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const targetNode = event.target as Node;
+    const isInsideCustomDropdown = Array.from(this.elementRef.nativeElement.querySelectorAll('.custom-dropdown'))
+      .some((dropdown: any) => dropdown.contains(targetNode));
+
+    if (!isInsideCustomDropdown) {
+      this.isCityDropdownOpen = false;
+      this.isLanguageDropdownOpen = false;
+      this.citySearchQuery = '';
+    }
+  }
 
   currentStep: OnboardingStep = 'PROFILE_FORM';
 
@@ -62,6 +76,62 @@ export class OnboardingComponent implements OnInit {
   validAgreed: boolean = false;
   loading: boolean = false;
 
+  citiesList: string[] = [
+    'Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem', 'Erode',
+    'Tirunelveli', 'Vellore', 'Thanjavur', 'Dindigul', 'Kancheepuram', 'Tiruvannamalai',
+    'Gurugram', 'Noida', 'Delhi', 'Bengaluru', 'Hyderabad', 'Mumbai',
+    'Thoothukkudi', 'Nagapattinam', 'Pudukkottai', 'Krishnagiri', 'Dharmapuri', 'Kanniyakumari',
+    'Rāmanāthapuram', 'Sivaganga', 'Thiruvarur', 'Theni', 'Karur', 'Ariyalur',
+    'Perambalur', 'Virudhunagar', 'Tirupattur', 'Ranipet', 'Tenkasi', 'Kallakurichi',
+    'Nilgiris', 'Avadi', 'Tambaram', 'Tiruvottiyur', 'Poonamallee', 'Sriperumbudur',
+    'Hosur', 'Kumbakonam', 'Rajapalayam', 'Karaikkudi', 'Bodinayakanur', 'Ambur',
+    'Vaniyambadi', 'Arani', 'Gudiyatham', 'Attur', 'Mettupalayam', 'Coonoor',
+    'Udhagamandalam', 'Kovilpatti', 'Sivakasi'
+  ];
+
+  isCityDropdownOpen: boolean = false;
+  citySearchQuery: string = '';
+
+  get filteredCities(): string[] {
+    if (!this.citySearchQuery.trim()) {
+      return this.citiesList;
+    }
+    const query = this.citySearchQuery.toLowerCase();
+    return this.citiesList.filter(c => c.toLowerCase().includes(query));
+  }
+
+  languagesList: string[] = ['English', 'Hindi', 'Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Marathi', 'Gujarati'];
+  isLanguageDropdownOpen: boolean = false;
+
+  toggleLanguageDropdown(): void {
+    this.isLanguageDropdownOpen = !this.isLanguageDropdownOpen;
+    if (this.isLanguageDropdownOpen) {
+      this.isCityDropdownOpen = false;
+    }
+  }
+
+  selectLanguage(lang: string): void {
+    this.formData.language = lang;
+    this.isLanguageDropdownOpen = false;
+  }
+
+  toggleCityDropdown(): void {
+    this.isCityDropdownOpen = !this.isCityDropdownOpen;
+    if (this.isCityDropdownOpen) {
+      this.isLanguageDropdownOpen = false;
+    } else {
+      this.citySearchQuery = '';
+    }
+  }
+
+  selectCity(city: string): void {
+    this.formData.city = city;
+    this.isCityDropdownOpen = false;
+    this.citySearchQuery = '';
+  }
+
+  createdDriverId?: number;
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       if (params['step'] === 'SUBMITTED') {
@@ -74,17 +144,73 @@ export class OnboardingComponent implements OnInit {
 
     this.driverService.getProfile().subscribe({
       next: (res) => {
-        const profile = res?.data || res;
+        const profile = (res && res.success && res.data) ? res.data : (res && res.phone ? res : null);
         if (profile) {
-          if (profile.fullName) this.formData.fullName = profile.fullName;
-          if (profile.email) this.formData.email = profile.email;
-          if (profile.phone && !this.phone) this.phone = profile.phone;
-          if (profile.city) this.formData.city = profile.city;
-          if (profile.preferredLanguage) this.formData.language = profile.preferredLanguage;
-          if (profile.operationType) this.formData.operationType = profile.operationType;
-          if (profile.selectedVehicleType) this.formData.vehicleType = profile.selectedVehicleType;
-          if (profile.selectedMachineryModel) this.formData.machineryModel = profile.selectedMachineryModel;
+          const status = (profile.status || '').toUpperCase();
+          if (
+            status === 'PENDING_VERIFICATION' ||
+            status === 'ACTIVE' ||
+            status === 'VERIFIED' ||
+            status === 'APPROVED' ||
+            status === 'ONLINE' ||
+            status === 'OFFLINE' ||
+            status === 'ACTIVE_ONLINE' ||
+            status === 'ACTIVE_OFFLINE'
+          ) {
+            this.router.navigate(['/dashboard']);
+            return;
+          }
+
+          if (profile.phone) {
+            const isSamePhone = !this.phone || this.phone.trim() === profile.phone.trim();
+            if (isSamePhone) {
+              if (profile.id) this.createdDriverId = profile.id;
+              if (profile.fullName) this.formData.fullName = profile.fullName;
+              if (profile.email) this.formData.email = profile.email;
+              if (profile.city) this.formData.city = profile.city;
+              if (profile.preferredLanguage) this.formData.language = profile.preferredLanguage;
+              if (profile.operationType) this.formData.operationType = profile.operationType;
+              if (profile.selectedVehicleType) this.formData.vehicleType = profile.selectedVehicleType;
+              if (profile.selectedMachineryModel) this.formData.machineryModel = profile.selectedMachineryModel;
+            } else {
+              // New driver registration for different phone: keep input fields clean
+              this.formData.fullName = '';
+              this.formData.email = '';
+            }
+          }
         }
+      }
+    });
+  }
+
+  ensureDriverRegistered(callback?: () => void): void {
+    if (this.createdDriverId) {
+      if (callback) callback();
+      return;
+    }
+    const payload = {
+      fullName: this.formData.fullName || 'Driver',
+      phone: this.phone || '',
+      email: this.formData.email || '',
+      experience: this.formData.experience || '3-5 years',
+      city: this.formData.city || 'Chennai',
+      preferredLanguage: this.formData.language || 'English',
+      operationType: this.formData.operationType || 'OWN',
+      selectedVehicleType: this.formData.vehicleType || 'Machinery',
+      selectedMachineryModel: this.formData.machineryModel || 'JCB 3DX',
+      partnerType: 'DRIVER'
+    };
+
+    this.authService.registerDriverPartner(payload).subscribe({
+      next: (res) => {
+        const data = res?.data || res;
+        if (data && data.id) {
+          this.createdDriverId = data.id;
+        }
+        if (callback) callback();
+      },
+      error: () => {
+        if (callback) callback();
       }
     });
   }
@@ -130,15 +256,43 @@ export class OnboardingComponent implements OnInit {
     }
   }
 
+  docValidationError: string = '';
+
+  areRequiredDocsUploaded(): boolean {
+    const hasAadhaar = !!this.uploadedDocs['Aadhaar Card / Government ID'];
+    const hasPhoto = !!this.uploadedDocs['Profile Photo'];
+    const hasPan = !!this.uploadedDocs['PAN Card'];
+    const hasLicense = !!this.uploadedDocs['Driving License / Operator License'];
+
+    if (this.formData.operationType !== 'FLEET') {
+      const hasRc = !!this.uploadedDocs['Equipment / Vehicle RC'];
+      return hasAadhaar && hasPhoto && hasPan && hasLicense && hasRc;
+    }
+    return hasAadhaar && hasPhoto && hasPan && hasLicense;
+  }
+
+  onDocumentNext(): void {
+    if (!this.areRequiredDocsUploaded()) {
+      this.docValidationError = 'Please upload all mandatory documents (*Required) before proceeding.';
+      return;
+    }
+    this.docValidationError = '';
+    this.currentStep = 'BANK_DETAILS';
+  }
+
   openUploadModal(docType: string): void {
     this.activeDocType = docType;
-    this.showUploadModal = true;
+    this.ensureDriverRegistered(() => {
+      this.showUploadModal = true;
+    });
   }
 
   onFileCaptured(file: File): void {
     if (this.activeDocType) {
       this.uploadedDocs[this.activeDocType] = true;
-      this.documentService.uploadDocument(file, this.activeDocType).subscribe({
+      this.docValidationError = '';
+      const targetId = this.createdDriverId || 0;
+      this.documentService.uploadDocument(file, this.activeDocType, 'DRIVER', targetId).subscribe({
         next: () => {},
         error: () => {}
       });

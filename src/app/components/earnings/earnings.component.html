@@ -34,34 +34,12 @@
       </div>
 
       <div class="chart-bars">
-        <div class="bar-col">
-          <div class="bar-fill" style="height: 60%"></div>
-          <span class="day">M</span>
-        </div>
-        <div class="bar-col">
-          <div class="bar-fill" style="height: 85%"></div>
-          <span class="day">T</span>
-        </div>
-        <div class="bar-col">
-          <div class="bar-fill" style="height: 40%"></div>
-          <span class="day">W</span>
-        </div>
-        <div class="bar-col">
-          <div class="bar-fill" style="height: 95%"></div>
-          <span class="day">T</span>
-        </div>
-        <div class="bar-col">
-          <div class="bar-fill active" style="height: 100%"></div>
-          <span class="day">F</span>
-        </div>
-        <div class="bar-col">
-          <div class="bar-fill" style="height: 70%"></div>
-          <span class="day">S</span>
-        </div>
-        <div class="bar-col">
-          <div class="bar-fill" style="height: 30%"></div>
-          <span class="day">S</span>
-        </div>
+        @for (item of weeklyBars; track item.index) {
+          <div class="bar-col">
+            <div class="bar-fill" [class.active]="item.index === currentDayIndex" [style.height]="item.height"></div>
+            <span class="day" [class.day-active]="item.index === currentDayIndex">{{ item.day }}</span>
+          </div>
+        }
       </div>
     </div>
 

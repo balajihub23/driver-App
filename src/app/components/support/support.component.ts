@@ -8,6 +8,7 @@ import { SupportService } from '../../core/services/support.service';
 import { DocumentService } from '../../core/services/document.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { PaymentService } from '../../core/services/payment.service';
 
 export type SupportViewMode = 'LIST' | 'RAISE_TICKET' | 'TICKET_CONFIRMATION' | 'CHAT_THREAD';
 
@@ -23,7 +24,10 @@ export class SupportComponent implements OnInit, OnDestroy {
   documentService = inject(DocumentService);
   wsService = inject(WebSocketService);
   notificationService = inject(NotificationService);
+  paymentService = inject(PaymentService);
   route = inject(ActivatedRoute);
+
+  supportPhone: string = '+91 98765 43210';
 
   activeSubTab: 'TICKETS' | 'FAQ' = 'TICKETS';
   viewMode: SupportViewMode = 'LIST';
@@ -81,6 +85,14 @@ export class SupportComponent implements OnInit, OnDestroy {
   private wsSub?: Subscription;
 
   ngOnInit(): void {
+    this.paymentService.getBookingSettings().subscribe({
+      next: (res) => {
+        if (res && res.data && res.data.supportPhone) {
+          this.supportPhone = res.data.supportPhone;
+        }
+      }
+    });
+
     this.loadTickets();
 
     // Check query params if navigated from a Notification Banner click

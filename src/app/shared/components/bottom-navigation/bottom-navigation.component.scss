@@ -30,4 +30,9 @@
     color: var(--primary);
     font-weight: 700;
   }
+
+  &.disabled-tab {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }

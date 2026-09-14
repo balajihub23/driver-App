@@ -47,6 +47,11 @@ export class ImageUploadModalComponent implements OnDestroy {
     }, 100);
   }
 
+  cancelCamera(): void {
+    this.cameraService.stopCamera(this.videoElement?.nativeElement);
+    this.activeMode = 'SELECT';
+  }
+
   takePhoto(): void {
     if (this.videoElement) {
       const file = this.cameraService.capturePhoto(this.videoElement.nativeElement, 'document_camera_snap.jpg');
@@ -66,15 +71,13 @@ export class ImageUploadModalComponent implements OnDestroy {
   }
 
   close(): void {
-    if (this.activeMode === 'CAMERA' && this.videoElement) {
-      this.cameraService.stopCamera(this.videoElement.nativeElement);
-    }
+    this.cameraService.stopCamera(this.videoElement?.nativeElement);
     this.activeMode = 'SELECT';
     this.selectedFile = null;
     this.modalClosed.emit();
   }
 
   ngOnDestroy(): void {
-    this.cameraService.stopCamera();
+    this.cameraService.stopCamera(this.videoElement?.nativeElement);
   }
 }

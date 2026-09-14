@@ -271,3 +271,110 @@ p {
   }
 }
 
+/* Primary Custom Dropdown System */
+.custom-select-group {
+  position: relative;
+}
+
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+
+  .dropdown-trigger {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    box-sizing: border-box;
+    user-select: none;
+
+    .arrow-icon {
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: transform 0.2s ease;
+    }
+  }
+
+  &.open .dropdown-trigger .arrow-icon {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+
+    .dropdown-search-box {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      background-color: var(--surface-secondary);
+
+      .dropdown-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm, 6px);
+        font-size: 13px;
+        background-color: var(--surface);
+        color: var(--text-primary);
+        box-sizing: border-box;
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary);
+        }
+      }
+    }
+
+    .dropdown-options-list {
+      max-height: 180px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .dropdown-option {
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+
+      &:hover, &.selected {
+        background-color: var(--surface-secondary);
+        font-weight: 600;
+      }
+
+      &.selected {
+        color: var(--primary);
+      }
+    }
+
+    .dropdown-no-results {
+      padding: 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+  }
+}
+

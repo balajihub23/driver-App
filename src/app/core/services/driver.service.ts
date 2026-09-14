@@ -2,6 +2,7 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
@@ -14,9 +15,24 @@ export class DriverService {
   private authService = inject(AuthService);
   private readonly baseUrl = environment.serverApi;
 
-  getProfile(): Observable<any> {
-    if (!isPlatformBrowser(this.platformId) || !this.authService.getAccessToken()) {
+  getProfile(phone?: string): Observable<any> {
+    if (!isPlatformBrowser(this.platformId)) {
       return of({ success: false, data: null });
+    }
+    const token = this.authService.getAccessToken();
+    if (!token && phone) {
+      return this.http.get<any>(`${this.baseUrl}/api/v1/partners?type=DRIVER`).pipe(
+        map(res => {
+          if (res && res.success && res.data) {
+            const list = res.data.drivers || res.data.approvals || [];
+            const cleanTarget = phone.replace(/[^0-9]/g, '').slice(-10);
+            const found = list.find((d: any) => d.phone && d.phone.replace(/[^0-9]/g, '').endsWith(cleanTarget));
+            if (found) return { success: true, data: found };
+          }
+          return { success: false, data: null };
+        }),
+        catchError(() => of({ success: false, data: null }))
+      );
     }
     return this.http.get<any>(`${this.baseUrl}/api/v1/drivers/me`);
   }

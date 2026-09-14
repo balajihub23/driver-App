@@ -30,7 +30,7 @@
           <div class="camera-container">
             <video #videoElement class="camera-preview" autoplay playsinline></video>
             <div class="camera-actions">
-              <button class="btn-secondary" (click)="activeMode = 'SELECT'">Cancel</button>
+              <button class="btn-secondary" (click)="cancelCamera()">Cancel</button>
               <button class="btn-primary" (click)="takePhoto()">Snap Photo 📸</button>
             </div>
           </div>

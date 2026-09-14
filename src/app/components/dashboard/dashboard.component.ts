@@ -10,6 +10,7 @@ import { DriverService } from '../../core/services/driver.service';
 import { BookingService } from '../../core/services/booking.service';
 import { LocationService } from '../../core/services/location.service';
 import { WebSocketService, JobOfferEvent } from '../../core/services/websocket.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,7 +31,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   bookingService = inject(BookingService);
   locationService = inject(LocationService);
   webSocketService = inject(WebSocketService);
+  authService = inject(AuthService);
   router = inject(Router);
+
+  onLogout(): void {
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth']),
+      error: () => {
+        this.authService.clearSession();
+        this.router.navigate(['/auth']);
+      }
+    });
+  }
 
   driverProfile: any = null;
   earningsSummary: any = null;
@@ -38,16 +50,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isOnline: boolean = true;
   selectedService: 'ALL' | 'CAB' | 'BIKE' | 'EQUIPMENT' = 'EQUIPMENT';
 
+  isApproved: boolean = false;
+  isPendingVerification: boolean = false;
+
   recentJobs: any[] = [];
-  activeJob: any = {
-    id: 1082,
-    bookingNumber: 'RD-8824',
-    productName: 'JCB 3DX',
-    pickupLocation: 'Metro Construction Site, Sector 21',
-    customerPhone: '+919876543210',
-    elapsedTimeText: '2h 15m elapsed',
-    status: 'IN_PROGRESS'
-  };
+  activeJob: any = null;
 
   showIncomingOffer: boolean = false;
   incomingOfferData: any = null;
@@ -77,16 +84,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loadProfile(): void {
     this.driverService.getProfile().subscribe({
       next: (res) => {
-        if (res.success && res.data) {
-          this.driverProfile = res.data;
-          this.isOnline = res.data.isOnline ?? true;
-          if (this.isOnline) {
+        const profile = (res && res.success && res.data) ? res.data : (res && res.phone ? res : null);
+        if (profile) {
+          this.driverProfile = profile;
+          const status = (profile.status || '').toUpperCase();
+          this.isApproved = (status === 'ACTIVE' || status === 'ONLINE' || status === 'ACTIVE_ONLINE');
+          this.isPendingVerification = (status === 'PENDING_VERIFICATION');
+          this.isOnline = profile.isOnline ?? true;
+          if (this.isOnline && this.isApproved) {
             this.webSocketService.connectWebSocket(this.driverProfile.userId || this.driverProfile.id);
           }
+        } else {
+          this.driverProfile = null;
+          this.isApproved = false;
+          this.isPendingVerification = false;
         }
       },
       error: () => {
-        this.driverProfile = { fullName: 'Suren', id: 1 };
+        this.driverProfile = null;
+        this.isApproved = false;
+        this.isPendingVerification = false;
       }
     });
   }
@@ -94,7 +111,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   initWebSocketOffers(): void {
     this.wsSubscription = this.webSocketService.jobOffer$.subscribe((offer: JobOfferEvent) => {
       console.log('Incoming real-time WebSocket job offer received:', offer);
-      if (this.isOnline && offer) {
+      if (this.isOnline && offer && this.isApproved) {
         this.incomingOfferData = offer;
         this.showIncomingOffer = true;
       }
@@ -107,12 +124,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (res.success && res.data) {
           this.earningsSummary = res.data;
         } else {
-          this.earningsSummary = {
-            totalEarnings: 4800,
-            totalJobs: 2,
-            workHours: 6.5
-          };
+          this.earningsSummary = null;
         }
+      },
+      error: () => {
+        this.earningsSummary = null;
       }
     });
   }
@@ -123,13 +139,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (res.success && res.data && res.data.length > 0) {
           this.recentJobs = res.data;
           const active = res.data.find((j: any) => ['IN_PROGRESS', 'STARTED', 'DRIVER_ON_THE_WAY', 'ARRIVED'].includes(j.status));
-          if (active) this.activeJob = active;
+          this.activeJob = active || null;
+        } else {
+          this.recentJobs = [];
+          this.activeJob = null;
         }
+      },
+      error: () => {
+        this.recentJobs = [];
+        this.activeJob = null;
       }
     });
   }
 
   onToggleOnlineStatus(online: boolean): void {
+    if (this.isPendingVerification) {
+      this.isOnline = false;
+      return;
+    }
     this.isOnline = online;
 
     if (online) {

@@ -46,11 +46,30 @@ export class CameraService {
 
   stopCamera(videoElement?: HTMLVideoElement): void {
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(track => track.stop());
+      this.mediaStream.getTracks().forEach(track => {
+        try {
+          track.enabled = false;
+          track.stop();
+        } catch (e) {}
+      });
       this.mediaStream = null;
     }
     if (videoElement) {
-      videoElement.srcObject = null;
+      if (videoElement.srcObject) {
+        const stream = videoElement.srcObject as MediaStream;
+        if (stream && stream.getTracks) {
+          stream.getTracks().forEach(track => {
+            try {
+              track.enabled = false;
+              track.stop();
+            } catch (e) {}
+          });
+        }
+        videoElement.srcObject = null;
+      }
+      try {
+        videoElement.pause();
+      } catch (e) {}
     }
   }
 
