@@ -12,6 +12,8 @@ import { LocationService } from '../../core/services/location.service';
 import { WebSocketService, JobOfferEvent } from '../../core/services/websocket.service';
 import { AuthService } from '../../core/services/auth.service';
 
+import { LogoutModalComponent } from '../../shared/components/logout-modal/logout-modal.component';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -21,7 +23,8 @@ import { AuthService } from '../../core/services/auth.service';
     DriverHeaderComponent,
     BottomNavigationComponent,
     BookingOfferModalComponent,
-    NavigationModalComponent
+    NavigationModalComponent,
+    LogoutModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -34,7 +37,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   router = inject(Router);
 
+  showLogoutModal: boolean = false;
+
   onLogout(): void {
+    this.showLogoutModal = true;
+  }
+
+  cancelLogout(): void {
+    this.showLogoutModal = false;
+  }
+
+  confirmLogout(): void {
+    this.showLogoutModal = false;
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/auth']),
       error: () => {

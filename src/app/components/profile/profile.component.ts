@@ -9,6 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 import { DocumentService } from '../../core/services/document.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { LogoutModalComponent } from '../../shared/components/logout-modal/logout-modal.component';
 
 export type ProfileSubView = 
   | 'MAIN' 
@@ -34,6 +35,7 @@ export interface DocumentItem {
   fileName?: string;
   fileUrl?: string;
   rejectionReason?: string;
+  previewUrl?: string;
 }
 
 @Component({
@@ -44,7 +46,8 @@ export interface DocumentItem {
     FormsModule,
     RouterModule,
     BottomNavigationComponent,
-    ImageUploadModalComponent
+    ImageUploadModalComponent,
+    LogoutModalComponent
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
@@ -433,7 +436,18 @@ export class ProfileComponent implements OnInit {
     this.showPhotoModal = false;
   }
 
+  showLogoutModal: boolean = false;
+
   onLogout(): void {
+    this.showLogoutModal = true;
+  }
+
+  cancelLogout(): void {
+    this.showLogoutModal = false;
+  }
+
+  confirmLogout(): void {
+    this.showLogoutModal = false;
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/splash']),
       error: () => this.router.navigate(['/splash'])

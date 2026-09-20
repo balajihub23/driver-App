@@ -618,4 +618,10 @@
       </div>
     </div>
   }
+
+  <app-logout-modal
+    [isOpen]="showLogoutModal"
+    (confirm)="confirmLogout()"
+    (cancel)="cancelLogout()">
+  </app-logout-modal>
 </div>

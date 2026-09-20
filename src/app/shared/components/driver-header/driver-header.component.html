@@ -54,3 +54,9 @@
     </div>
   </div>
 </header>
+
+<app-logout-modal
+  [isOpen]="showLogoutModal"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()">
+</app-logout-modal>

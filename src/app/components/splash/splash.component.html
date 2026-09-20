@@ -1,93 +1,80 @@
 <div class="splash-screen-wrapper">
   @if (showInitialSplash) {
-    <!-- Initial Splash Loader Screen (Figma Screen 1) -->
-    <div class="splash-card initial-splash">
-      <div class="logo-header">
-        <div class="logo-mark-yellow">
-          <svg viewBox="0 0 100 100" class="r-logo-svg">
-            <path d="M 20 15 L 65 15 C 85 15 85 50 65 50 L 40 50 L 40 85 L 20 85 Z" fill="#FFC107" />
-            <path d="M 40 50 L 75 85 L 55 85 L 20 50 Z" fill="#FFC107" />
-          </svg>
-        </div>
-        <h1 class="brand-title-yellow">Rentron</h1>
-        <p class="brand-subtitle-yellow">OPERATOR</p>
+  <!-- Initial Splash Loader Screen (Figma Screen 1) -->
+  <div class="splash-card initial-splash">
+    <div class="logo-header">
+      <div class="logo-mark-yellow">
+        <svg viewBox="0 0 100 100" class="r-logo-svg">
+          <path d="M 20 15 L 65 15 C 85 15 85 50 65 50 L 40 50 L 40 85 L 20 85 Z" fill="#FFC107" />
+          <path d="M 40 50 L 75 85 L 55 85 L 20 50 Z" fill="#FFC107" />
+        </svg>
       </div>
-
-      <div class="loader-box">
-        <div class="spinner-ring"></div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" [style.width.%]="progress"></div>
-        </div>
-        <span class="loading-text">{{ loadingText }}</span>
-        <span class="version-text">v2.4.1 (build 482) • © 2026 Rentron Heavy Machinery</span>
-      </div>
+      <h1 class="brand-title-yellow">Rentron</h1>
+      <p class="brand-subtitle-yellow">OPERATOR</p>
     </div>
+
+    <div class="loader-box">
+      <div class="spinner-ring"></div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" [style.width.%]="progress"></div>
+      </div>
+      <span class="loading-text">{{ loadingText }}</span>
+      <span class="version-text">v2.4.1 (build 482) • © 2026 Rentron Heavy Machinery</span>
+    </div>
+  </div>
   } @else {
-    <!-- Onboarding Slide Carousel / Welcome Login Screen (Figma Screens 2-6) -->
-    <div class="splash-card onboarding-card" [class.welcome-mode]="activeSlideIndex === 3">
-      @if (activeSlideIndex < 3) {
-        <div class="slide-container">
-          <div class="slide-image-box">
-            <img [src]="slides[activeSlideIndex].image" [alt]="slides[activeSlideIndex].title" class="slide-illustration-img" />
-          </div>
+  <!-- Onboarding Slide Carousel / Welcome Login Screen (Figma Screens 2-6) -->
+  <div class="splash-card onboarding-card" [class.welcome-mode]="activeSlideIndex === 3">
+    @if (activeSlideIndex < 3) { <div class="slide-container">
+      <div class="slide-image-box">
+        <img [src]="slides[activeSlideIndex].image" [alt]="slides[activeSlideIndex].title"
+          class="slide-illustration-img" />
+      </div>
 
-          <div class="slide-content">
-            <h2>{{ slides[activeSlideIndex].title }}</h2>
-            <p>{{ slides[activeSlideIndex].description }}</p>
+      <div class="slide-content">
+        <h2>{{ slides[activeSlideIndex].title }}</h2>
+        <p>{{ slides[activeSlideIndex].description }}</p>
 
-            <div class="dots-indicator">
-              <span [class.active]="activeSlideIndex === 0"></span>
-              <span [class.active]="activeSlideIndex === 1"></span>
-              <span [class.active]="activeSlideIndex === 2"></span>
-            </div>
-
-            <div class="slide-footer">
-              @if (activeSlideIndex < 2) {
-                <button class="btn-skip" (click)="skipSlides()">Skip</button>
-              } @else {
-                <div></div>
-              }
-              <button class="btn-next" (click)="nextSlide()">
-                {{ activeSlideIndex === 2 ? 'Get Started' : 'Next →' }}
-              </button>
-            </div>
-          </div>
+        <div class="dots-indicator">
+          <span [class.active]="activeSlideIndex === 0"></span>
+          <span [class.active]="activeSlideIndex === 1"></span>
+          <span [class.active]="activeSlideIndex === 2"></span>
         </div>
-      } @else {
-        <!-- Welcome / Login Choice Screen (Figma Screen 5 & 6) -->
-        <div class="welcome-screen">
-          <div class="welcome-logo-header">
-            <img src="assets/images/rentron_logo.png" alt="Rentron Operator" class="welcome-logo-img" />
-          </div>
 
-          <div class="welcome-body-content">
-            <h3>Welcome to Rentron</h3>
-            <p>Your rides, jobs, and earnings in one place.</p>
-          </div>
-
-          <div class="welcome-actions">
-            <button class="btn-primary login-btn" (click)="onSelectAction('LOGIN')">
-              Login <span class="arrow-icon">➔</span>
+        <div class="slide-footer">
+          @if (activeSlideIndex < 2) { <button class="btn-skip" (click)="skipSlides()">Skip</button>
+            } @else {
+            <div></div>
+            }
+            <button class="btn-next" (click)="nextSlide()">
+              {{ activeSlideIndex === 2 ? 'Get Started' : 'Next →' }}
             </button>
-
-            <button class="btn-secondary create-btn" (click)="onSelectAction('REGISTER')">
-              Create Account
-            </button>
-
-            <div class="divider"><span>or continue with</span></div>
-
-            <button class="btn-google" (click)="onSelectAction('LOGIN')">
-              <svg class="google-icon" width="18" height="18" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.14C3.25 21.27 7.31 24 12 24z"/>
-                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.59H1.27C.46 8.2.01 10.04.01 12c0 1.96.45 3.8 1.26 5.41l4.01-3.14z"/>
-                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.73 1.27 6.59l4.01 3.14c.95-2.83 3.6-4.98 6.72-4.98z"/>
-              </svg>
-              Continue with Google
-            </button>
-          </div>
         </div>
-      }
+      </div>
+  </div>
+  } @else {
+  <!-- Welcome / Login Choice Screen (Figma Screen 5 & 6) -->
+  <div class="welcome-screen">
+    <div class="welcome-logo-header">
+      <img src="assets/images/rentron_logo.png" alt="Rentron Operator" class="welcome-logo-img" />
     </div>
+
+    <div class="welcome-body-content">
+      <h3>Welcome to Rentron</h3>
+      <p>Your rides, jobs, and earnings in one place.</p>
+    </div>
+
+    <div class="welcome-actions">
+      <button class="btn-primary login-btn" (click)="onSelectAction('LOGIN')">
+        Login <span class="arrow-icon">➔</span>
+      </button>
+
+      <!-- <button class="btn-secondary create-btn" (click)="onSelectAction('REGISTER')">
+              Create Account
+            </button> -->
+    </div>
+  </div>
   }
+</div>
+}
 </div>

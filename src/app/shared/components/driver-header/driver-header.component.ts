@@ -4,11 +4,12 @@ import { RouterModule, Router } from '@angular/router';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { LogoutModalComponent } from '../logout-modal/logout-modal.component';
 
 @Component({
   selector: 'app-driver-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, LogoutModalComponent],
   templateUrl: './driver-header.component.html',
   styleUrl: './driver-header.component.scss'
 })
@@ -24,7 +25,18 @@ export class DriverHeaderComponent {
   authService = inject(AuthService);
   router = inject(Router);
 
+  showLogoutModal: boolean = false;
+
   onLogout(): void {
+    this.showLogoutModal = true;
+  }
+
+  cancelLogout(): void {
+    this.showLogoutModal = false;
+  }
+
+  confirmLogout(): void {
+    this.showLogoutModal = false;
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/auth']),
       error: () => {
