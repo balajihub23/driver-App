@@ -315,22 +315,6 @@ export class OnboardingComponent implements OnInit {
   onCompleteRegistration(): void {
     this.loading = true;
 
-    // 1. Save Bank Account if bank details were entered
-    if (this.formData.bankAccountNo || this.formData.bankUpi || this.formData.bankHolder) {
-      const bankPayload = {
-        accountHolderName: this.formData.bankHolder || this.formData.fullName || 'Driver',
-        accountNumberMasked: this.formData.bankAccountNo || 'UPI',
-        ifscCode: this.formData.bankIfsc || '',
-        upiId: this.formData.bankUpi || '',
-        bankName: this.formData.bankIfsc ? 'Bank Account' : (this.formData.bankUpi ? 'UPI' : 'Bank Account'),
-        isPrimary: true
-      };
-      this.driverService.saveBankAccount(bankPayload).subscribe({
-        next: () => {},
-        error: () => {}
-      });
-    }
-
     const payload = {
       fullName: this.formData.fullName,
       phone: this.phone || '',
