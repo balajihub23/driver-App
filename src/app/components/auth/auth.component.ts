@@ -173,15 +173,21 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.driverService.getProfile().subscribe({
       next: (res) => {
         const profile = res?.data || res;
-        // Check if driver status is ACTIVE, or if onboarding/verification is complete
-        if (profile && (
-          profile.status === 'ACTIVE' || 
-          profile.status === 'VERIFIED' || 
-          profile.verificationStatus === 'VERIFIED' || 
-          profile.verificationStatus === 'APPROVED' || 
-          profile.verificationStatus === 'UNDER_REVIEW' ||
-          profile.operationType != null
-        )) {
+        const status = (profile?.status || '').toUpperCase();
+        const vStatus = (profile?.verificationStatus || '').toUpperCase();
+        const hasSubmittedDetails = profile && (profile.operationType != null || profile.city != null || profile.licenseNumber != null);
+
+        // A profile is onboarded only if it's active/verified or pending verification WITH submitted details, and NOT DRAFT
+        const isAlreadyOnboarded = profile && status !== 'DRAFT' && status !== 'INCOMPLETE' && status !== 'NEW' && (
+          status === 'ACTIVE' || 
+          status === 'VERIFIED' || 
+          status === 'APPROVED' || 
+          vStatus === 'VERIFIED' || 
+          vStatus === 'APPROVED' || 
+          (status === 'PENDING_VERIFICATION' && hasSubmittedDetails)
+        );
+
+        if (isAlreadyOnboarded) {
           this.router.navigate(['/dashboard']);
         } else {
           this.router.navigate(['/onboarding'], { queryParams: { phone: this.phoneNumber } });

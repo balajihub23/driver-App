@@ -147,15 +147,22 @@ export class OnboardingComponent implements OnInit {
         const profile = (res && res.success && res.data) ? res.data : (res && res.phone ? res : null);
         if (profile) {
           const status = (profile.status || '').toUpperCase();
+          const hasSubmittedDetails = !!profile.operationType || !!profile.city || !!profile.licenseNumber;
+
           if (
-            status === 'PENDING_VERIFICATION' ||
-            status === 'ACTIVE' ||
-            status === 'VERIFIED' ||
-            status === 'APPROVED' ||
-            status === 'ONLINE' ||
-            status === 'OFFLINE' ||
-            status === 'ACTIVE_ONLINE' ||
-            status === 'ACTIVE_OFFLINE'
+            status !== 'DRAFT' &&
+            status !== 'INCOMPLETE' &&
+            status !== 'NEW' &&
+            (
+              status === 'ACTIVE' ||
+              status === 'VERIFIED' ||
+              status === 'APPROVED' ||
+              status === 'ONLINE' ||
+              status === 'OFFLINE' ||
+              status === 'ACTIVE_ONLINE' ||
+              status === 'ACTIVE_OFFLINE' ||
+              (status === 'PENDING_VERIFICATION' && hasSubmittedDetails)
+            )
           ) {
             this.router.navigate(['/dashboard']);
             return;
@@ -165,8 +172,14 @@ export class OnboardingComponent implements OnInit {
             const isSamePhone = !this.phone || this.phone.trim() === profile.phone.trim();
             if (isSamePhone) {
               if (profile.id) this.createdDriverId = profile.id;
-              if (profile.fullName) this.formData.fullName = profile.fullName;
-              if (profile.email) this.formData.email = profile.email;
+              if (profile.fullName && profile.fullName !== 'Driver' && !profile.fullName.startsWith('Driver (')) {
+                this.formData.fullName = profile.fullName;
+              }
+              if (profile.email && !profile.email.startsWith('driver_') && !profile.email.endsWith('@rentron.com')) {
+                this.formData.email = profile.email;
+              } else {
+                this.formData.email = '';
+              }
               if (profile.city) this.formData.city = profile.city;
               if (profile.preferredLanguage) this.formData.language = profile.preferredLanguage;
               if (profile.operationType) this.formData.operationType = profile.operationType;
@@ -302,6 +315,22 @@ export class OnboardingComponent implements OnInit {
   onCompleteRegistration(): void {
     this.loading = true;
 
+    // 1. Save Bank Account if bank details were entered
+    if (this.formData.bankAccountNo || this.formData.bankUpi || this.formData.bankHolder) {
+      const bankPayload = {
+        accountHolderName: this.formData.bankHolder || this.formData.fullName || 'Driver',
+        accountNumberMasked: this.formData.bankAccountNo || 'UPI',
+        ifscCode: this.formData.bankIfsc || '',
+        upiId: this.formData.bankUpi || '',
+        bankName: this.formData.bankIfsc ? 'Bank Account' : (this.formData.bankUpi ? 'UPI' : 'Bank Account'),
+        isPrimary: true
+      };
+      this.driverService.saveBankAccount(bankPayload).subscribe({
+        next: () => {},
+        error: () => {}
+      });
+    }
+
     const payload = {
       fullName: this.formData.fullName,
       phone: this.phone || '',
@@ -311,7 +340,11 @@ export class OnboardingComponent implements OnInit {
       preferredLanguage: this.formData.language,
       operationType: this.formData.operationType,
       selectedVehicleType: this.formData.vehicleType,
-      selectedMachineryModel: this.formData.machineryModel
+      selectedMachineryModel: this.formData.machineryModel,
+      bankHolder: this.formData.bankHolder,
+      bankAccountNo: this.formData.bankAccountNo,
+      bankIfsc: this.formData.bankIfsc,
+      bankUpi: this.formData.bankUpi
     };
 
     this.authService.registerDriverPartner(payload).subscribe({
