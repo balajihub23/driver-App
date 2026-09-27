@@ -37,11 +37,13 @@ export class NotificationsComponent implements OnInit {
   }
 
   getNotificationIcon(type: string): string {
-    switch (type) {
+    const t = type ? type.toUpperCase() : '';
+    switch (t) {
       case 'BOOKING': return '🚜';
       case 'PAYMENT': return '💰';
       case 'SUPPORT': return '🎧';
       case 'DOCUMENT': return '🪪';
+      case 'VEHICLE': return '🚗';
       default: return '🔔';
     }
   }
@@ -63,11 +65,14 @@ export class NotificationsComponent implements OnInit {
       this.notificationService.markAsRead(notification.id).subscribe();
     }
 
-    if (notification.notificationType === 'BOOKING') {
+    const t = notification.notificationType ? notification.notificationType.toUpperCase() : '';
+    if (t === 'BOOKING') {
       this.router.navigate(['/jobs']);
-    } else if (notification.notificationType === 'PAYMENT') {
+    } else if (t === 'PAYMENT') {
       this.router.navigate(['/earnings']);
-    } else if (notification.notificationType === 'SUPPORT') {
+    } else if (t === 'VEHICLE' || t === 'DOCUMENT') {
+      this.router.navigate(['/profile']);
+    } else if (t === 'SUPPORT') {
       const ticketId = notification.ticketId || notification.targetId;
       if (ticketId) {
         this.router.navigate(['/support'], { queryParams: { ticketId } });

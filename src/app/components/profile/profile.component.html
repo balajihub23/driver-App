@@ -1,627 +1,1404 @@
 <div class="mobile-app-wrapper">
-  
+
   <!-- ==================== VIEW 1: MAIN PROFILE ==================== -->
   @if (currentView === 'MAIN') {
-    <header class="profile-header">
-      <h2>Profile</h2>
-    </header>
+  <header class="profile-header">
+    <h2>Profile</h2>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <!-- Dark Hero Card -->
-      <div class="profile-hero-card">
-        <div class="hero-top">
-          <div class="avatar-wrapper" (click)="showPhotoModal = true">
-            <img [src]="editForm.profilePhotoUrl || 'assets/images/default-avatar.png'" alt="Driver Avatar" class="avatar-img" (error)="avatarImg.src='https://ui-avatars.com/api/?name=' + editForm.fullName + '&background=333&color=fff'" #avatarImg />
-            <button class="camera-btn" title="Change Photo">📷</button>
-          </div>
-          <div class="hero-info">
-            <h3 class="driver-name">{{ driverProfile?.fullName || editForm.fullName || 'Driver' }}</h3>
-            <p class="driver-role">{{ driverProfile?.selectedMachineryModel || driverProfile?.role || 'Driver Partner' }}</p>
-            @if (driverProfile?.phone || editForm.phone) {
-              <p class="driver-phone">+91 {{ driverProfile?.phone || editForm.phone }}</p>
-            }
-          </div>
+  <main class="profile-content animate-fade-in">
+    <!-- Dark Hero Card -->
+    <div class="profile-hero-card">
+      <div class="hero-top">
+        <div class="avatar-wrapper" (click)="showPhotoModal = true">
+          <img [src]="editForm.profilePhotoUrl || 'assets/images/default-avatar.png'" alt="Driver Avatar"
+            class="avatar-img"
+            (error)="avatarImg.src='https://ui-avatars.com/api/?name=' + editForm.fullName + '&background=333&color=fff'"
+            #avatarImg />
+          <button class="camera-btn" title="Change Photo">📷</button>
         </div>
-
-        <!-- 3 Metric Cards Row -->
-        <div class="metrics-row">
-          <div class="metric-card">
-            <span class="m-val">{{ driverProfile?.totalJobs || 12 }}</span>
-            <span class="m-lbl">Jobs</span>
-          </div>
-          <div class="metric-card">
-            <span class="m-val">⭐ {{ driverProfile?.rating || '4.8' }}</span>
-            <span class="m-lbl">Rating</span>
-          </div>
-          <div class="metric-card">
-            <span class="m-val">{{ driverProfile?.experience || '2.5' }}</span>
-            <span class="m-lbl">Experience</span>
-          </div>
+        <div class="hero-info">
+          <h3 class="driver-name">{{ driverProfile?.fullName || editForm.fullName || 'Driver' }}</h3>
+          <p class="driver-role">{{ driverProfile?.selectedMachineryModel || driverProfile?.role || 'Driver Partner' }}
+          </p>
+          @if (driverProfile?.phone || editForm.phone) {
+          <p class="driver-phone">+91 {{ driverProfile?.phone || editForm.phone }}</p>
+          }
         </div>
       </div>
 
-      <!-- Section: ACCOUNT -->
-      <div class="menu-section">
-        <h4 class="section-heading">ACCOUNT</h4>
-        <div class="menu-group">
-          <div class="menu-item" (click)="navigateTo('PERSONAL_INFO')">
-            <div class="menu-left">
-              <span class="m-icon icon-user">👤</span>
-              <span class="m-title">Personal Information</span>
-            </div>
-            <span class="m-chevron">›</span>
-          </div>
-
-          <div class="menu-item" (click)="navigateTo('MY_DOCUMENTS')">
-            <div class="menu-left">
-              <span class="m-icon icon-doc">📄</span>
-              <span class="m-title">My Documents</span>
-            </div>
-            <span class="m-chevron">›</span>
-          </div>
-
-          <div class="menu-item" (click)="navigateTo('MY_VEHICLES')">
-            <div class="menu-left">
-              <span class="m-icon icon-vehicle">🚜</span>
-              <span class="m-title">My Vehicles</span>
-            </div>
-            <span class="m-chevron">›</span>
-          </div>
+      <!-- 3 Metric Cards Row -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <span class="m-val">{{ driverProfile?.totalJobs || 12 }}</span>
+          <span class="m-lbl">Jobs</span>
+        </div>
+        <div class="metric-card">
+          <span class="m-val">⭐ {{ driverProfile?.rating || '4.8' }}</span>
+          <span class="m-lbl">Rating</span>
+        </div>
+        <div class="metric-card">
+          <span class="m-val">{{ driverProfile?.experience || '2.5' }}</span>
+          <span class="m-lbl">Experience</span>
         </div>
       </div>
+    </div>
 
-      <!-- Section: PREFERENCES -->
-      <div class="menu-section">
-        <h4 class="section-heading">PREFERENCES</h4>
-        <div class="menu-group">
-          <div class="menu-item" (click)="onToggleNotifications()">
-            <div class="menu-left">
-              <span class="m-icon icon-bell">🔔</span>
-              <span class="m-title">Notifications</span>
-            </div>
-            <label class="toggle-switch" (click)="$event.stopPropagation()">
-              <input type="checkbox" [checked]="notificationsEnabled" (change)="onToggleNotifications()" />
-              <span class="slider"></span>
-            </label>
+    <!-- Section: ACCOUNT -->
+    <div class="menu-section">
+      <h4 class="section-heading">ACCOUNT</h4>
+      <div class="menu-group">
+        <div class="menu-item" (click)="navigateTo('PERSONAL_INFO')">
+          <div class="menu-left">
+            <span class="m-icon icon-user">👤</span>
+            <span class="m-title">Personal Information</span>
           </div>
-
-          <div class="menu-item" (click)="onToggleDarkMode()">
-            <div class="menu-left">
-              <span class="m-icon icon-moon">🌙</span>
-              <span class="m-title">Dark Mode</span>
-            </div>
-            <label class="toggle-switch" (click)="$event.stopPropagation()">
-              <input type="checkbox" [checked]="isDarkMode()" (change)="onToggleDarkMode()" />
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="menu-item" (click)="navigateTo('LANGUAGE')">
-            <div class="menu-left">
-              <span class="m-icon icon-globe">🌐</span>
-              <span class="m-title">Language</span>
-            </div>
-            <div class="menu-right-val">
-              <span class="val-text">{{ selectedLanguage }}</span>
-              <span class="m-chevron">›</span>
-            </div>
-          </div>
+          <span class="m-chevron">›</span>
         </div>
-      </div>
 
-      <!-- Section: SUPPORT -->
-      <div class="menu-section">
-        <h4 class="section-heading">SUPPORT</h4>
-        <div class="menu-group">
-          <a routerLink="/support" class="menu-item">
-            <div class="menu-left">
-              <span class="m-icon icon-support">🎧</span>
-              <span class="m-title">Support</span>
-            </div>
-            <span class="m-chevron">›</span>
-          </a>
-
-          <div class="menu-item" (click)="navigateTo('TERMS')">
-            <div class="menu-left">
-              <span class="m-icon icon-terms">📋</span>
-              <span class="m-title">Terms & Conditions</span>
-            </div>
-            <span class="m-chevron">›</span>
+        <div class="menu-item" (click)="navigateTo('MY_DOCUMENTS')">
+          <div class="menu-left">
+            <span class="m-icon icon-doc">📄</span>
+            <span class="m-title">My Documents</span>
           </div>
+          <span class="m-chevron">›</span>
+        </div>
 
-          <div class="menu-item" (click)="navigateTo('PRIVACY')">
-            <div class="menu-left">
-              <span class="m-icon icon-privacy">🛡️</span>
-              <span class="m-title">Privacy Policy</span>
-            </div>
+        <div class="menu-item" (click)="navigateTo('MY_VEHICLES')">
+          <div class="menu-left">
+            <span class="m-icon icon-vehicle">🚜</span>
+            <span class="m-title">My Vehicles</span>
+          </div>
+          <div class="menu-right-val">
+            <span class="val-badge">{{ vehiclesList.length }} Registered</span>
             <span class="m-chevron">›</span>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Logout Button -->
-      <div class="action-section">
-        <button class="btn-logout" (click)="onLogout()">
-          <span class="icon-logout">↳]</span> Logout
-        </button>
-        <p class="app-version-text">Version 1.0.0</p>
+    <!-- Section: PREFERENCES -->
+    <div class="menu-section">
+      <h4 class="section-heading">PREFERENCES</h4>
+      <div class="menu-group">
+        <div class="menu-item" (click)="onToggleNotifications()">
+          <div class="menu-left">
+            <span class="m-icon icon-bell">🔔</span>
+            <span class="m-title">Notifications</span>
+          </div>
+          <label class="toggle-switch" (click)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="notificationsEnabled" (change)="onToggleNotifications()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="menu-item" (click)="onToggleDarkMode()">
+          <div class="menu-left">
+            <span class="m-icon icon-moon">🌙</span>
+            <span class="m-title">Dark Mode</span>
+          </div>
+          <label class="toggle-switch" (click)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="isDarkMode()" (change)="onToggleDarkMode()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="menu-item" (click)="navigateTo('LANGUAGE')">
+          <div class="menu-left">
+            <span class="m-icon icon-globe">🌐</span>
+            <span class="m-title">Language</span>
+          </div>
+          <div class="menu-right-val">
+            <span class="val-text">{{ selectedLanguage }}</span>
+            <span class="m-chevron">›</span>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
+
+    <!-- Section: SUPPORT -->
+    <div class="menu-section">
+      <h4 class="section-heading">SUPPORT</h4>
+      <div class="menu-group">
+        <a routerLink="/support" class="menu-item">
+          <div class="menu-left">
+            <span class="m-icon icon-support">🎧</span>
+            <span class="m-title">Support</span>
+          </div>
+          <span class="m-chevron">›</span>
+        </a>
+
+        <div class="menu-item" (click)="navigateTo('TERMS')">
+          <div class="menu-left">
+            <span class="m-icon icon-terms">📋</span>
+            <span class="m-title">Terms & Conditions</span>
+          </div>
+          <span class="m-chevron">›</span>
+        </div>
+
+        <div class="menu-item" (click)="navigateTo('PRIVACY')">
+          <div class="menu-left">
+            <span class="m-icon icon-privacy">🛡️</span>
+            <span class="m-title">Privacy Policy</span>
+          </div>
+          <span class="m-chevron">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="action-section">
+      <button class="btn-logout" (click)="onLogout()">
+        <span class="icon-logout">↳]</span> Logout
+      </button>
+      <p class="app-version-text">Version 1.0.0</p>
+    </div>
+  </main>
   }
 
   <!-- ==================== VIEW 2: PERSONAL INFORMATION ==================== -->
   @if (currentView === 'PERSONAL_INFO') {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
-      <h2>Personal Information</h2>
-      <button class="btn-edit-icon" (click)="navigateTo('EDIT_PERSONAL_INFO')" title="Edit Profile">✏️</button>
-    </header>
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
+    <h2>Personal Information</h2>
+    <button class="btn-edit-icon" (click)="navigateTo('EDIT_PERSONAL_INFO')" title="Edit Profile">✏️</button>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <div class="avatar-center-card">
-        <img [src]="editForm.profilePhotoUrl || 'https://ui-avatars.com/api/?name=' + editForm.fullName + '&background=FFC107&color=000'" alt="Driver" class="lg-avatar" />
+  <main class="profile-content animate-fade-in">
+    <div class="avatar-center-card">
+      <img
+        [src]="editForm.profilePhotoUrl || 'https://ui-avatars.com/api/?name=' + editForm.fullName + '&background=FFC107&color=000'"
+        alt="Driver" class="lg-avatar" />
+    </div>
+
+    <div class="info-card">
+      <div class="info-field">
+        <span class="field-lbl">Full Name</span>
+        <span class="field-val strong">{{ editForm.fullName }}</span>
       </div>
 
-      <div class="info-card">
-        <div class="info-field">
-          <span class="field-lbl">Full Name</span>
-          <span class="field-val strong">{{ editForm.fullName }}</span>
-        </div>
-
-        <div class="info-field">
-          <span class="field-lbl">Phone Number</span>
-          <div class="field-val-row">
-            <span class="field-val strong">+91 {{ editForm.phone }}</span>
-            <span class="check-badge">✓</span>
-          </div>
-        </div>
-
-        <div class="info-field">
-          <span class="field-lbl">Email Address</span>
-          <span class="field-val">{{ editForm.email }}</span>
-        </div>
-
-        <div class="info-field">
-          <span class="field-lbl">Date of Birth</span>
-          <span class="field-val">{{ editForm.dob }}</span>
-        </div>
-
-        <div class="info-field">
-          <span class="field-lbl">Gender</span>
-          <span class="field-val">{{ editForm.gender }}</span>
-        </div>
-
-        <div class="info-field no-border">
-          <span class="field-lbl">Permanent Address</span>
-          <span class="field-val">{{ editForm.address }}</span>
+      <div class="info-field">
+        <span class="field-lbl">Phone Number</span>
+        <div class="field-val-row">
+          <span class="field-val strong">+91 {{ editForm.phone }}</span>
+          <span class="check-badge">✓</span>
         </div>
       </div>
-    </main>
+
+      <div class="info-field">
+        <span class="field-lbl">Email Address</span>
+        <span class="field-val">{{ editForm.email }}</span>
+      </div>
+
+      <div class="info-field">
+        <span class="field-lbl">Date of Birth</span>
+        <span class="field-val">{{ editForm.dob }}</span>
+      </div>
+
+      <div class="info-field">
+        <span class="field-lbl">Gender</span>
+        <span class="field-val">{{ editForm.gender }}</span>
+      </div>
+
+      <div class="info-field no-border">
+        <span class="field-lbl">Permanent Address</span>
+        <span class="field-val">{{ editForm.address }}</span>
+      </div>
+    </div>
+  </main>
   }
 
   <!-- ==================== VIEW 3: EDIT PERSONAL INFORMATION ==================== -->
   @if (currentView === 'EDIT_PERSONAL_INFO') {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('PERSONAL_INFO')">‹</button>
-      <h2>Edit Personal Information</h2>
-      <span class="spacer"></span>
-    </header>
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('PERSONAL_INFO')">‹</button>
+    <h2>Edit Personal Information</h2>
+    <span class="spacer"></span>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <div class="avatar-center-card">
-        <div class="avatar-wrapper" (click)="showPhotoModal = true">
-          <img [src]="editForm.profilePhotoUrl || 'https://ui-avatars.com/api/?name=' + editForm.fullName + '&background=FFC107&color=000'" alt="Driver" class="lg-avatar" />
-          <button class="camera-btn">📷</button>
+  <main class="profile-content animate-fade-in">
+    <div class="avatar-center-card">
+      <div class="avatar-wrapper" (click)="showPhotoModal = true">
+        <img
+          [src]="editForm.profilePhotoUrl || 'https://ui-avatars.com/api/?name=' + editForm.fullName + '&background=FFC107&color=000'"
+          alt="Driver" class="lg-avatar" />
+        <button class="camera-btn">📷</button>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" [(ngModel)]="editForm.fullName" placeholder="Enter Full Name" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <div class="input-with-icon">
+          <input type="text" class="form-input" [(ngModel)]="editForm.phone" placeholder="+91 9876543210" />
+          <span class="check-icon">✓</span>
         </div>
       </div>
 
-      <div class="form-card">
-        <div class="form-group">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-input" [(ngModel)]="editForm.fullName" placeholder="Enter Full Name" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Phone Number</label>
-          <div class="input-with-icon">
-            <input type="text" class="form-input" [(ngModel)]="editForm.phone" placeholder="+91 9876543210" />
-            <span class="check-icon">✓</span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" class="form-input" [(ngModel)]="editForm.email" placeholder="example@email.com" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Date of Birth</label>
-          <div class="input-with-icon">
-            <input type="text" class="form-input" [(ngModel)]="editForm.dob" placeholder="12/05/1988" />
-            <span class="cal-icon">📅</span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Gender</label>
-          <select class="form-input form-select" [(ngModel)]="editForm.gender">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Permanent Address</label>
-          <textarea class="form-input form-textarea" rows="3" [(ngModel)]="editForm.address" placeholder="Enter full address"></textarea>
-        </div>
-
-        <button class="btn-primary-yellow" (click)="onSaveProfile()">Save Changes</button>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-input" [(ngModel)]="editForm.email" placeholder="example@email.com" />
       </div>
-    </main>
+
+      <div class="form-group">
+        <label class="form-label">Date of Birth</label>
+        <div class="input-with-icon">
+          <input type="text" class="form-input" [(ngModel)]="editForm.dob" placeholder="12/05/1988" />
+          <span class="cal-icon">📅</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Gender</label>
+        <select class="form-input form-select" [(ngModel)]="editForm.gender">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Permanent Address</label>
+        <textarea class="form-input form-textarea" rows="3" [(ngModel)]="editForm.address"
+          placeholder="Enter full address"></textarea>
+      </div>
+
+      <button class="btn-primary-yellow" (click)="onSaveProfile()">Save Changes</button>
+    </div>
+  </main>
   }
 
   <!-- ==================== VIEW 4: MY DOCUMENTS LIST ==================== -->
   @if (currentView === 'MY_DOCUMENTS') {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
-      <h2>My Documents</h2>
-      <span class="spacer"></span>
-    </header>
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
+    <h2>My Documents</h2>
+    <span class="spacer"></span>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <div class="docs-list-group">
-        @for (doc of documentsList; track doc.docTypeKey) {
-          <div class="doc-item-card" (click)="openDocumentDetail(doc)">
-            <div class="doc-left">
-              <span class="doc-icon">💳</span>
-              <span class="doc-name">{{ doc.title }}</span>
-            </div>
-            <div class="doc-right">
-              @if (doc.status === 'NOT_UPLOADED') {
-                <span class="chip-status chip-pending">Pending</span>
-                <span class="view-link">Upload ➔</span>
-              } @else {
-                <span class="chip-status" 
-                  [class.chip-verified]="doc.status === 'VERIFIED'" 
-                  [class.chip-pending]="doc.status === 'UNDER_REVIEW'" 
-                  [class.chip-rejected]="doc.status === 'REJECTED'">
-                  {{ doc.status === 'VERIFIED' ? 'Verified' : (doc.status === 'UNDER_REVIEW' ? 'Under Review' : 'Rejected') }}
-                </span>
-                <span class="view-link">View ➔</span>
-              }
-            </div>
-          </div>
-        }
+  <main class="profile-content animate-fade-in">
+    <div class="docs-list-group">
+      @for (doc of documentsList; track doc.docTypeKey) {
+      <div class="doc-item-card" (click)="openDocumentDetail(doc)">
+        <div class="doc-left">
+          <span class="doc-icon">💳</span>
+          <span class="doc-name">{{ doc.title }}</span>
+        </div>
+        <div class="doc-right">
+          @if (doc.status === 'NOT_UPLOADED') {
+          <span class="chip-status chip-pending">Pending</span>
+          <span class="view-link">Upload ➔</span>
+          } @else {
+          <span class="chip-status" [class.chip-verified]="doc.status === 'VERIFIED'"
+            [class.chip-pending]="doc.status === 'UNDER_REVIEW'" [class.chip-rejected]="doc.status === 'REJECTED'">
+            {{ doc.status === 'VERIFIED' ? 'Verified' : (doc.status === 'UNDER_REVIEW' ? 'Under Review' : 'Rejected') }}
+          </span>
+          <span class="view-link">View ➔</span>
+          }
+        </div>
       </div>
-    </main>
+      }
+    </div>
+  </main>
   }
 
   <!-- ==================== VIEW 5: DOCUMENT DETAIL ==================== -->
   @if (currentView === 'DOCUMENT_DETAIL' && selectedDocItem) {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('MY_DOCUMENTS')">‹</button>
-      <h2>{{ selectedDocItem.title }}</h2>
-      <span class="spacer"></span>
-    </header>
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MY_DOCUMENTS')">‹</button>
+    <h2>{{ selectedDocItem.title }}</h2>
+    <span class="spacer"></span>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <!-- Status Banner -->
-      @if (selectedDocItem.status === 'REJECTED') {
-        <div class="status-banner banner-rejected">
-          <span class="banner-icon">⚠️</span>
-          <div>
-            <strong>Document Rejected</strong>
-            <p>{{ selectedDocItem.rejectionReason || 'Image is blurry or edges are cut off.' }}</p>
-          </div>
+  <main class="profile-content animate-fade-in">
+    @if (selectedDocItem.status === 'REJECTED') {
+    <div class="status-banner banner-rejected">
+      <span class="banner-icon">⚠️</span>
+      <div>
+        <strong>Document Rejected</strong>
+        <p>{{ selectedDocItem.rejectionReason || 'Image is blurry or edges are cut off.' }}</p>
+      </div>
+    </div>
+    } @else if (selectedDocItem.status === 'UNDER_REVIEW') {
+    <div class="status-banner banner-pending">
+      <span class="banner-icon">ⓘ</span>
+      <div>
+        <strong>Under Review</strong>
+        <p>Your document is being verified. This usually takes 24-48 hours. We will notify you once the process is
+          complete.</p>
+      </div>
+    </div>
+    } @else if (selectedDocItem.status === 'NOT_UPLOADED') {
+    <div class="status-banner banner-pending">
+      <span class="banner-icon">ⓘ</span>
+      <div>
+        <strong>Pending Upload</strong>
+        <p>Please upload a clear copy of your {{ selectedDocItem.title }} to complete verification.</p>
+      </div>
+    </div>
+    } @else {
+    <div class="status-banner banner-verified">
+      <span class="banner-icon">✓</span>
+      <div>
+        <strong>Verified</strong>
+        <p>Class A with Heavy Equipment Endorsement</p>
+      </div>
+    </div>
+    }
+
+    <div class="doc-info-block">
+      <div class="info-row">
+        <span class="lbl">DOCUMENT NUMBER</span>
+        <span class="val strong">{{ selectedDocItem.docNumber || 'TX-892-441-B' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl">EXPIRY DATE</span>
+        <span class="val">{{ selectedDocItem.expiryDate || 'Oct 12, 2027' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl">ISSUING AUTHORITY</span>
+        <span class="val">{{ selectedDocItem.issuingAuthority || 'State Authority' }}</span>
+      </div>
+    </div>
+
+    <div class="doc-preview-container">
+      @if (selectedDocItem.fileUrl) {
+      <div class="preview-active" (click)="onViewUploadedFile(selectedDocItem)" title="Click to view document dialog">
+        <img [src]="selectedDocItem.fileUrl" alt="Uploaded Document"
+          (error)="fallbackImg.style.display='flex'; mainDocImg.style.display='none'" #mainDocImg />
+        <div class="fallback-preview" style="display: none;" #fallbackImg>
+          <span>📄 Document Image Uploaded</span>
+          <button class="btn-view-preview">Click to View Dialog</button>
         </div>
-      } @else if (selectedDocItem.status === 'UNDER_REVIEW') {
-        <div class="status-banner banner-pending">
-          <span class="banner-icon">ⓘ</span>
-          <div>
-            <strong>Under Review</strong>
-            <p>Your document is being verified. This usually takes 24-48 hours. We will notify you once the process is complete.</p>
-          </div>
-        </div>
-      } @else if (selectedDocItem.status === 'NOT_UPLOADED') {
-        <div class="status-banner banner-pending">
-          <span class="banner-icon">ⓘ</span>
-          <div>
-            <strong>Pending Upload</strong>
-            <p>Please upload a clear copy of your {{ selectedDocItem.title }} to complete verification.</p>
-          </div>
-        </div>
+      </div>
       } @else {
-        <div class="status-banner banner-verified">
-          <span class="banner-icon">✓</span>
-          <div>
-            <strong>Verified</strong>
-            <p>Class A with Heavy Equipment Endorsement</p>
-          </div>
-        </div>
+      <div class="preview-placeholder">
+        <span class="eye-off-icon">📄</span>
+        <strong>No Image Uploaded</strong>
+        <p>No document image file has been uploaded for {{ selectedDocItem.title }} yet.</p>
+      </div>
       }
+    </div>
 
-      <!-- Doc Info Block -->
-      <div class="doc-info-block">
-        <div class="info-row">
-          <span class="lbl">DOCUMENT NUMBER</span>
-          <span class="val strong">{{ selectedDocItem.docNumber || 'TX-892-441-B' }}</span>
-        </div>
-        <div class="info-row">
-          <span class="lbl">EXPIRY DATE</span>
-          <span class="val">{{ selectedDocItem.expiryDate || 'Oct 12, 2027' }}</span>
-        </div>
-        <div class="info-row">
-          <span class="lbl">ISSUING AUTHORITY</span>
-          <span class="val">{{ selectedDocItem.issuingAuthority || 'State Authority' }}</span>
-        </div>
-      </div>
-
-      <!-- Document Preview Container (Only renders image if real uploaded image exists) -->
-      <div class="doc-preview-container">
-        @if (selectedDocItem.fileUrl) {
-          <div class="preview-active" (click)="onViewUploadedFile(selectedDocItem)" title="Click to view document dialog">
-            <img 
-              [src]="selectedDocItem.fileUrl" 
-              alt="Uploaded Document" 
-              (error)="fallbackImg.style.display='flex'; mainDocImg.style.display='none'" 
-              #mainDocImg 
-            />
-            <div class="fallback-preview" style="display: none;" #fallbackImg>
-              <span>📄 Document Image Uploaded</span>
-              <button class="btn-view-preview">Click to View Dialog</button>
-            </div>
-            <div class="hover-view-overlay">
-              <span>🔍 Click to View Dialog</span>
-            </div>
-          </div>
-        } @else {
-          <!-- Clean 'No Image Uploaded' Card when no real image uploaded -->
-          <div class="preview-placeholder">
-            <span class="eye-off-icon">📄</span>
-            <strong>No Image Uploaded</strong>
-            <p>No document image file has been uploaded for {{ selectedDocItem.title }} yet.</p>
-          </div>
-        }
-      </div>
-
-      <!-- Document Metadata Card (Upload Date & Document Name) -->
-      <div class="doc-meta-card">
-        <div class="meta-row">
-          <div>
-            <span class="lbl">Document Name</span>
-            <p class="val strong filename-text">{{ selectedDocItem.fileName || (selectedDocItem.title + '_scan.jpg') }}</p>
-          </div>
-          <div>
-            <span class="lbl">Document Upload Date</span>
-            <p class="val">{{ selectedDocItem.submittedOn || 'Oct 24, 2023' }}</p>
-          </div>
-        </div>
-
-        <div class="meta-row border-top">
-          <div>
-            <span class="lbl">Document Type</span>
-            <p class="val strong">{{ selectedDocItem.title }}</p>
-          </div>
-          <div>
-            <span class="lbl">Status</span>
-            <span class="chip-status"
-              [class.chip-verified]="selectedDocItem.status === 'VERIFIED'" 
-              [class.chip-pending]="selectedDocItem.status === 'UNDER_REVIEW' || selectedDocItem.status === 'NOT_UPLOADED'" 
-              [class.chip-rejected]="selectedDocItem.status === 'REJECTED'">
-              {{ selectedDocItem.status === 'VERIFIED' ? 'Verified' : (selectedDocItem.status === 'UNDER_REVIEW' ? 'Under Review' : (selectedDocItem.status === 'REJECTED' ? 'Rejected' : 'Pending')) }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="doc-actions-box">
-        @if (selectedDocItem.status === 'REJECTED' || selectedDocItem.status === 'NOT_UPLOADED') {
-          <button class="btn-primary-yellow" (click)="openUploadForm()">Upload / Re-upload Document</button>
-          <button class="btn-secondary-white" (click)="navigateTo('MY_DOCUMENTS')">Cancel</button>
-        } @else {
-          <button class="btn-primary-yellow" (click)="onViewUploadedFile(selectedDocItem)">
-            {{ selectedDocItem.fileUrl ? 'View Uploaded Document Dialog' : 'Upload Document File' }}
-          </button>
-          <button class="btn-secondary-white" (click)="openUploadForm()">Update Document</button>
-        }
-      </div>
-    </main>
+    <div class="doc-actions-box">
+      @if (selectedDocItem.status === 'REJECTED' || selectedDocItem.status === 'NOT_UPLOADED') {
+      <button class="btn-primary-yellow" (click)="openUploadForm()">Upload / Re-upload Document</button>
+      <button class="btn-secondary-white" (click)="navigateTo('MY_DOCUMENTS')">Cancel</button>
+      } @else {
+      <button class="btn-primary-yellow" (click)="onViewUploadedFile(selectedDocItem)">View Uploaded Document
+        Dialog</button>
+      <button class="btn-secondary-white" (click)="openUploadForm()">Update Document</button>
+      }
+    </div>
+  </main>
   }
 
   <!-- ==================== VIEW 6: UPLOAD DOCUMENT FORM ==================== -->
   @if (currentView === 'UPLOAD_DOCUMENT' && selectedDocItem) {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('DOCUMENT_DETAIL')">‹</button>
-      <h2>{{ selectedDocItem.title }}</h2>
-      <span class="spacer"></span>
-    </header>
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('DOCUMENT_DETAIL')">‹</button>
+    <h2>{{ selectedDocItem.title }}</h2>
+    <span class="spacer"></span>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <div class="form-card">
-        <div class="form-group">
-          <label class="form-label">{{ selectedDocItem.title }} Number</label>
-          <input type="text" class="form-input" [(ngModel)]="uploadDocNumber" placeholder="Enter {{ selectedDocItem.title }} number" />
-        </div>
-
-        <!-- Front Side Upload Dropzone -->
-        <div class="upload-dropzone">
-          @if (!frontPreviewUrl) {
-            <label class="drop-label">
-              <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'front')" style="display: none;" />
-              <span class="upload-icon">📷</span>
-              <strong>Upload Front Side</strong>
-              <p>JPEG, PNG up to 5MB</p>
-            </label>
-          } @else {
-            <div class="uploaded-file-card">
-              <span class="f-name">Front Side Uploaded</span>
-              <button class="btn-remove-chip" (click)="removeFile('front')">🗑️ Remove</button>
-            </div>
-          }
-        </div>
-
-        <!-- Back Side Upload Dropzone -->
-        <div class="upload-dropzone">
-          @if (!backPreviewUrl) {
-            <label class="drop-label">
-              <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'back')" style="display: none;" />
-              <span class="upload-icon">📷</span>
-              <strong>Upload Back Side</strong>
-              <p>JPEG, PNG up to 5MB</p>
-            </label>
-          } @else {
-            <div class="uploaded-file-card">
-              <span class="f-name">Back Side Uploaded</span>
-              <button class="btn-remove-chip" (click)="removeFile('back')">🗑️ Remove</button>
-            </div>
-          }
-        </div>
-
-        <!-- Document Requirements Card -->
-        <div class="reqs-card">
-          <h4>ⓘ Document Requirements</h4>
-          <ul>
-            <li>ID should be valid and current</li>
-            <li>Avoid glare from camera flash</li>
-            <li>Ensure all corners are visible</li>
-          </ul>
-        </div>
-
-        <button class="btn-primary-yellow" (click)="onSubmitDocument()">Submit Document</button>
+  <main class="profile-content animate-fade-in">
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">{{ selectedDocItem.title }} Number</label>
+        <input type="text" class="form-input" [(ngModel)]="uploadDocNumber"
+          placeholder="Enter {{ selectedDocItem.title }} number" />
       </div>
-    </main>
+
+      <div class="upload-dropzone">
+        @if (!frontPreviewUrl) {
+        <label class="drop-label">
+          <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'front')" style="display: none;" />
+          <span class="upload-icon">📷</span>
+          <strong>Upload Front Side</strong>
+          <p>JPEG, PNG up to 5MB</p>
+        </label>
+        } @else {
+        <div class="uploaded-file-card">
+          <span class="f-name">Front Side Uploaded</span>
+          <button class="btn-remove-chip" (click)="removeFile('front')">🗑️ Remove</button>
+        </div>
+        }
+      </div>
+
+      <div class="upload-dropzone">
+        @if (!backPreviewUrl) {
+        <label class="drop-label">
+          <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'back')" style="display: none;" />
+          <span class="upload-icon">📷</span>
+          <strong>Upload Back Side</strong>
+          <p>JPEG, PNG up to 5MB</p>
+        </label>
+        } @else {
+        <div class="uploaded-file-card">
+          <span class="f-name">Back Side Uploaded</span>
+          <button class="btn-remove-chip" (click)="removeFile('back')">🗑️ Remove</button>
+        </div>
+        }
+      </div>
+
+      <button class="btn-primary-yellow" (click)="onSubmitDocument()">Submit Document</button>
+    </div>
+  </main>
   }
 
   <!-- ==================== VIEW 7: LANGUAGE SELECTION ==================== -->
   @if (currentView === 'LANGUAGE') {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
-      <h2>Language</h2>
-      <span class="spacer"></span>
-    </header>
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
+    <h2>Language</h2>
+    <span class="spacer"></span>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <p class="lang-subtitle">Select your preferred language for the application interface.</p>
+  <main class="profile-content animate-fade-in">
+    <div class="lang-radio-list">
+      @for (lang of languages; track lang.code) {
+      <label class="lang-radio-item" [class.selected]="selectedLanguage === lang.name"
+        (click)="selectedLanguage = lang.name">
+        <span class="lang-title">{{ lang.name }} ({{ lang.native }})</span>
+        <input type="radio" name="lang" [checked]="selectedLanguage === lang.name" />
+        <span class="radio-dot"></span>
+      </label>
+      }
+    </div>
 
-      <div class="lang-radio-list">
-        @for (lang of languages; track lang.code) {
-          <label class="lang-radio-item" [class.selected]="selectedLanguage === lang.name" (click)="selectedLanguage = lang.name">
-            <span class="lang-title">{{ lang.name }} ({{ lang.native }})</span>
-            <input type="radio" name="lang" [checked]="selectedLanguage === lang.name" />
-            <span class="radio-dot"></span>
-          </label>
+    <div class="fixed-bottom-bar">
+      <button class="btn-primary-yellow" (click)="onApplyLanguage()">Apply Selection</button>
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 8: MY VEHICLES LIST (SCREENSHOT 1) ==================== -->
+  @if (currentView === 'MY_VEHICLES') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
+    <h2>My Vehicles</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <!-- Filter Tabs matching Screenshot 1 -->
+    <div class="filter-tabs-row">
+      <button class="tab-pill" [class.active]="vehicleFilter === 'ALL'" (click)="vehicleFilter = 'ALL'">
+        ALL ({{ vehiclesList.length }})
+      </button>
+      <button class="tab-pill" [class.active]="vehicleFilter === 'Approved'" (click)="vehicleFilter = 'Approved'">
+        Approved({{ approvedVehiclesCount }})
+      </button>
+      <button class="tab-pill" [class.active]="vehicleFilter === 'Pending'" (click)="vehicleFilter = 'Pending'">
+        Pending
+      </button>
+      <button class="tab-pill" [class.active]="vehicleFilter === 'Rejected'" (click)="vehicleFilter = 'Rejected'">
+        Rejected
+      </button>
+    </div>
+
+    <!-- Register Another Vehicle Button matching Screenshot 1 -->
+    <button class="register-vehicle-btn" (click)="startAddVehicleFlow()">
+      <span class="plus-circle">+</span>
+      <strong>REGISTER ANOTHER MACHINE / VEHICLE</strong>
+    </button>
+
+    <!-- List of Vehicle Cards matching Screenshot 1 -->
+    <div class="vehicles-card-list">
+      @for (v of filteredVehicles; track v.id) {
+      <div class="vehicle-card" (click)="openVehicleDetails(v)">
+        <div class="card-header">
+          <div class="v-icon-box">
+            @if (v.category === 'Machinery') { 🚜 }
+            @else if (v.vehicleName.includes('Tipper') || v.vehicleName.includes('Lorry')) { 🚚 }
+            @else if (v.category === 'Auto') { 🛺 }
+            @else if (v.category === 'Bike') { 🏍️ }
+            @else { 🚗 }
+          </div>
+          <div class="v-title-box">
+            <h3 class="v-name">{{ v.vehicleName }}</h3>
+            <span class="v-reg-badge">{{ v.regNumber }}</span>
+          </div>
+          <div class="v-status-box">
+            @if (v.isActive) {
+            <span class="badge-status badge-active">● Active</span>
+            } @else if (v.status === 'Approved') {
+            <span class="badge-status badge-approved">● Approved</span>
+            } @else if (v.status === 'Under Review') {
+            <span class="badge-status badge-review">● Under Review</span>
+            } @else if (v.status === 'Pending') {
+            <span class="badge-status badge-pending">● Pending</span>
+            } @else if (v.status === 'Rejected') {
+            <span class="badge-status badge-rejected">● Rejected</span>
+            }
+          </div>
+        </div>
+
+        @if (v.status === 'Rejected' && v.rejectionReason) {
+        <p class="rejection-note"><em>{{ v.rejectionReason }}</em></p>
+        }
+
+        <div class="card-footer">
+          <span class="spacer"></span>
+          @if (v.status === 'Approved' && !v.isActive) {
+          <button class="action-link link-activate" (click)="activateVehicle(v, $event)">Activate Vehicle ›</button>
+          } @else if (v.status === 'Pending') {
+          <button class="action-link link-pending" (click)="$event.stopPropagation(); openVehicleDetails(v)">Complete
+            Profile Now ›</button>
+          } @else {
+          <span class="action-link">Details ›</span>
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 9: VEHICLE DETAILS / READ-ONLY STATUS (SCREENSHOT 2 & 5) ==================== -->
+  @if (currentView === 'VEHICLE_DETAILS' && selectedVehicle) {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MY_VEHICLES')">‹</button>
+    <h2>Vehicle Details</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <!-- Status Banner matching Screenshot 2 -->
+    @if (selectedVehicle.status === 'Active' || selectedVehicle.status === 'Approved') {
+    <div class="vahan-status-banner banner-approved">
+      <span class="check-icon-circle">✓</span>
+      <div>
+        <strong>VERIFIED & APPROVED</strong>
+        <p>Vehicle verified via VAHAN API. Compliant and active for commercial deployment.</p>
+      </div>
+    </div>
+    } @else if (selectedVehicle.status === 'Under Review') {
+    <div class="vahan-status-banner banner-under-review">
+      <span class="warn-icon-circle">ⓘ</span>
+      <div>
+        <strong>Under Review</strong>
+        <p>Your document is being verified. This usually takes 24-48 hours. We will notify you once the process is
+          complete.</p>
+      </div>
+    </div>
+    } @else if (selectedVehicle.status === 'Rejected') {
+    <div class="vahan-status-banner banner-rejected">
+      <span class="warn-icon-circle">⚠️</span>
+      <div>
+        <strong>Document Rejected</strong>
+        <p>{{ selectedVehicle.rejectionReason || 'Image is blurry or edges are cut off.' }}</p>
+      </div>
+    </div>
+    }
+
+    <div class="vehicle-form-card">
+      <div class="reg-vahan-row">
+        <div class="form-group flex-1">
+          <label class="form-label">REGISTRATION NUMBER <span class="req">*Required</span></label>
+          <div class="input-with-badge">
+            <span class="reg-icon">💳</span>
+            <input type="text" class="form-input" [value]="selectedVehicle.regNumber" readonly />
+          </div>
+        </div>
+        <button class="vahan-sync-badge">⚡ VAHAN SYNCED</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label class="form-label">MFG. YEAR</label>
+          <input type="text" class="form-input" [value]="selectedVehicle.mfgYear || '2023'" readonly />
+        </div>
+        <div class="form-group flex-2">
+          <label class="form-label">MACHINE CLASS</label>
+          <input type="text" class="form-input" [value]="selectedVehicle.machineClass || 'Earth Moving (Loader)'"
+            readonly />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="label-with-match">
+          <label class="form-label">CHASSIS / VIN NUMBER</label>
+          <span class="match-badge">✓ 17/17 CHARS MATCH</span>
+        </div>
+        <div class="input-with-badge">
+          <span class="vin-icon">🪪</span>
+          <input type="text" class="form-input" [value]="selectedVehicle.chassisVin || 'MA1PB45JC9L088921'" readonly />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ENGINE SERIAL NUMBER</label>
+        <div class="input-with-badge">
+          <span class="engine-icon">⚡</span>
+          <input type="text" class="form-input" [value]="selectedVehicle.engineSerial || '4H3829K912048E'" readonly />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">POWERTRAIN / FUEL ARCHETYPE</label>
+        <div class="fuel-archetype-pills">
+          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'DIESEL'">⛽ DIESEL</button>
+          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'PETROL'">🛢️ PETROL</button>
+          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'ELECTRIC'">⚡ ELECTRIC</button>
+          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'HYBRID'">🌱 HYBRID</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">VEHICLE DESCRIPTION</label>
+        <textarea class="form-input form-textarea" rows="3"
+          readonly>{{ selectedVehicle.vehicleDescription || 'JCB 3DX with extended dipper arm, rock breaker line installed, heavy duty teeth' }}</textarea>
+      </div>
+
+      <!-- Documents Section -->
+      <h4 class="eq-docs-heading">EQUIPMENT DOCUMENTS</h4>
+
+      <div class="eq-doc-row" (click)="viewVehicleDocument('Equipment / Vehicle RC', selectedVehicle.documents?.rcFront?.url)">
+        <div class="doc-icon-circle">📄</div>
+        <div class="doc-text-col">
+          <strong>Equipment / Vehicle RC</strong>
+          <p>{{ getCleanDocName(selectedVehicle.documents?.rcFront, 'RC_Front.png') }}</p>
+        </div>
+        <span class="chip-status"
+          [class.chip-verified]="selectedVehicle.status === 'Active' || selectedVehicle.status === 'Approved'"
+          [class.chip-pending]="selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'Pending'"
+          [class.chip-rejected]="selectedVehicle.status === 'Rejected'">
+          {{ selectedVehicle.status === 'Active' || selectedVehicle.status === 'Approved' ? 'Verified' :
+          selectedVehicle.status }}
+        </span>
+      </div>
+
+      <div class="eq-doc-row" (click)="viewVehicleDocument('Equipment Insurance', selectedVehicle.documents?.insurance?.url)">
+        <div class="doc-icon-circle">🛡️</div>
+        <div class="doc-text-col">
+          <strong>Equipment Insurance</strong>
+          <p>{{ getCleanDocName(selectedVehicle.documents?.insurance, 'Insurance.pdf') }}</p>
+        </div>
+        <span class="chip-status"
+          [class.chip-verified]="selectedVehicle.status === 'Active' || selectedVehicle.status === 'Approved'"
+          [class.chip-pending]="selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'Pending'"
+          [class.chip-rejected]="selectedVehicle.status === 'Rejected'">
+          {{ selectedVehicle.status === 'Active' || selectedVehicle.status === 'Approved' ? 'Verified' :
+          selectedVehicle.status }}
+        </span>
+      </div>
+
+      @if (selectedVehicle.status === 'Approved' && !selectedVehicle.isActive) {
+      <button class="btn-primary-yellow mt-4" (click)="activateVehicle(selectedVehicle)">Set as Active Allocation
+        Vehicle ➔</button>
+      }
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 10: ADD VEHICLE STEP 1: CATEGORY & FETCH MODE (SCREENSHOT 3A) ==================== -->
+  @if (currentView === 'ADD_VEHICLE_TYPE') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MY_VEHICLES')">‹</button>
+    <h2>Select your vehicle</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <!-- Manual vs Auto Fetching Toggle Pills -->
+    <div class="fetch-mode-bar">
+      <button class="mode-pill" [class.active]="newVehicle.fetchMode === 'AUTO_VAHAN'"
+        (click)="newVehicle.fetchMode = 'AUTO_VAHAN'">
+        ⚡ Auto Fetching (VAHAN)
+      </button>
+      <button class="mode-pill" [class.active]="newVehicle.fetchMode === 'MANUAL'"
+        (click)="newVehicle.fetchMode = 'MANUAL'">
+        ✏️ Manual Entry
+      </button>
+    </div>
+
+    <p class="step-subtitle">Choose the vehicle you want to add</p>
+
+    <div class="vehicle-options-grid">
+      <!-- Car -->
+      <div class="v-option-card" [class.selected]="newVehicle.category === 'Car'" (click)="newVehicle.category = 'Car'">
+        <div class="opt-icon-box icon-car">🚗</div>
+        <div class="opt-info">
+          <h4>Car</h4>
+          <p>Drive passengers</p>
+        </div>
+        <div class="radio-circle"></div>
+      </div>
+
+      <!-- Auto -->
+      <div class="v-option-card" [class.selected]="newVehicle.category === 'Auto'"
+        (click)="newVehicle.category = 'Auto'">
+        <div class="opt-icon-box icon-auto">🛺</div>
+        <div class="opt-info">
+          <h4>Auto</h4>
+          <p>Drive passengers</p>
+        </div>
+        <div class="radio-circle"></div>
+      </div>
+
+      <!-- Bike -->
+      <div class="v-option-card" [class.selected]="newVehicle.category === 'Bike'"
+        (click)="newVehicle.category = 'Bike'">
+        <div class="opt-icon-box icon-bike">🏍️</div>
+        <div class="opt-info">
+          <h4>Bike</h4>
+          <p>Take bike taxi trips</p>
+        </div>
+        <div class="radio-circle"></div>
+      </div>
+
+      <!-- Machinery -->
+      <div class="v-option-card" [class.selected]="newVehicle.category === 'Machinery'"
+        (click)="newVehicle.category = 'Machinery'">
+        <div class="opt-icon-box icon-machinery">🚜</div>
+        <div class="opt-info">
+          <h4>Machinery</h4>
+          <p>Operate construction machinery</p>
+        </div>
+        <div class="radio-circle"></div>
+      </div>
+    </div>
+
+    <div class="fixed-bottom-bar">
+      <button class="btn-primary-yellow"
+        (click)="newVehicle.category === 'Machinery' ? navigateTo('ADD_VEHICLE_MODEL') : navigateTo('ADD_VEHICLE_FORM')">
+        Continue ➔
+      </button>
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 11: ADD VEHICLE STEP 2: MACHINERY MODEL (SCREENSHOT 3B) ==================== -->
+  @if (currentView === 'ADD_VEHICLE_MODEL') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_TYPE')">‹</button>
+    <h2>Select machinery model</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <p class="step-subtitle">Choose the specific equipment to add</p>
+
+    <!-- Category Filter Pills -->
+    <div class="subcat-filter-pills">
+      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'All'"
+        (click)="machinerySubCategoryFilter = 'All'">All</button>
+      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Backhoe'"
+        (click)="machinerySubCategoryFilter = 'Backhoe'">Backhoe</button>
+      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Excavator'"
+        (click)="machinerySubCategoryFilter = 'Excavator'">Excavator</button>
+      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Cranes'"
+        (click)="machinerySubCategoryFilter = 'Cranes'">Cranes</button>
+      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Bulldozer'"
+        (click)="machinerySubCategoryFilter = 'Bulldozer'">Bulldozer</button>
+    </div>
+
+    <div class="machinery-models-list">
+      @for (m of filteredMachineryModels; track m.id) {
+      <div class="model-option-card" [class.selected]="newVehicle.machineryModel === m.name"
+        (click)="newVehicle.machineryModel = m.name; newVehicle.vehicleName = m.name + ' EcoXcellence'">
+        <div class="m-icon-box">{{ m.icon }}</div>
+        <div class="m-info">
+          <h4>{{ m.name }}</h4>
+          <p>{{ m.specs }}</p>
+        </div>
+        <span class="radio-check">{{ newVehicle.machineryModel === m.name ? '✓' : '' }}</span>
+      </div>
+      }
+    </div>
+
+    <div class="fixed-bottom-bar">
+      <button class="btn-primary-yellow" (click)="navigateTo('ADD_VEHICLE_EXP')">Confirm Vehicle ➔</button>
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 12: ADD VEHICLE STEP 3: EXPERIENCE (SCREENSHOT 3C) ==================== -->
+  @if (currentView === 'ADD_VEHICLE_EXP') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_MODEL')">‹</button>
+    <h2>Operator Experience</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <h3 class="exp-title">Tell us about your experience</h3>
+    <p class="step-subtitle">How long have you been operating construction machinery?</p>
+
+    <div class="experience-radio-list">
+      @for (opt of experienceOptions; track opt) {
+      <label class="exp-radio-card" [class.selected]="newVehicle.experience === opt"
+        (click)="newVehicle.experience = opt">
+        <span class="exp-text">{{ opt }}</span>
+        <input type="radio" name="exp" [checked]="newVehicle.experience === opt" />
+        <span class="radio-dot"></span>
+      </label>
+      }
+    </div>
+
+    <div class="fixed-bottom-bar">
+      <button class="btn-primary-yellow" (click)="navigateTo('ADD_VEHICLE_FORM')">Continue ➔</button>
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 13: ADD VEHICLE FORM (SCREENSHOTS 2 & 5) ==================== -->
+  @if (currentView === 'ADD_VEHICLE_FORM') {
+  <header class="sub-header">
+    <button class="btn-back"
+      (click)="navigateTo(newVehicle.category === 'Machinery' ? 'ADD_VEHICLE_EXP' : 'ADD_VEHICLE_TYPE')">‹</button>
+    <h2>Vehicle Details</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <p class="step-subtitle">Add vehicle to your business</p>
+
+    <div class="vehicle-form-card">
+      @if (vehicleValidationError) {
+      <div class="validation-error-box">
+        ⚠️ {{ vehicleValidationError }}
+      </div>
+      }
+
+      <!-- Registration & VAHAN fetch trigger -->
+      <div class="reg-vahan-row">
+        <div class="form-group flex-1">
+          <label class="form-label">REGISTRATION NUMBER <span class="req">*Required</span></label>
+          <div class="input-with-badge">
+            <span class="reg-icon">💳</span>
+            <input type="text" class="form-input" [(ngModel)]="newVehicle.regNumber" placeholder="TN 38 AB 4521" />
+          </div>
+        </div>
+        @if (newVehicle.fetchMode === 'AUTO_VAHAN') {
+        <button class="btn-vahan-fetch" (click)="fetchVahanDetails()">
+          {{ newVehicle.isVahanSynced ? '✓ VAHAN SYNCED' : '⚡ FETCH VAHAN' }}
+        </button>
+        }
+      </div>
+      <p class="input-hint">Standard High-Security Registration Plate (HSRP) format</p>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label class="form-label">MFG. YEAR</label>
+          <select class="form-input form-select" [(ngModel)]="newVehicle.mfgYear">
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021</option>
+            <option value="2020">2020</option>
+          </select>
+        </div>
+        <div class="form-group flex-2">
+          <label class="form-label">MACHINE CLASS <span class="req">*Required</span></label>
+          <input type="text" class="form-input" [(ngModel)]="newVehicle.machineClass"
+            placeholder="e.g. Earth Moving (Loader)" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="label-with-match">
+          <label class="form-label">CHASSIS / VIN NUMBER <span class="req">*Required</span></label>
+          <span class="match-badge">✓ 17/17 CHARS VALID</span>
+        </div>
+        <div class="input-with-badge">
+          <span class="vin-icon">🪪</span>
+          <input type="text" class="form-input" [(ngModel)]="newVehicle.chassisVin"
+            placeholder="e.g. MA1PB45JC9L088921" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ENGINE SERIAL NUMBER</label>
+        <div class="input-with-badge">
+          <span class="engine-icon">⚡</span>
+          <input type="text" class="form-input" [(ngModel)]="newVehicle.engineSerial" placeholder="4H3829K912048E" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">POWERTRAIN / FUEL ARCHETYPE</label>
+        <div class="fuel-archetype-pills">
+          <button class="fuel-pill" [class.active]="newVehicle.powertrain === 'DIESEL'"
+            (click)="newVehicle.powertrain = 'DIESEL'">⛽ DIESEL</button>
+          <button class="fuel-pill" [class.active]="newVehicle.powertrain === 'PETROL'"
+            (click)="newVehicle.powertrain = 'PETROL'">🛢️ PETROL</button>
+          <button class="fuel-pill" [class.active]="newVehicle.powertrain === 'ELECTRIC'"
+            (click)="newVehicle.powertrain = 'ELECTRIC'">⚡ ELECTRIC</button>
+          <button class="fuel-pill" [class.active]="newVehicle.powertrain === 'HYBRID'"
+            (click)="newVehicle.powertrain = 'HYBRID'">🌱 HYBRID</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">VEHICLE DESCRIPTION <span class="char-count">(0/250 CHARS)</span></label>
+        <textarea class="form-input form-textarea" rows="3" [(ngModel)]="newVehicle.vehicleDescription"
+          placeholder="JCB 3DX with extended dipper arm, rock breaker line installed, heavy duty teeth"></textarea>
+      </div>
+
+      <!-- Equipment Documents List (Screenshots 2 & 5) -->
+      <h4 class="eq-docs-heading">EQUIPMENT DOCUMENTS</h4>
+      <div class="notice-box-light">
+        <span class="info-icon">ⓘ</span>
+        <p>Make sure all documents are clear, valid and belong to you.</p>
+      </div>
+
+      <!-- Document 1: Equipment / Vehicle RC -->
+      <div class="eq-doc-row" (click)="openVehicleDocumentUpload('RC')">
+        <div class="doc-icon-circle">📄</div>
+        <div class="doc-text-col">
+          <strong>Equipment / Vehicle RC</strong>
+        </div>
+        <span class="status-check-badge" [class.done]="newVehicle.documents?.rcFront?.url">
+          {{ newVehicle.documents?.rcFront?.url ? '✓' : '›' }}
+        </span>
+      </div>
+
+      <!-- Document 2: Equipment Insurance -->
+      <div class="eq-doc-row" (click)="openVehicleDocumentUpload('INSURANCE')">
+        <div class="doc-icon-circle">🛡️</div>
+        <div class="doc-text-col">
+          <strong>Equipment Insurance</strong>
+        </div>
+        <span class="status-check-badge" [class.done]="newVehicle.documents?.insurance?.url">
+          {{ newVehicle.documents?.insurance?.url ? '✓' : '›' }}
+        </span>
+      </div>
+
+      <!-- Document 3: Equipment Photos -->
+      <div class="eq-doc-row" (click)="openVehicleDocumentUpload('PHOTOS')">
+        <div class="doc-icon-circle">📷</div>
+        <div class="doc-text-col">
+          <strong>Equipment Photos</strong>
+        </div>
+        <span class="status-check-badge" [class.done]="newVehicle.documents?.photos?.front">
+          {{ newVehicle.documents?.photos?.front ? '✓' : '›' }}
+        </span>
+      </div>
+
+      <!-- Document 4: Rental / Lease Agreement -->
+      <div class="eq-doc-row" (click)="openVehicleDocumentUpload('AGREEMENT')">
+        <div class="doc-icon-circle">📋</div>
+        <div class="doc-text-col">
+          <strong>Rental / Lease Agreement</strong>
+        </div>
+        <span class="status-check-badge" [class.done]="newVehicle.documents?.agreement?.url">
+          {{ newVehicle.documents?.agreement?.url ? '✓' : '›' }}
+        </span>
+      </div>
+
+      <button class="btn-primary-yellow mt-4" [disabled]="isSubmittingVehicle" (click)="submitVehicleVerification()">
+        @if (isSubmittingVehicle) {
+          <span>⏳ Processing...</span>
+        } @else {
+          <span>Continue ➔</span>
+        }
+      </button>
+      <p class="save-progress-text">You can save your progress and complete the remaining documents later.</p>
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 14: UPLOAD EQUIPMENT RC (SCREENSHOT 4) ==================== -->
+  @if (currentView === 'UPLOAD_VEHICLE_RC') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <h2>Registration Certificate</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">Registration Number</label>
+        <input type="text" class="form-input" [(ngModel)]="rcForm.regNumber"
+          (ngModelChange)="newVehicle.regNumber = $event" placeholder="eg., TN 11 AK 6045" />
+      </div>
+
+      <!-- Front Side Dropzone -->
+      <div class="upload-dropzone-large" (click)="triggerUploadModal('RC_FRONT')">
+        @if (!rcForm.frontPreview) {
+        <div class="drop-placeholder">
+          <span class="drop-icon">📷</span>
+          <strong>Upload Front Side</strong>
+          <p>JPEG, PNG up to 5MB</p>
+        </div>
+        } @else {
+        <div class="uploaded-image-preview">
+          <img [src]="rcForm.frontPreview" alt="Front RC" />
+          <div class="preview-overlay">
+            <span>Front Side Uploaded</span>
+            <button class="btn-remove-chip" (click)="$event.stopPropagation(); rcForm.frontPreview=''">🗑️
+              Remove</button>
+          </div>
+        </div>
         }
       </div>
 
-      <div class="fixed-bottom-bar">
-        <button class="btn-primary-yellow" (click)="onApplyLanguage()">Apply Selection</button>
+      <!-- Back Side Dropzone -->
+      <div class="upload-dropzone-large" (click)="triggerUploadModal('RC_BACK')">
+        @if (!rcForm.backPreview) {
+        <div class="drop-placeholder">
+          <span class="drop-icon">📷</span>
+          <strong>Upload Back Side</strong>
+          <p>JPEG, PNG up to 5MB</p>
+        </div>
+        } @else {
+        <div class="uploaded-image-preview">
+          <img [src]="rcForm.backPreview" alt="Back RC" />
+          <div class="preview-overlay">
+            <span>Back Side Uploaded</span>
+            <button class="btn-remove-chip" (click)="$event.stopPropagation(); rcForm.backPreview=''">🗑️
+              Remove</button>
+          </div>
+        </div>
+        }
       </div>
-    </main>
+
+      <div class="notice-box-light">
+        <span class="info-icon">ⓘ</span>
+        <p>Document must match the registered equipment details.</p>
+      </div>
+
+      <button class="btn-primary-yellow" (click)="saveRcDocument()">Submit Document</button>
+    </div>
+  </main>
   }
 
-  <!-- ==================== VIEW 8: MY VEHICLES ==================== -->
-  @if (currentView === 'MY_VEHICLES') {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
-      <h2>My Vehicles & Equipment</h2>
-      <span class="spacer"></span>
-    </header>
+  <!-- ==================== VIEW 15: UPLOAD EQUIPMENT INSURANCE (SCREENSHOT 4) ==================== -->
+  @if (currentView === 'UPLOAD_VEHICLE_INSURANCE') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <h2>Equipment Insurance</h2>
+    <span class="spacer"></span>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <div class="equipment-card">
-        <div class="eq-icon-box">🚜</div>
-        <div class="eq-details">
-          <h3>{{ driverProfile?.selectedMachineryModel || 'JCB 3DX Super Backhoe Loader' }}</h3>
-          <p class="eq-cat">Category: {{ driverProfile?.selectedVehicleType || 'Heavy Equipment / Excavator' }}</p>
-          <p class="eq-num">Vehicle Reg: TN-09-AB-1234</p>
-          <span class="badge-online">● Ready for Assignments</span>
+  <main class="profile-content animate-fade-in">
+    <div class="form-card">
+      <div class="insurance-banner">
+        <h4>Upload Insurance Policy</h4>
+        <p>ⓘ Ensure policy period is currently active</p>
+      </div>
+
+      <div class="upload-dropzone-large" (click)="triggerUploadModal('INSURANCE')">
+        @if (!insuranceForm.previewUrl) {
+        <div class="drop-placeholder">
+          <span class="cloud-icon">☁️</span>
+          <strong>Tap to upload or drag & drop</strong>
+          <p>PDF, JPG, PNG (Max 10MB)</p>
+        </div>
+        } @else {
+        <div class="uploaded-image-preview">
+          <img [src]="insuranceForm.previewUrl" alt="Insurance" />
+          <div class="preview-overlay">
+            <span>Insurance Policy Uploaded</span>
+            <button class="btn-remove-chip" (click)="$event.stopPropagation(); insuranceForm.previewUrl=''">🗑️
+              Remove</button>
+          </div>
+        </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Policy Number (Optional)</label>
+        <input type="text" class="form-input" [(ngModel)]="insuranceForm.policyNumber" placeholder="e.g. POL-992-12X" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Provider Name (Optional)</label>
+        <input type="text" class="form-input" [(ngModel)]="insuranceForm.providerName"
+          placeholder="e.g. Heavy Duty Insure" />
+      </div>
+
+      <button class="btn-primary-yellow" (click)="saveInsuranceDocument()">Submit Document</button>
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 16: RENTAL / LEASE AGREEMENT (SCREENSHOT 4) ==================== -->
+  @if (currentView === 'UPLOAD_VEHICLE_AGREEMENT') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <h2>Rental / Lease Agreement</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <div class="form-card">
+      <div class="insurance-banner">
+        <h4>Upload Agreement</h4>
+        <p>ⓘ Ensure policy period is currently active</p>
+      </div>
+
+      <div class="upload-dropzone-large" (click)="triggerUploadModal('AGREEMENT')">
+        @if (!agreementForm.previewUrl) {
+        <div class="drop-placeholder">
+          <span class="cloud-icon">☁️</span>
+          <strong>Tap to upload or drag & drop</strong>
+          <p>PDF, JPG, PNG (Max 10MB)</p>
+        </div>
+        } @else {
+        <div class="uploaded-image-preview">
+          <img [src]="agreementForm.previewUrl" alt="Agreement" />
+          <div class="preview-overlay">
+            <span>Agreement Uploaded</span>
+            <button class="btn-remove-chip" (click)="$event.stopPropagation(); agreementForm.previewUrl=''">🗑️
+              Remove</button>
+          </div>
+        </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Agreement type</label>
+        <select class="form-input form-select" [(ngModel)]="agreementForm.type">
+          <option value="Lease Agreement">Lease Agreement</option>
+          <option value="Power of Attorney">Power of Attorney</option>
+          <option value="Owner Permission Letter">Owner Permission Letter</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Vehicle registration number</label>
+        <input type="text" class="form-input" [(ngModel)]="agreementForm.regNumber" placeholder="eg., TN 11 AK XXXX" />
+      </div>
+
+      <button class="btn-primary-yellow" (click)="saveAgreementDocument()">Submit Document</button>
+    </div>
+  </main>
+  }
+
+  <!-- ==================== VIEW 17: EQUIPMENT PHOTOS (SCREENSHOT 5) ==================== -->
+  @if (currentView === 'UPLOAD_VEHICLE_PHOTOS') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <h2>Equipment Photos</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <p class="step-subtitle">Upload in Every View</p>
+
+    <div class="photos-grid-list">
+      <!-- 1. Front View -->
+      <div class="photo-view-card">
+        <div class="photo-box" (click)="triggerUploadModal('PHOTO_FRONT')">
+          @if (photosForm.front) {
+          <img [src]="photosForm.front" alt="Front View" />
+          <button class="btn-retake" (click)="$event.stopPropagation(); triggerUploadModal('PHOTO_FRONT')">↻
+            Re-take</button>
+          } @else {
+          <div class="photo-placeholder">
+            <span>📷 Front View</span>
+          </div>
+          }
+        </div>
+        <span class="view-label">FRONT VIEW</span>
+      </div>
+
+      <!-- 2. Side View -->
+      <div class="photo-view-card">
+        <div class="photo-box" (click)="triggerUploadModal('PHOTO_SIDE')">
+          @if (photosForm.side) {
+          <img [src]="photosForm.side" alt="Side View" />
+          <button class="btn-retake" (click)="$event.stopPropagation(); triggerUploadModal('PHOTO_SIDE')">↻
+            Re-take</button>
+          } @else {
+          <div class="photo-placeholder">
+            <span>📷 Side View</span>
+          </div>
+          }
+        </div>
+        <span class="view-label">SIDE VIEW</span>
+      </div>
+
+      <!-- 3. Rear View -->
+      <div class="photo-view-card">
+        <div class="photo-box" (click)="triggerUploadModal('PHOTO_REAR')">
+          @if (photosForm.rear) {
+          <img [src]="photosForm.rear" alt="Rear View" />
+          <button class="btn-retake" (click)="$event.stopPropagation(); triggerUploadModal('PHOTO_REAR')">↻
+            Re-take</button>
+          } @else {
+          <div class="photo-placeholder">
+            <span>📷 Rear View</span>
+          </div>
+          }
+        </div>
+        <span class="view-label">REAR VIEW</span>
+      </div>
+
+      <!-- 4. Cabin -->
+      <div class="photo-view-card">
+        <div class="photo-box" (click)="triggerUploadModal('PHOTO_CABIN')">
+          @if (photosForm.cabin) {
+          <img [src]="photosForm.cabin" alt="Cabin View" />
+          <button class="btn-retake" (click)="$event.stopPropagation(); triggerUploadModal('PHOTO_CABIN')">↻
+            Re-take</button>
+          } @else {
+          <div class="photo-placeholder">
+            <span>📷 Operator Cabin</span>
+          </div>
+          }
+        </div>
+        <span class="view-label">OPERATOR CABIN & CONTROLS</span>
+      </div>
+
+      <!-- 5. Engine Serial Plate -->
+      <div class="photo-view-card">
+        <div class="photo-box" (click)="triggerUploadModal('PHOTO_ENGINE')">
+          @if (photosForm.engineSerial) {
+          <img [src]="photosForm.engineSerial" alt="Engine Plate" />
+          <button class="btn-retake" (click)="$event.stopPropagation(); triggerUploadModal('PHOTO_ENGINE')">↻
+            Re-take</button>
+          } @else {
+          <div class="photo-placeholder">
+            <span>📷 Engine Bay & Serial Plate</span>
+          </div>
+          }
+        </div>
+        <span class="view-label">Engine Bay & Serial Plate</span>
+      </div>
+    </div>
+
+    <button class="btn-primary-yellow mt-4" (click)="savePhotosDocument()">Submit Document</button>
+  </main>
+  }
+
+  <!-- ==================== VIEW 18: VERIFICATION SUBMITTED (SCREENSHOT 5) ==================== -->
+  @if (currentView === 'VEHICLE_SUBMITTED') {
+  <main class="profile-content animate-fade-in full-center-view">
+    <div class="submitted-modal-card">
+      <div class="success-pulse-circle">
+        <span class="check-mark">✓</span>
+      </div>
+
+      <h3>Verification Submitted</h3>
+      <p class="sub-msg">We're reviewing your vehicle documents. You'll be notified once your vehicle is approved.</p>
+
+      <div class="app-status-box">
+        <div class="status-row">
+          <span class="lbl">Application ID</span>
+          <strong class="val">{{ newVehicle.applicationId || '#OP28491' }}</strong>
+        </div>
+        <div class="status-badge-row">
+          <!-- <span class="lbl">STATUS</span> -->
+          <span class="badge-status badge-review">Under Review</span>
         </div>
       </div>
-    </main>
+
+      <button class="btn-primary-yellow" (click)="navigateTo('MY_VEHICLES')">Done</button>
+    </div>
+  </main>
   }
 
-  <!-- ==================== VIEW 9 & 10: TERMS / PRIVACY ==================== -->
+  <!-- ==================== VIEW 19 & 20: TERMS / PRIVACY ==================== -->
   @if (currentView === 'TERMS' || currentView === 'PRIVACY') {
-    <header class="sub-header">
-      <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
-      <h2>{{ currentView === 'TERMS' ? 'Terms & Conditions' : 'Privacy Policy' }}</h2>
-      <span class="spacer"></span>
-    </header>
+  <header class="sub-header">
+    <button class="btn-back" (click)="navigateTo('MAIN')">‹</button>
+    <h2>{{ currentView === 'TERMS' ? 'Terms & Conditions' : 'Privacy Policy' }}</h2>
+    <span class="spacer"></span>
+  </header>
 
-    <main class="profile-content animate-fade-in">
-      <div class="info-card policy-body">
-        <h3>Rentron Platform Rules</h3>
-        <p>By using the Rentron Driver Application, you agree to follow safety protocols, maintain valid equipment license, and deliver high quality booking operations.</p>
-        <p>Your privacy and document security are protected using encryption and safe data storage policies.</p>
-      </div>
-    </main>
+  <main class="profile-content animate-fade-in">
+    <div class="info-card policy-body">
+      <h3>Rentron Platform Rules</h3>
+      <p>By using the Rentron Driver Application, you agree to follow safety protocols, maintain valid equipment
+        license, and deliver high quality booking operations.</p>
+      <p>Your privacy and document security are protected using encryption and safe data storage policies.</p>
+    </div>
+  </main>
   }
 
   <!-- Bottom Navigation -->
   <app-bottom-navigation></app-bottom-navigation>
 
-  <!-- Photo Upload Modal -->
-  <app-image-upload-modal
-    [isOpen]="showPhotoModal"
-    title="Update Profile Photo"
-    (fileCaptured)="onPhotoCaptured($event)"
-    (modalClosed)="showPhotoModal = false"
-  ></app-image-upload-modal>
+  <!-- Photo / Document Upload Modal -->
+  <app-image-upload-modal [isOpen]="showPhotoModal" title="Upload Document / Vehicle Photo"
+    (fileCaptured)="onPhotoCaptured($event)" (modalClosed)="showPhotoModal = false"></app-image-upload-modal>
 
   <!-- Uploaded Document Preview Dialog Modal -->
   @if (showFileViewerModal) {
-    <div class="modal-backdrop" (click)="showFileViewerModal = false">
-      <div class="viewer-modal-card animate-fade-in" (click)="$event.stopPropagation()">
-        <div class="viewer-header">
-          <div>
-            <h3>Uploaded Document Preview</h3>
-            <p class="viewer-subtext">{{ selectedDocItem?.fileName || 'No image uploaded' }} • {{ selectedDocItem?.submittedOn || 'Pending' }}</p>
-          </div>
-          <button class="btn-close" (click)="showFileViewerModal = false">✕</button>
+  <div class="modal-backdrop" (click)="showFileViewerModal = false">
+    <div class="viewer-modal-card animate-fade-in" (click)="$event.stopPropagation()">
+      <div class="viewer-header">
+        <div>
+          <h3>Uploaded Document Preview</h3>
+          <p class="viewer-subtext">{{ selectedDocItem?.fileName || 'No image uploaded' }} • {{
+            selectedDocItem?.submittedOn || 'Pending' }}</p>
         </div>
+        <button class="btn-close" (click)="showFileViewerModal = false">✕</button>
+      </div>
 
-        <div class="viewer-body">
-          <div class="img-preview-box">
-            @if (viewingFileUrl) {
-              <img 
-                [src]="viewingFileUrl" 
-                alt="Uploaded Document Preview" 
-                class="dialog-doc-img"
-                (error)="imgFallback.style.display='flex'; mainDocImg.style.display='none'"
-                #mainDocImg
-              />
-              <div class="doc-dialog-fallback" style="display: none;" #imgFallback>
-                <span class="fallback-icon">📄</span>
-                <h4>{{ selectedDocItem?.fileName || 'Document File' }}</h4>
-                <p>Uploaded on {{ selectedDocItem?.submittedOn || 'N/A' }}</p>
-              </div>
-            } @else {
-              <div class="doc-dialog-fallback">
-                <span class="fallback-icon">📄</span>
-                <h4>No Image Uploaded</h4>
-                <p>No document image file has been uploaded for {{ selectedDocItem?.title }} yet.</p>
-              </div>
-            }
-          </div>
-        </div>
-
-        <div class="viewer-footer">
+      <div class="viewer-body">
+        <div class="img-preview-box">
           @if (viewingFileUrl) {
-            <button class="btn-primary-yellow btn-download-file" (click)="downloadViewingFile()">📥 Download Document</button>
+          <img [src]="viewingFileUrl" alt="Uploaded Document Preview" class="dialog-doc-img"
+            (error)="imgFallback.style.display='flex'; mainDocImg.style.display='none'" #mainDocImg />
+          <div class="doc-dialog-fallback" style="display: none;" #imgFallback>
+            <span class="fallback-icon">📄</span>
+            <h4>{{ selectedDocItem?.fileName || 'Document File' }}</h4>
+            <p>Uploaded on {{ selectedDocItem?.submittedOn || 'N/A' }}</p>
+          </div>
           } @else {
-            <button class="btn-primary-yellow btn-download-file" (click)="showFileViewerModal = false; openUploadForm()">📤 Upload Document File</button>
+          <div class="doc-dialog-fallback">
+            <span class="fallback-icon">📄</span>
+            <h4>No Image Uploaded</h4>
+            <p>No document image file has been uploaded for {{ selectedDocItem?.title }} yet.</p>
+          </div>
           }
-          <button class="btn-secondary-white" (click)="showFileViewerModal = false">Close</button>
         </div>
       </div>
+
+      <div class="viewer-footer">
+        @if (viewingFileUrl) {
+        <button class="btn-primary-yellow btn-download-file" (click)="downloadViewingFile()">📥 Download
+          Document</button>
+        } @else {
+        <button class="btn-primary-yellow btn-download-file" (click)="showFileViewerModal = false; openUploadForm()">📤
+          Upload Document File</button>
+        }
+        <button class="btn-secondary-white" (click)="showFileViewerModal = false">Close</button>
+      </div>
     </div>
+  </div>
   }
 
-  <app-logout-modal
-    [isOpen]="showLogoutModal"
-    (confirm)="confirmLogout()"
-    (cancel)="cancelLogout()">
+  <app-logout-modal [isOpen]="showLogoutModal" (confirm)="confirmLogout()" (cancel)="cancelLogout()">
   </app-logout-modal>
+
+  <!-- Document Full View Modal Overlay -->
+  @if (activeDocViewer) {
+  <div class="file-viewer-modal-backdrop animate-fade-in" (click)="closeVehicleDocumentViewer()">
+    <div class="file-viewer-card" (click)="$event.stopPropagation()">
+      <div class="viewer-header">
+        <h3>📄 {{ activeDocViewer.title }}</h3>
+        <button class="btn-close" (click)="closeVehicleDocumentViewer()">✕</button>
+      </div>
+      <div class="viewer-body">
+        @if (activeDocViewer.isImage) {
+        <div class="img-scroll-container">
+          <img [src]="getSafeUrl(activeDocViewer.url)" alt="Attached Document" class="full-doc-image" />
+        </div>
+        } @else {
+        <div class="doc-dialog-fallback">
+          <span class="fallback-icon">📄</span>
+          <h4>Document Attached</h4>
+          <p>This document file is ready for download or viewing.</p>
+          <a [href]="getSafeUrl(activeDocViewer.url)" target="_blank" download class="btn-primary-yellow mt-3" style="text-decoration: none; display: inline-block;">📥 Download / View File</a>
+        </div>
+        }
+      </div>
+      <div class="viewer-footer">
+        <button class="btn-secondary-white" (click)="closeVehicleDocumentViewer()">Close</button>
+      </div>
+    </div>
+  </div>
+  }
 </div>
