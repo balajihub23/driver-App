@@ -721,100 +721,111 @@
     <p class="step-subtitle">Choose the vehicle you want to add</p>
 
     <div class="vehicle-options-grid">
-      <!-- Car -->
-      <div class="v-option-card" [class.selected]="newVehicle.category === 'Car'" (click)="newVehicle.category = 'Car'">
-        <div class="opt-icon-box icon-car">🚗</div>
-        <div class="opt-info">
-          <h4>Car</h4>
-          <p>Drive passengers</p>
+      @if (dynamicVehicleTypes.length > 0) {
+        @for (t of dynamicVehicleTypes; track t.id) {
+          <div class="v-option-card" [class.selected]="newVehicle.vehicleTypeId === t.id || newVehicle.category === t.name" (click)="selectVehicleTypeCard(t)">
+            <div class="opt-icon-box">
+              <img *ngIf="t.iconUrl" [src]="t.iconUrl" (error)="onImgError($event)" class="opt-type-img" alt="icon" />
+              <span class="emoji-icon">
+                {{ t.code === 'CAR' || t.name === 'Car' ? '🚗' : (t.code === 'AUTO' || t.name === 'Auto' ? '🛺' : (t.code === 'BIKE' || t.name === 'Bike' ? '🏍️' : '🚜')) }}
+              </span>
+            </div>
+            <div class="opt-info">
+              <h4>{{ t.name }}</h4>
+              <p>{{ t.description || 'Commercial Vehicle' }}</p>
+            </div>
+            <div class="radio-circle"></div>
+          </div>
+        }
+      } @else {
+        <!-- Fallback static types while loading -->
+        <div class="v-option-card" [class.selected]="newVehicle.category === 'Car'" (click)="newVehicle.category = 'Car'">
+          <div class="opt-icon-box icon-car">🚗</div>
+          <div class="opt-info">
+            <h4>Car</h4>
+            <p>Drive passengers</p>
+          </div>
+          <div class="radio-circle"></div>
         </div>
-        <div class="radio-circle"></div>
-      </div>
 
-      <!-- Auto -->
-      <div class="v-option-card" [class.selected]="newVehicle.category === 'Auto'"
-        (click)="newVehicle.category = 'Auto'">
-        <div class="opt-icon-box icon-auto">🛺</div>
-        <div class="opt-info">
-          <h4>Auto</h4>
-          <p>Drive passengers</p>
+        <div class="v-option-card" [class.selected]="newVehicle.category === 'Auto'" (click)="newVehicle.category = 'Auto'">
+          <div class="opt-icon-box icon-auto">🛺</div>
+          <div class="opt-info">
+            <h4>Auto</h4>
+            <p>Drive passengers</p>
+          </div>
+          <div class="radio-circle"></div>
         </div>
-        <div class="radio-circle"></div>
-      </div>
 
-      <!-- Bike -->
-      <div class="v-option-card" [class.selected]="newVehicle.category === 'Bike'"
-        (click)="newVehicle.category = 'Bike'">
-        <div class="opt-icon-box icon-bike">🏍️</div>
-        <div class="opt-info">
-          <h4>Bike</h4>
-          <p>Take bike taxi trips</p>
+        <div class="v-option-card" [class.selected]="newVehicle.category === 'Bike'" (click)="newVehicle.category = 'Bike'">
+          <div class="opt-icon-box icon-bike">🏍️</div>
+          <div class="opt-info">
+            <h4>Bike</h4>
+            <p>Take bike taxi trips</p>
+          </div>
+          <div class="radio-circle"></div>
         </div>
-        <div class="radio-circle"></div>
-      </div>
 
-      <!-- Machinery -->
-      <div class="v-option-card" [class.selected]="newVehicle.category === 'Machinery'"
-        (click)="newVehicle.category = 'Machinery'">
-        <div class="opt-icon-box icon-machinery">🚜</div>
-        <div class="opt-info">
-          <h4>Machinery</h4>
-          <p>Operate construction machinery</p>
+        <div class="v-option-card" [class.selected]="newVehicle.category === 'Machinery'" (click)="newVehicle.category = 'Machinery'">
+          <div class="opt-icon-box icon-machinery">🚜</div>
+          <div class="opt-info">
+            <h4>Machinery</h4>
+            <p>Operate construction machinery</p>
+          </div>
+          <div class="radio-circle"></div>
         </div>
-        <div class="radio-circle"></div>
-      </div>
+      }
     </div>
 
     <div class="fixed-bottom-bar">
-      <button class="btn-primary-yellow"
-        (click)="newVehicle.category === 'Machinery' ? navigateTo('ADD_VEHICLE_MODEL') : navigateTo('ADD_VEHICLE_FORM')">
+      <button class="btn-primary-yellow" (click)="onContinueFromTypeView()">
         Continue ➔
       </button>
     </div>
   </main>
   }
 
-  <!-- ==================== VIEW 11: ADD VEHICLE STEP 2: MACHINERY MODEL (SCREENSHOT 3B) ==================== -->
+  <!-- ==================== VIEW 11: ADD VEHICLE STEP 2: MODEL SELECTION ==================== -->
   @if (currentView === 'ADD_VEHICLE_MODEL') {
   <header class="sub-header">
     <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_TYPE')">‹</button>
-    <h2>Select machinery model</h2>
+    <h2>Select {{ newVehicle.category || 'vehicle' }} model</h2>
     <span class="spacer"></span>
   </header>
 
   <main class="profile-content animate-fade-in">
-    <p class="step-subtitle">Choose the specific equipment to add</p>
+    <p class="step-subtitle">Choose the specific {{ (newVehicle.category || 'vehicle').toLowerCase() }} model / equipment</p>
 
-    <!-- Category Filter Pills -->
+    <!-- Category Filter Pills (DYNAMIC FROM ADMIN API) -->
     <div class="subcat-filter-pills">
       <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'All'"
         (click)="machinerySubCategoryFilter = 'All'">All</button>
-      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Backhoe'"
-        (click)="machinerySubCategoryFilter = 'Backhoe'">Backhoe</button>
-      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Excavator'"
-        (click)="machinerySubCategoryFilter = 'Excavator'">Excavator</button>
-      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Cranes'"
-        (click)="machinerySubCategoryFilter = 'Cranes'">Cranes</button>
-      <button class="sub-pill" [class.active]="machinerySubCategoryFilter === 'Bulldozer'"
-        (click)="machinerySubCategoryFilter = 'Bulldozer'">Bulldozer</button>
+      @if (dynamicModels.length > 0) {
+        @for (mod of dynamicModels; track mod.id) {
+          <button class="sub-pill" [class.active]="machinerySubCategoryFilter === mod.name"
+            (click)="machinerySubCategoryFilter = mod.name">{{ mod.name }}</button>
+        }
+      }
     </div>
 
     <div class="machinery-models-list">
       @for (m of filteredMachineryModels; track m.id) {
-      <div class="model-option-card" [class.selected]="newVehicle.machineryModel === m.name"
-        (click)="newVehicle.machineryModel = m.name; newVehicle.vehicleName = m.name + ' EcoXcellence'">
-        <div class="m-icon-box">{{ m.icon }}</div>
+      <div class="model-option-card" [class.selected]="isModelOptionSelected(m)" (click)="selectMachineryOption(m)">
+        <div class="m-icon-box">
+          <img *ngIf="m.iconUrl" [src]="m.iconUrl" (error)="onImgError($event)" class="opt-model-img" alt="icon" />
+          <span class="emoji-icon">{{ m.icon || '🚗' }}</span>
+        </div>
         <div class="m-info">
           <h4>{{ m.name }}</h4>
           <p>{{ m.specs }}</p>
         </div>
-        <span class="radio-check">{{ newVehicle.machineryModel === m.name ? '✓' : '' }}</span>
+        <div class="radio-circle"></div>
       </div>
       }
     </div>
 
     <div class="fixed-bottom-bar">
-      <button class="btn-primary-yellow" (click)="navigateTo('ADD_VEHICLE_EXP')">Confirm Vehicle ➔</button>
+      <button class="btn-primary-yellow" (click)="navigateTo(newVehicle.category === 'Machinery' ? 'ADD_VEHICLE_EXP' : 'ADD_VEHICLE_FORM')">Confirm Vehicle ➔</button>
     </div>
   </main>
   }

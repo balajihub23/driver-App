@@ -1182,12 +1182,12 @@
 
     &.selected {
       border-color: #FFC107;
-      background: #FFFDF0;
+      background: var(--primary-light, #FFFDF0);
 
       .radio-circle {
         border-color: #FFC107;
         background: #FFC107;
-        box-shadow: inset 0 0 0 3px #FFFFFF;
+        box-shadow: inset 0 0 0 3px var(--surface, #FFFFFF);
       }
     }
 
@@ -1201,20 +1201,27 @@
       justify-content: center;
       font-size: 24px;
       flex-shrink: 0;
+      overflow: hidden;
+
+      .opt-type-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+      }
     }
 
     .opt-info {
       flex: 1;
 
-      h4 { margin: 0 0 2px 0; font-size: 15px; font-weight: 700; color: var(--text-primary, #111827); }
-      p { margin: 0; font-size: 12px; color: var(--text-secondary, #6B7280); }
+      h4 { margin: 0 0 2px 0; font-size: 15px; font-weight: 700; color: var(--text-primary); }
+      p { margin: 0; font-size: 12px; color: var(--text-secondary); }
     }
 
     .radio-circle {
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      border: 2px solid #D1D5DB;
+      border: 2px solid var(--border, #D1D5DB);
       box-sizing: border-box;
       flex-shrink: 0;
     }
@@ -1232,16 +1239,17 @@
   .sub-pill {
     padding: 6px 14px;
     border-radius: 16px;
-    background: #F3F4F6;
-    border: none;
+    background: var(--surface-secondary, #F3F4F6);
+    border: 1px solid var(--border, transparent);
     font-size: 12px;
     font-weight: 600;
-    color: #4B5563;
+    color: var(--text-secondary, #4B5563);
     cursor: pointer;
 
     &.active {
-      background: #1C1E21;
-      color: #FFFFFF;
+      background: #FFC107;
+      color: #1C1E21;
+      border-color: #FFC107;
     }
   }
 }
@@ -1265,7 +1273,7 @@
 
     &.selected {
       border-color: #FFC107;
-      background: #FFFDF5;
+      background: var(--primary-light, #FFFDF5);
     }
 
     .m-icon-box {
@@ -1277,6 +1285,13 @@
       align-items: center;
       justify-content: center;
       font-size: 22px;
+      overflow: hidden;
+
+      .opt-model-img {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+      }
     }
 
     .m-info {
@@ -1285,22 +1300,19 @@
       p { margin: 0; font-size: 11px; color: var(--text-secondary); }
     }
 
-    .radio-check {
+    .radio-circle {
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      border: 2px solid #D1D5DB;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 800;
+      border: 2px solid var(--border, #D1D5DB);
+      box-sizing: border-box;
+      flex-shrink: 0;
     }
 
-    &.selected .radio-check {
-      background: #FFC107;
+    &.selected .radio-circle {
       border-color: #FFC107;
-      color: #111827;
+      background: #FFC107;
+      box-shadow: inset 0 0 0 3px var(--surface, #FFFFFF);
     }
   }
 }

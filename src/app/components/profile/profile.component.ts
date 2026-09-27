@@ -13,6 +13,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { LogoutModalComponent } from '../../shared/components/logout-modal/logout-modal.component';
 
+import { VehicleMasterService, VehicleType, VehicleModel, VehicleSubModel } from '../../core/services/vehicle-master.service';
+
 export type ProfileSubView = 
   | 'MAIN' 
   | 'PERSONAL_INFO' 
@@ -51,7 +53,7 @@ export interface DocumentItem {
 }
 
 export type VehicleStatus = 'Active' | 'Approved' | 'APPROVED' | 'Under Review' | 'PENDING_VERIFICATION' | 'Pending' | 'Rejected' | 'REJECTED' | string;
-export type VehicleCategory = 'Car' | 'Auto' | 'Bike' | 'Machinery';
+export type VehicleCategory = 'Car' | 'Auto' | 'Bike' | 'Machinery' | string;
 export type FetchMode = 'MANUAL' | 'AUTO_VAHAN';
 
 export interface VehicleDocumentRef {
@@ -68,6 +70,9 @@ export interface VehicleDocumentRef {
 
 export interface DriverVehicle {
   id: number | string;
+  vehicleTypeId?: number;
+  vehicleModelId?: number;
+  vehicleSubModelId?: number;
   regNumber: string;
   vehicleName: string;
   category: VehicleCategory;
@@ -255,16 +260,24 @@ export class ProfileComponent implements OnInit {
   vehiclesList: DriverVehicle[] = [];
   activeDocViewer: { title: string; url: string; isImage: boolean } | null = null;
 
+  vehicleMasterService = inject(VehicleMasterService);
+
+  // Dynamic Vehicle Master Catalog
+  dynamicVehicleTypes: VehicleType[] = [];
+  dynamicModels: VehicleModel[] = [];
+  dynamicSubModels: VehicleSubModel[] = [];
+  dynamicCatalog: VehicleType[] = [];
+
   // Add Vehicle Wizard State
   machinerySubCategoryFilter: string = 'All';
-  machineryModels = [
-    { id: 'jcb_3dx', name: 'JCB 3DX', sub: 'Backhoe', specs: 'Backhoe Loader • 74 HP • 1.0 m³', icon: '🚜' },
-    { id: 'tata_ex200', name: 'Tata Hitachi EX 200', sub: 'Excavator', specs: 'Hydraulic Excavator • 133 HP • 2.0 Ton', icon: '🏗️' },
-    { id: 'cat_424b2', name: 'CAT 424B2', sub: 'Backhoe', specs: 'Backhoe Loader • 75 HP • General Purpose', icon: '🚜' },
-    { id: 'mahindra_em', name: 'Mahindra EarthMaster', sub: 'Backhoe', specs: 'Backhoe Loader • 79 HP • Heavy Duty', icon: '🚜' },
-    { id: 'komatsu_pc210', name: 'Komatsu PC210', sub: 'Excavator', specs: 'Hydraulic Excavator • 165 HP', icon: '🏗️' },
-    { id: 'escorts_trx', name: 'Escorts TRX 2319', sub: 'Cranes', specs: 'Mobile Crane • 14 Ton Heavy Duty', icon: '🏗️' },
-    { id: 'cat_d6n', name: 'CAT D6N XL', sub: 'Bulldozer', specs: 'Bulldozer • 166 HP Track Type', icon: '🚜' }
+  machineryModels: any[] = [
+    { id: 'jcb_3dx', name: 'JCB 3DX', sub: 'Backhoe', specs: 'Backhoe Loader • 74 HP • 1.0 m³', icon: '🚜', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
+    { id: 'tata_ex200', name: 'Tata Hitachi EX 200', sub: 'Excavator', specs: 'Hydraulic Excavator • 133 HP • 2.0 Ton', icon: '🏗️', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
+    { id: 'cat_424b2', name: 'CAT 424B2', sub: 'Backhoe', specs: 'Backhoe Loader • 75 HP • General Purpose', icon: '🚜', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
+    { id: 'mahindra_em', name: 'Mahindra EarthMaster', sub: 'Backhoe', specs: 'Backhoe Loader • 79 HP • Heavy Duty', icon: '🚜', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
+    { id: 'komatsu_pc210', name: 'Komatsu PC210', sub: 'Excavator', specs: 'Hydraulic Excavator • 165 HP', icon: '🏗️', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
+    { id: 'escorts_trx', name: 'Escorts TRX 2319', sub: 'Cranes', specs: 'Mobile Crane • 14 Ton Heavy Duty', icon: '🏗️', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
+    { id: 'cat_d6n', name: 'CAT D6N XL', sub: 'Bulldozer', specs: 'Bulldozer • 166 HP Track Type', icon: '🚜', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 }
   ];
 
   experienceOptions = [
@@ -275,9 +288,12 @@ export class ProfileComponent implements OnInit {
     '10+ years'
   ];
 
-  // New vehicle form model (Required fields default empty)
+  // New vehicle form model
   newVehicle: DriverVehicle = {
     id: 0,
+    vehicleTypeId: undefined,
+    vehicleModelId: undefined,
+    vehicleSubModelId: undefined,
     regNumber: '',
     vehicleName: 'JCB 3DX EcoXcellence',
     category: 'Machinery',
@@ -338,6 +354,143 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.loadProfile();
     this.loadPersistentVehicles();
+    this.loadVehicleMasterCatalog();
+  }
+
+  loadVehicleMasterCatalog(): void {
+    this.vehicleMasterService.getCatalog().subscribe({
+      next: (res) => {
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          this.dynamicCatalog = res.data;
+          this.dynamicVehicleTypes = res.data;
+
+          // Set default category to first active vehicle type if not set
+          const selectedType = this.dynamicVehicleTypes.find(t => t.id === this.newVehicle.vehicleTypeId) || this.dynamicVehicleTypes[0];
+          if (selectedType) {
+            this.selectVehicleTypeCard(selectedType);
+          }
+        }
+      },
+      error: (err) => console.warn('Vehicle master catalog loading error:', err)
+    });
+  }
+
+  buildDynamicMachineryModelsList(vType: VehicleType): void {
+    if (!vType.models || vType.models.length === 0) {
+      this.machineryModels = [];
+      return;
+    }
+
+    const dynamicList: any[] = [];
+    vType.models.forEach(m => {
+      if (m.subModels && m.subModels.length > 0) {
+        m.subModels.forEach(sm => {
+          dynamicList.push({
+            id: `sub_${sm.id}`,
+            name: sm.name,
+            sub: m.name,
+            specs: `${sm.description || sm.machineClass || m.name}${sm.horsePower ? ' • ' + sm.horsePower : ''}${sm.capacity ? ' • ' + sm.capacity : ''}`,
+            icon: sm.iconUrl || m.iconUrl || vType.iconUrl || this.getDefaultEmojiForType(vType),
+            iconUrl: sm.iconUrl || m.iconUrl || vType.iconUrl,
+            subModelId: sm.id,
+            modelId: m.id,
+            typeId: vType.id,
+            machineClass: sm.machineClass || m.name
+          });
+        });
+      } else {
+        dynamicList.push({
+          id: `mod_${m.id}`,
+          name: m.name,
+          sub: m.name,
+          specs: m.description || m.name,
+          icon: m.iconUrl || vType.iconUrl || this.getDefaultEmojiForType(vType),
+          iconUrl: m.iconUrl || vType.iconUrl,
+          subModelId: undefined,
+          modelId: m.id,
+          typeId: vType.id,
+          machineClass: m.description || m.name
+        });
+      }
+    });
+
+    this.machineryModels = dynamicList;
+
+    // Auto-select the first sub-vehicle / model option by default (index 0)
+    if (this.machineryModels.length > 0) {
+      this.selectMachineryOption(this.machineryModels[0]);
+    }
+  }
+
+  getDefaultEmojiForType(vType?: VehicleType): string {
+    if (!vType) return '🚗';
+    const code = (vType.code || vType.name || '').toUpperCase();
+    if (code.includes('CAR')) return '🚗';
+    if (code.includes('AUTO')) return '🛺';
+    if (code.includes('BIKE')) return '🏍️';
+    return '🚜';
+  }
+
+  selectVehicleTypeCard(type: VehicleType): void {
+    this.newVehicle.category = type.name;
+    this.newVehicle.vehicleTypeId = type.id;
+    this.newVehicle.vehicleModelId = undefined;
+    this.newVehicle.vehicleSubModelId = undefined;
+
+    if (type.models && type.models.length > 0) {
+      this.dynamicModels = type.models;
+      this.buildDynamicMachineryModelsList(type);
+    } else {
+      this.vehicleMasterService.getModelsByType(type.id).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            type.models = res.data;
+            this.dynamicModels = res.data;
+            this.buildDynamicMachineryModelsList(type);
+          }
+        }
+      });
+    }
+  }
+
+  onContinueFromTypeView(): void {
+    if (this.machineryModels && this.machineryModels.length > 0) {
+      if (!this.newVehicle.vehicleModelId && !this.newVehicle.vehicleSubModelId) {
+        this.selectMachineryOption(this.machineryModels[0]);
+      }
+      this.navigateTo('ADD_VEHICLE_MODEL');
+    } else {
+      this.navigateTo('ADD_VEHICLE_FORM');
+    }
+  }
+
+  onImgError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    target.style.display = 'none';
+  }
+
+  selectMachineryOption(m: any): void {
+    if (!m) return;
+    this.newVehicle.machineryModel = m.name;
+    this.newVehicle.machinerySubCategory = m.sub;
+    this.newVehicle.vehicleName = m.sub && m.sub !== m.name ? `${m.sub} ${m.name}` : m.name;
+    this.newVehicle.vehicleTypeId = m.typeId || this.newVehicle.vehicleTypeId;
+    this.newVehicle.vehicleModelId = m.modelId;
+    this.newVehicle.vehicleSubModelId = m.subModelId;
+    if (m.machineClass) {
+      this.newVehicle.machineClass = m.machineClass;
+    }
+  }
+
+  isModelOptionSelected(m: any): boolean {
+    if (!m) return false;
+    if (m.subModelId && this.newVehicle.vehicleSubModelId) {
+      return this.newVehicle.vehicleSubModelId === m.subModelId;
+    }
+    if (m.modelId && this.newVehicle.vehicleModelId) {
+      return this.newVehicle.vehicleModelId === m.modelId;
+    }
+    return this.newVehicle.machineryModel === m.name;
   }
 
   loadPersistentVehicles(): void {
@@ -481,6 +634,7 @@ export class ProfileComponent implements OnInit {
 
   startAddVehicleFlow(): void {
     this.vehicleValidationError = '';
+    this.loadVehicleMasterCatalog();
     this.newVehicle = {
       id: Date.now(),
       regNumber: '',
@@ -678,6 +832,9 @@ export class ProfileComponent implements OnInit {
     const vehicleDbPayload = {
       userId: userId,
       driverId: this.driverProfile?.id || 1,
+      vehicleTypeId: this.newVehicle.vehicleTypeId,
+      vehicleModelId: this.newVehicle.vehicleModelId,
+      vehicleSubModelId: this.newVehicle.vehicleSubModelId,
       regNumber: this.newVehicle.regNumber,
       vehicleName: this.newVehicle.vehicleName,
       category: this.newVehicle.category,
