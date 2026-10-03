@@ -563,6 +563,10 @@
     background: rgba(198, 40, 40, 0.15);
     color: #C62828;
   }
+  &.chip-not-attached {
+    background: rgba(156, 163, 175, 0.15);
+    color: #6B7280;
+  }
 }
 
 /* Status Banners */
@@ -1806,6 +1810,238 @@
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: flex-end;
+  }
+}
+
+/* Top Header Status Pills */
+.top-status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+
+  &.pill-active, &.pill-approved {
+    background: rgba(46, 125, 50, 0.15);
+    color: #2E7D32;
+    border: 1px solid rgba(46, 125, 50, 0.3);
+  }
+  &.pill-review {
+    background: rgba(239, 108, 0, 0.15);
+    color: #EF6C00;
+    border: 1px solid rgba(239, 108, 0, 0.3);
+  }
+  &.pill-rejected {
+    background: rgba(198, 40, 40, 0.15);
+    color: #C62828;
+    border: 1px solid rgba(198, 40, 40, 0.3);
+  }
+}
+
+/* Equipment Documents Header Row & Tags */
+.eq-docs-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 10px;
+
+  .eq-docs-heading {
+    margin: 0;
+  }
+
+  .action-required-tag {
+    color: #C62828;
+    font-weight: 700;
+    font-size: 12px;
+  }
+}
+
+/* Document Rows Rejection Styles */
+.eq-doc-row {
+  &.rejected-row {
+    border: 1px solid #FFCDD2 !important;
+    background: rgba(255, 235, 238, 0.25) !important;
+  }
+
+  .red-text {
+    color: #C62828 !important;
+    font-weight: 600 !important;
+  }
+
+  .btn-reupload-sm {
+    background: #C62828;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .btn-view-sm {
+    background: var(--surface-hover, #f3f4f6);
+    color: var(--text-primary, #111827);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+}
+
+.btn-primary-red {
+  background: #C62828;
+  color: #ffffff;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(198, 40, 40, 0.25);
+}
+
+.active-allocation-banner {
+  background: rgba(46, 125, 50, 0.12);
+  color: #2E7D32;
+  border: 1px solid rgba(46, 125, 50, 0.3);
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Activate Vehicle Confirmation Modal */
+.activate-vehicle-modal-card {
+  background: var(--surface, #ffffff);
+  width: 90%;
+  max-width: 400px;
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid var(--border-color, #e5e7eb);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+  position: relative;
+  margin: auto;
+
+  .activate-modal-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+
+    .activate-icon-circle {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #FFF9C4;
+      color: #F57F17;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary, #111827);
+    }
+
+    .btn-close-sm {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      color: var(--text-secondary, #6b7280);
+      cursor: pointer;
+    }
+  }
+
+  .activate-modal-body {
+    margin: 14px 0 20px 0;
+
+    .modal-sub-title {
+      font-size: 14px;
+      color: var(--text-primary, #374151);
+      margin: 0 0 12px 0;
+      line-height: 1.5;
+    }
+
+    .activate-info-box {
+      background: var(--surface-hover, #f8fafc);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      text-align: left;
+      font-size: 12px;
+      color: var(--text-secondary, #64748b);
+      line-height: 1.4;
+
+      .info-icon {
+        font-size: 16px;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+
+  .activate-modal-footer {
+    display: flex;
+    gap: 12px;
+
+    .btn-secondary-cancel {
+      background: var(--surface-hover, #f1f5f9);
+      color: var(--text-primary, #334155);
+      border: 1px solid var(--border-color, #cbd5e1);
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn-confirm-activate {
+      background: #FFD600;
+      color: #111827;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      flex: 1;
+      box-shadow: 0 4px 12px rgba(255, 214, 0, 0.3);
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
   }
 }
 

@@ -142,6 +142,9 @@ export class ProfileComponent implements OnInit {
   showPhotoModal: boolean = false;
   showFileViewerModal: boolean = false;
   viewingFileUrl: string = '';
+  showActivateVehicleModal: boolean = false;
+  activatingVehicle: DriverVehicle | null = null;
+  isActivatingVehicle: boolean = false;
 
   // Preferences toggles
   notificationsEnabled: boolean = true;
@@ -495,21 +498,46 @@ export class ProfileComponent implements OnInit {
 
   loadPersistentVehicles(): void {
     const user = this.authService.currentUser();
-    const userId = user?.id || this.driverProfile?.userId || this.driverProfile?.id || 3;
+    const driverId = this.driverProfile?.id;
+    const userId = user?.id || this.driverProfile?.userId;
 
-    if (this.http) {
-      this.http.get<any>(`${environment.serverApi}/api/v1/vehicles/user/${userId}`).subscribe({
-        next: (res) => {
-          if (res && res.success && Array.isArray(res.data)) {
-            const mapped: DriverVehicle[] = res.data.map((item: any) => ({
+    if (!this.http) return;
+
+    if (this.authService.getAccessToken()) {
+      this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/me`, driverId, userId);
+    } else if (driverId) {
+      this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/driver/${driverId}`, driverId, userId);
+    } else if (userId) {
+      this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/user/${userId}`, driverId, userId);
+    } else {
+      this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/user/3`, driverId, userId);
+    }
+  }
+
+  private fetchVehiclesFromUrl(url: string, driverId?: number, userId?: number): void {
+    this.http.get<any>(url).subscribe({
+      next: (res) => {
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped: DriverVehicle[] = res.data.map((item: any) => {
+            const rawStatus = item.status || 'PENDING_VERIFICATION';
+            let formattedStatus = rawStatus;
+            if (rawStatus === 'PENDING_VERIFICATION' || rawStatus === 'UNDER_REVIEW' || rawStatus === 'Pending' || rawStatus === 'PENDING') {
+              formattedStatus = 'Under Review';
+            } else if (rawStatus === 'APPROVED') {
+              formattedStatus = 'Approved';
+            } else if (rawStatus === 'REJECTED') {
+              formattedStatus = 'Rejected';
+            }
+
+            return {
               id: item.id,
               regNumber: item.regNumber,
               vehicleName: item.vehicleName,
-              category: item.category || 'Machinery',
-              machineryModel: item.machineryModel || item.vehicleName,
-              machinerySubCategory: item.machinerySubCategory || 'Backhoe',
+              category: item.category || item.vehicleTypeName || 'Machinery',
+              machineryModel: item.machineryModel || item.vehicleModelName || item.vehicleName,
+              machinerySubCategory: item.machinerySubCategory || item.vehicleSubModelName || 'Backhoe',
               experience: item.experience || '1-3 years',
-              status: item.status || 'APPROVED',
+              status: formattedStatus,
               isActive: item.isActive ?? false,
               fetchMode: item.fetchMode || 'AUTO_VAHAN',
               mfgYear: item.mfgYear || '2023',
@@ -524,16 +552,42 @@ export class ProfileComponent implements OnInit {
               documents: {
                 rcFront: { name: 'RC_Front.png', url: item.rcFrontUrl || '', status: 'VERIFIED' },
                 rcBack: { name: 'RC_Back.png', url: item.rcBackUrl || '', status: 'VERIFIED' },
-                insurance: { name: 'Insurance.pdf', url: item.insuranceUrl || '', status: 'VERIFIED' }
+                insurance: { name: 'Insurance.pdf', url: item.insuranceUrl || '', status: 'VERIFIED' },
+                photos: {
+                  front: item.frontPhotoUrl || '',
+                  side: item.sidePhotoUrl || '',
+                  rear: item.rearPhotoUrl || '',
+                  cabin: item.cabinPhotoUrl || '',
+                  engineSerialPlate: item.enginePlatePhotoUrl || ''
+                }
               }
-            }));
-            this.vehiclesList = mapped;
-            this.savePersistentVehicles();
+            };
+          });
+          this.vehiclesList = mapped;
+          this.savePersistentVehicles();
+        } else {
+          if (url.includes('/vehicles/me')) {
+            if (driverId) {
+              this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/driver/${driverId}`);
+            } else if (userId) {
+              this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/user/${userId}`);
+            }
+          } else if (url.includes('/vehicles/driver/') && userId) {
+            this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/user/${userId}`);
           }
-        },
-        error: (err) => console.warn('Backend GET vehicles error:', err)
-      });
-    }
+        }
+      },
+      error: (err) => {
+        console.warn(`Backend GET vehicles error from ${url}:`, err);
+        if (url.includes('/vehicles/me')) {
+          if (driverId) {
+            this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/driver/${driverId}`);
+          } else if (userId) {
+            this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/user/${userId}`);
+          }
+        }
+      }
+    });
   }
 
   savePersistentVehicles(): void {
@@ -603,28 +657,76 @@ export class ProfileComponent implements OnInit {
   }
 
   activateVehicle(vehicle: DriverVehicle, event?: Event): void {
-    if (event) event.stopPropagation();
-    
-    // Deactivate all vehicles, activate selected
-    this.vehiclesList.forEach(v => v.isActive = false);
-    vehicle.isActive = true;
-    if (vehicle.status === 'Approved') {
-      vehicle.status = 'Active';
-    }
-    this.savePersistentVehicles();
+    this.openActivateModal(vehicle, event);
+  }
 
-    // Update driver profile on backend with current active vehicle details
-    this.driverService.updateProfile({
-      selectedVehicleType: vehicle.category,
-      selectedMachineryModel: vehicle.machineryModel || vehicle.vehicleName
-    }).subscribe({
-      next: () => {
-        if (this.driverProfile) {
-          this.driverProfile.selectedVehicleType = vehicle.category;
-          this.driverProfile.selectedMachineryModel = vehicle.machineryModel || vehicle.vehicleName;
-        }
+  openActivateModal(vehicle: DriverVehicle, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.activatingVehicle = vehicle;
+    this.showActivateVehicleModal = true;
+  }
+
+  closeActivateModal(): void {
+    this.showActivateVehicleModal = false;
+    this.activatingVehicle = null;
+    this.isActivatingVehicle = false;
+  }
+
+  confirmVehicleActivation(): void {
+    if (!this.activatingVehicle || this.isActivatingVehicle) return;
+    this.isActivatingVehicle = true;
+    const target = this.activatingVehicle;
+
+    const performLocalActivation = () => {
+      this.vehiclesList.forEach(v => v.isActive = false);
+      target.isActive = true;
+      target.status = 'Active';
+      if (this.selectedVehicle && this.selectedVehicle.id === target.id) {
+        this.selectedVehicle.isActive = true;
+        this.selectedVehicle.status = 'Active';
       }
-    });
+      this.savePersistentVehicles();
+
+      this.driverService.updateProfile({
+        selectedVehicleType: target.category,
+        selectedMachineryModel: target.machineryModel || target.vehicleName
+      }).subscribe({
+        next: () => {
+          if (this.driverProfile) {
+            this.driverProfile.selectedVehicleType = target.category;
+            this.driverProfile.selectedMachineryModel = target.machineryModel || target.vehicleName;
+          }
+        }
+      });
+      this.closeActivateModal();
+    };
+
+    if (this.http && target.id) {
+      this.http.post<any>(`${environment.serverApi}/api/v1/vehicles/${target.id}/activate`, {}).subscribe({
+        next: () => performLocalActivation(),
+        error: () => performLocalActivation()
+      });
+    } else {
+      performLocalActivation();
+    }
+  }
+
+  reuploadDocument(docType: 'rc' | 'insurance' | 'photos'): void {
+    if (docType === 'rc') {
+      this.rcForm.frontPreview = this.selectedVehicle?.documents?.rcFront?.url || '';
+      this.rcForm.backPreview = this.selectedVehicle?.documents?.rcBack?.url || '';
+      this.navigateTo('UPLOAD_VEHICLE_RC');
+    } else if (docType === 'insurance') {
+      this.insuranceForm.previewUrl = this.selectedVehicle?.documents?.insurance?.url || '';
+      this.navigateTo('UPLOAD_VEHICLE_INSURANCE');
+    } else if (docType === 'photos') {
+      this.photosForm.front = this.selectedVehicle?.documents?.photos?.front || '';
+      this.photosForm.side = this.selectedVehicle?.documents?.photos?.side || '';
+      this.photosForm.rear = this.selectedVehicle?.documents?.photos?.rear || '';
+      this.photosForm.cabin = this.selectedVehicle?.documents?.photos?.cabin || '';
+      this.photosForm.engineSerial = this.selectedVehicle?.documents?.photos?.engineSerialPlate || '';
+      this.navigateTo('UPLOAD_VEHICLE_PHOTOS');
+    }
   }
 
   openVehicleDetails(vehicle: DriverVehicle): void {
@@ -898,7 +1000,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getCleanDocName(doc?: VehicleDocumentRef, defaultName: string = 'Document.png'): string {
-    if (!doc) return defaultName;
+    if (!doc || !doc.url || !doc.url.trim()) return 'Not Attached';
     if (doc.name && !doc.name.startsWith('data:')) {
       return doc.name;
     }
@@ -956,9 +1058,11 @@ export class ProfileComponent implements OnInit {
           }
         }
         this.loadBackendDocuments();
+        this.loadPersistentVehicles();
       },
       error: () => {
         this.loadBackendDocuments();
+        this.loadPersistentVehicles();
       }
     });
 
