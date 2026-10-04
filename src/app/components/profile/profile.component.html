@@ -673,58 +673,90 @@
       </div>
 
       <!-- RC Document Row -->
-      <div class="eq-doc-row" [class.rejected-row]="selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED'">
+      <div class="eq-doc-row" [class.rejected-row]="!selectedVehicle.documents?.rcFront?.url && (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED')">
         <div class="doc-icon-circle">📄</div>
         <div class="doc-text-col">
           <strong>Equipment / Vehicle RC</strong>
-          @if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
-            <p class="red-text">❶ Rejected • {{ selectedVehicle.rejectionReason || 'Image is blurry or edges cut off' }}</p>
-          } @else {
+          @if (selectedVehicle.documents?.rcFront?.url) {
             <p>{{ getCleanDocName(selectedVehicle.documents?.rcFront, 'RC_Front.png') }}</p>
+          } @else if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
+            <p class="red-text">❶ Rejected • {{ selectedVehicle.rejectionReason || 'Document not attached' }}</p>
+          } @else {
+            <p>Not Attached</p>
           }
         </div>
-        @if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
+        @if (selectedVehicle.documents?.rcFront?.url) {
+          @if (selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'UNDER_REVIEW' || selectedVehicle.status === 'PENDING_VERIFICATION') {
+            <span class="chip-status chip-pending">In Audit</span>
+          } @else {
+            <button class="btn-view-sm" (click)="viewVehicleDocument('Equipment / Vehicle RC', selectedVehicle.documents?.rcFront?.url)">View</button>
+          }
+        } @else if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
           <button class="btn-reupload-sm" (click)="reuploadDocument('rc')">⬆ Re-upload</button>
-        } @else if (selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'UNDER_REVIEW' || selectedVehicle.status === 'PENDING_VERIFICATION') {
-          <span class="chip-status chip-pending">In Audit</span>
         } @else {
-          <button class="btn-view-sm" (click)="viewVehicleDocument('Equipment / Vehicle RC', selectedVehicle.documents?.rcFront?.url)">View</button>
+          <button class="btn-reupload-sm" (click)="reuploadDocument('rc')">⬆ Upload</button>
         }
       </div>
 
       <!-- Insurance Document Row -->
-      <div class="eq-doc-row" [class.rejected-row]="selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED'">
+      <div class="eq-doc-row" [class.rejected-row]="!selectedVehicle.documents?.insurance?.url && (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED')">
         <div class="doc-icon-circle">🛡️</div>
         <div class="doc-text-col">
           <strong>Equipment Insurance</strong>
-          @if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
+          @if (selectedVehicle.documents?.insurance?.url) {
+            <p>{{ getCleanDocName(selectedVehicle.documents?.insurance, 'Insurance.pdf') }}</p>
+          } @else if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
             <p class="red-text">❶ Rejected • Expired or blurry document</p>
           } @else {
-            <p>{{ getCleanDocName(selectedVehicle.documents?.insurance, 'Insurance.pdf') }}</p>
+            <p>Not Attached</p>
           }
         </div>
-        @if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
+        @if (selectedVehicle.documents?.insurance?.url) {
+          @if (selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'UNDER_REVIEW' || selectedVehicle.status === 'PENDING_VERIFICATION') {
+            <span class="chip-status chip-pending">In Audit</span>
+          } @else {
+            <button class="btn-view-sm" (click)="viewVehicleDocument('Equipment Insurance', selectedVehicle.documents?.insurance?.url)">View</button>
+          }
+        } @else if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
           <button class="btn-reupload-sm" (click)="reuploadDocument('insurance')">⬆ Re-upload</button>
-        } @else if (selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'UNDER_REVIEW' || selectedVehicle.status === 'PENDING_VERIFICATION') {
-          <span class="chip-status chip-pending">In Audit</span>
         } @else {
-          <button class="btn-view-sm" (click)="viewVehicleDocument('Equipment Insurance', selectedVehicle.documents?.insurance?.url)">View</button>
+          <button class="btn-reupload-sm" (click)="reuploadDocument('insurance')">⬆ Upload</button>
         }
       </div>
 
       <!-- Photos Document Row -->
-      <div class="eq-doc-row">
+      <div class="eq-doc-row" [class.rejected-row]="!hasUploadedPhotos(selectedVehicle) && (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED')">
         <div class="doc-icon-circle">📷</div>
         <div class="doc-text-col">
           <strong>Equipment Photos</strong>
-          <p>✔ 4/4 Geotagged Photos Attached</p>
+          @if (hasUploadedPhotos(selectedVehicle)) {
+            <p>✔ {{ getUploadedPhotosCount(selectedVehicle) }}/4 Geotagged Photos Attached</p>
+          } @else if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
+            <p class="red-text">❶ Rejected • Equipment photos not uploaded</p>
+          } @else {
+            <p>Not Uploaded</p>
+          }
         </div>
-        <button class="btn-view-sm" (click)="reuploadDocument('photos')">View</button>
+        @if (hasUploadedPhotos(selectedVehicle)) {
+          @if (selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'UNDER_REVIEW' || selectedVehicle.status === 'PENDING_VERIFICATION') {
+            <span class="chip-status chip-pending">In Audit</span>
+          } @else {
+            <button class="btn-view-sm" (click)="reuploadDocument('photos')">View</button>
+          }
+        } @else if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
+          <button class="btn-reupload-sm" (click)="reuploadDocument('photos')">⬆ Re-upload</button>
+        } @else {
+          <button class="btn-reupload-sm" (click)="reuploadDocument('photos')">⬆ Upload</button>
+        }
       </div>
 
       <!-- Activation / Re-upload Action Buttons -->
       @if (selectedVehicle.status === 'Rejected' || selectedVehicle.status === 'REJECTED') {
-        <button class="btn-primary-red mt-4" (click)="reuploadDocument('rc')">Re-upload Document ➔</button>
+        <button class="btn-primary-yellow mt-4" (click)="submitVehicleForReverification()">Submit for Re-verification ➔</button>
+      } @else if (selectedVehicle.status === 'Under Review' || selectedVehicle.status === 'UNDER_REVIEW' || selectedVehicle.status === 'PENDING_VERIFICATION') {
+        <div class="active-allocation-banner under-review-banner mt-4">
+          <span>⏳</span> Verification Submitted — Under Review
+        </div>
       } @else if ((selectedVehicle.status === 'Approved' || selectedVehicle.status === 'APPROVED' || selectedVehicle.status === 'Active' || selectedVehicle.isActive)) {
         @if (!selectedVehicle.isActive) {
           <button class="btn-primary-yellow mt-4" (click)="openActivateModal(selectedVehicle)">Set as Active Allocation Vehicle ➔</button>
@@ -1060,7 +1092,7 @@
   <!-- ==================== VIEW 14: UPLOAD EQUIPMENT RC (SCREENSHOT 4) ==================== -->
   @if (currentView === 'UPLOAD_VEHICLE_RC') {
   <header class="sub-header">
-    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <button class="btn-back" (click)="goBackFromDocUpload()">‹</button>
     <h2>Registration Certificate</h2>
     <span class="spacer"></span>
   </header>
@@ -1126,7 +1158,7 @@
   <!-- ==================== VIEW 15: UPLOAD EQUIPMENT INSURANCE (SCREENSHOT 4) ==================== -->
   @if (currentView === 'UPLOAD_VEHICLE_INSURANCE') {
   <header class="sub-header">
-    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <button class="btn-back" (click)="goBackFromDocUpload()">‹</button>
     <h2>Equipment Insurance</h2>
     <span class="spacer"></span>
   </header>
@@ -1176,7 +1208,7 @@
   <!-- ==================== VIEW 16: RENTAL / LEASE AGREEMENT (SCREENSHOT 4) ==================== -->
   @if (currentView === 'UPLOAD_VEHICLE_AGREEMENT') {
   <header class="sub-header">
-    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <button class="btn-back" (click)="goBackFromDocUpload()">‹</button>
     <h2>Rental / Lease Agreement</h2>
     <span class="spacer"></span>
   </header>
@@ -1229,7 +1261,7 @@
   <!-- ==================== VIEW 17: EQUIPMENT PHOTOS (SCREENSHOT 5) ==================== -->
   @if (currentView === 'UPLOAD_VEHICLE_PHOTOS') {
   <header class="sub-header">
-    <button class="btn-back" (click)="navigateTo('ADD_VEHICLE_FORM')">‹</button>
+    <button class="btn-back" (click)="goBackFromDocUpload()">‹</button>
     <h2>Equipment Photos</h2>
     <span class="spacer"></span>
   </header>

@@ -1923,6 +1923,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+
+  &.under-review-banner {
+    background: rgba(255, 160, 0, 0.12);
+    color: #FFA000;
+    border: 1px solid rgba(255, 160, 0, 0.3);
+  }
 }
 
 /* Activate Vehicle Confirmation Modal */

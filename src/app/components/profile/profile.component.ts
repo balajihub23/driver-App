@@ -145,6 +145,7 @@ export class ProfileComponent implements OnInit {
   showActivateVehicleModal: boolean = false;
   activatingVehicle: DriverVehicle | null = null;
   isActivatingVehicle: boolean = false;
+  isEditingSelectedVehicle: boolean = false;
 
   // Preferences toggles
   notificationsEnabled: boolean = true;
@@ -529,6 +530,17 @@ export class ProfileComponent implements OnInit {
               formattedStatus = 'Rejected';
             }
 
+            const existingLocal = this.vehiclesList.find(v => v.id === item.id || (v.regNumber && v.regNumber === item.regNumber));
+
+            const rcFront = item.rcFrontUrl || existingLocal?.documents?.rcFront?.url || '';
+            const rcBack = item.rcBackUrl || existingLocal?.documents?.rcBack?.url || '';
+            const insurance = item.insuranceUrl || existingLocal?.documents?.insurance?.url || '';
+            const photoFront = item.frontPhotoUrl || existingLocal?.documents?.photos?.front || '';
+            const photoSide = item.sidePhotoUrl || existingLocal?.documents?.photos?.side || '';
+            const photoRear = item.rearPhotoUrl || existingLocal?.documents?.photos?.rear || '';
+            const photoCabin = item.cabinPhotoUrl || existingLocal?.documents?.photos?.cabin || '';
+            const photoEngine = item.enginePlatePhotoUrl || existingLocal?.documents?.photos?.engineSerialPlate || '';
+
             return {
               id: item.id,
               regNumber: item.regNumber,
@@ -550,15 +562,15 @@ export class ProfileComponent implements OnInit {
               vehicleDescription: item.vehicleDescription || '',
               rejectionReason: item.rejectionReason,
               documents: {
-                rcFront: { name: 'RC_Front.png', url: item.rcFrontUrl || '', status: 'VERIFIED' },
-                rcBack: { name: 'RC_Back.png', url: item.rcBackUrl || '', status: 'VERIFIED' },
-                insurance: { name: 'Insurance.pdf', url: item.insuranceUrl || '', status: 'VERIFIED' },
+                rcFront: { name: 'RC_Front.png', url: rcFront, status: 'VERIFIED' },
+                rcBack: { name: 'RC_Back.png', url: rcBack, status: 'VERIFIED' },
+                insurance: { name: 'Insurance.pdf', url: insurance, status: 'VERIFIED' },
                 photos: {
-                  front: item.frontPhotoUrl || '',
-                  side: item.sidePhotoUrl || '',
-                  rear: item.rearPhotoUrl || '',
-                  cabin: item.cabinPhotoUrl || '',
-                  engineSerialPlate: item.enginePlatePhotoUrl || ''
+                  front: photoFront,
+                  side: photoSide,
+                  rear: photoRear,
+                  cabin: photoCabin,
+                  engineSerialPlate: photoEngine
                 }
               }
             };
@@ -593,29 +605,7 @@ export class ProfileComponent implements OnInit {
   savePersistentVehicles(): void {
     if (typeof window !== 'undefined') {
       try {
-        const sanitizedList = this.vehiclesList.map(v => {
-          const copy = { ...v };
-          if (copy.documents) {
-            const docs = { ...copy.documents };
-            if (docs.rcFront?.url?.startsWith('data:')) docs.rcFront = { ...docs.rcFront, url: '' };
-            if (docs.rcBack?.url?.startsWith('data:')) docs.rcBack = { ...docs.rcBack, url: '' };
-            if (docs.insurance?.url?.startsWith('data:')) docs.insurance = { ...docs.insurance, url: '' };
-            if (docs.agreement?.url?.startsWith('data:')) docs.agreement = { ...docs.agreement, url: '' };
-            if (docs.photos) {
-              const p = { ...docs.photos };
-              if (p.front?.startsWith('data:')) p.front = '';
-              if (p.side?.startsWith('data:')) p.side = '';
-              if (p.rear?.startsWith('data:')) p.rear = '';
-              if (p.cabin?.startsWith('data:')) p.cabin = '';
-              if (p.engineSerialPlate?.startsWith('data:')) p.engineSerialPlate = '';
-              docs.photos = p;
-            }
-            copy.documents = docs;
-          }
-          return copy;
-        });
-
-        const jsonStr = JSON.stringify(sanitizedList);
+        const jsonStr = JSON.stringify(this.vehiclesList);
         localStorage.setItem('rentron_shared_vehicles', jsonStr);
         localStorage.setItem('admin_vehicles_list', jsonStr);
         localStorage.setItem('rentron_driver_vehicles', jsonStr);
@@ -711,8 +701,28 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  hasUploadedPhotos(vehicle: DriverVehicle | null): boolean {
+    if (!vehicle || !vehicle.documents || !vehicle.documents.photos) return false;
+    const p = vehicle.documents.photos;
+    return !!(p.front || p.side || p.rear || p.cabin || p.engineSerialPlate);
+  }
+
+  getUploadedPhotosCount(vehicle: DriverVehicle | null): number {
+    if (!vehicle || !vehicle.documents || !vehicle.documents.photos) return 0;
+    const p = vehicle.documents.photos;
+    let count = 0;
+    if (p.front) count++;
+    if (p.side) count++;
+    if (p.rear) count++;
+    if (p.cabin) count++;
+    if (p.engineSerialPlate) count++;
+    return count;
+  }
+
   reuploadDocument(docType: 'rc' | 'insurance' | 'photos'): void {
+    this.isEditingSelectedVehicle = true;
     if (docType === 'rc') {
+      this.rcForm.regNumber = this.selectedVehicle?.regNumber || '';
       this.rcForm.frontPreview = this.selectedVehicle?.documents?.rcFront?.url || '';
       this.rcForm.backPreview = this.selectedVehicle?.documents?.rcBack?.url || '';
       this.navigateTo('UPLOAD_VEHICLE_RC');
@@ -729,12 +739,32 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  openVehicleDocumentUpload(type: 'RC' | 'INSURANCE' | 'AGREEMENT' | 'PHOTOS'): void {
+    this.isEditingSelectedVehicle = false;
+    if (type === 'RC') {
+      this.rcForm.regNumber = this.newVehicle.regNumber || '';
+      this.navigateTo('UPLOAD_VEHICLE_RC');
+    }
+    else if (type === 'INSURANCE') this.navigateTo('UPLOAD_VEHICLE_INSURANCE');
+    else if (type === 'AGREEMENT') this.navigateTo('UPLOAD_VEHICLE_AGREEMENT');
+    else if (type === 'PHOTOS') this.navigateTo('UPLOAD_VEHICLE_PHOTOS');
+  }
+
+  goBackFromDocUpload(): void {
+    if (this.isEditingSelectedVehicle && this.selectedVehicle) {
+      this.navigateTo('VEHICLE_DETAILS');
+    } else {
+      this.navigateTo('ADD_VEHICLE_FORM');
+    }
+  }
+
   openVehicleDetails(vehicle: DriverVehicle): void {
     this.selectedVehicle = vehicle;
     this.navigateTo('VEHICLE_DETAILS');
   }
 
   startAddVehicleFlow(): void {
+    this.isEditingSelectedVehicle = false;
     this.vehicleValidationError = '';
     this.loadVehicleMasterCatalog();
     this.newVehicle = {
@@ -786,16 +816,6 @@ export class ProfileComponent implements OnInit {
     this.agreementForm.regNumber = this.newVehicle.regNumber;
   }
 
-  openVehicleDocumentUpload(type: 'RC' | 'INSURANCE' | 'AGREEMENT' | 'PHOTOS'): void {
-    if (type === 'RC') {
-      this.rcForm.regNumber = this.newVehicle.regNumber || '';
-      this.navigateTo('UPLOAD_VEHICLE_RC');
-    }
-    else if (type === 'INSURANCE') this.navigateTo('UPLOAD_VEHICLE_INSURANCE');
-    else if (type === 'AGREEMENT') this.navigateTo('UPLOAD_VEHICLE_AGREEMENT');
-    else if (type === 'PHOTOS') this.navigateTo('UPLOAD_VEHICLE_PHOTOS');
-  }
-
   triggerUploadModal(slot: string): void {
     this.activeVehicleUploadSlot = slot;
     this.showPhotoModal = true;
@@ -843,58 +863,158 @@ export class ProfileComponent implements OnInit {
     if (this.rcForm.regNumber) {
       this.newVehicle.regNumber = this.rcForm.regNumber;
     }
-    if (this.newVehicle.documents) {
-      this.newVehicle.documents.rcFront = {
-        name: this.rcForm.frontName || '',
+    const docObj = {
+      rcFront: {
+        name: this.rcForm.frontName || 'RC_Front.png',
         url: this.rcForm.frontPreview || '',
-        status: this.rcForm.frontPreview ? 'UNDER_REVIEW' : 'NOT_UPLOADED'
-      };
-      this.newVehicle.documents.rcBack = {
-        name: this.rcForm.backName || '',
+        status: (this.rcForm.frontPreview ? 'UNDER_REVIEW' : 'NOT_UPLOADED') as 'UNDER_REVIEW' | 'NOT_UPLOADED'
+      },
+      rcBack: {
+        name: this.rcForm.backName || 'RC_Back.png',
         url: this.rcForm.backPreview || '',
-        status: this.rcForm.backPreview ? 'UNDER_REVIEW' : 'NOT_UPLOADED'
-      };
+        status: (this.rcForm.backPreview ? 'UNDER_REVIEW' : 'NOT_UPLOADED') as 'UNDER_REVIEW' | 'NOT_UPLOADED'
+      }
+    };
+    if (this.newVehicle.documents) {
+      this.newVehicle.documents.rcFront = docObj.rcFront;
+      this.newVehicle.documents.rcBack = docObj.rcBack;
     }
-    this.navigateTo('ADD_VEHICLE_FORM');
+    if (this.selectedVehicle) {
+      if (!this.selectedVehicle.documents) this.selectedVehicle.documents = {};
+      this.selectedVehicle.documents.rcFront = docObj.rcFront;
+      this.selectedVehicle.documents.rcBack = docObj.rcBack;
+      if (this.isEditingSelectedVehicle) {
+        this.selectedVehicle.status = 'Under Review';
+        this.selectedVehicle.rejectionReason = undefined;
+        this.syncVehicleUpdateToBackend(this.selectedVehicle);
+        this.notifyAdminForReverification(this.selectedVehicle);
+      }
+    }
+    this.goBackFromDocUpload();
   }
 
   saveInsuranceDocument(): void {
+    const insObj = {
+      name: this.insuranceForm.fileName || 'Insurance.pdf',
+      url: this.insuranceForm.previewUrl || '',
+      policyNumber: this.insuranceForm.policyNumber || '',
+      provider: this.insuranceForm.providerName || '',
+      status: (this.insuranceForm.previewUrl ? 'UNDER_REVIEW' : 'NOT_UPLOADED') as 'UNDER_REVIEW' | 'NOT_UPLOADED'
+    };
     if (this.newVehicle.documents) {
-      this.newVehicle.documents.insurance = {
-        name: this.insuranceForm.fileName || '',
-        url: this.insuranceForm.previewUrl || '',
-        policyNumber: this.insuranceForm.policyNumber || '',
-        provider: this.insuranceForm.providerName || '',
-        status: this.insuranceForm.previewUrl ? 'UNDER_REVIEW' : 'NOT_UPLOADED'
-      };
+      this.newVehicle.documents.insurance = insObj;
     }
-    this.navigateTo('ADD_VEHICLE_FORM');
+    if (this.selectedVehicle) {
+      if (!this.selectedVehicle.documents) this.selectedVehicle.documents = {};
+      this.selectedVehicle.documents.insurance = insObj;
+      if (this.isEditingSelectedVehicle) {
+        this.selectedVehicle.status = 'Under Review';
+        this.selectedVehicle.rejectionReason = undefined;
+        this.syncVehicleUpdateToBackend(this.selectedVehicle);
+        this.notifyAdminForReverification(this.selectedVehicle);
+      }
+    }
+    this.goBackFromDocUpload();
   }
 
   saveAgreementDocument(): void {
+    const agrObj = {
+      name: this.agreementForm.fileName || 'Agreement.pdf',
+      url: this.agreementForm.previewUrl || '',
+      agreementType: this.agreementForm.type,
+      regNumber: this.agreementForm.regNumber,
+      status: (this.agreementForm.previewUrl ? 'UNDER_REVIEW' : 'NOT_UPLOADED') as 'UNDER_REVIEW' | 'NOT_UPLOADED'
+    };
     if (this.newVehicle.documents) {
-      this.newVehicle.documents.agreement = {
-        name: this.agreementForm.fileName || '',
-        url: this.agreementForm.previewUrl || '',
-        agreementType: this.agreementForm.type,
-        regNumber: this.agreementForm.regNumber,
-        status: this.agreementForm.previewUrl ? 'UNDER_REVIEW' : 'NOT_UPLOADED'
-      };
+      this.newVehicle.documents.agreement = agrObj;
     }
-    this.navigateTo('ADD_VEHICLE_FORM');
+    if (this.selectedVehicle) {
+      if (!this.selectedVehicle.documents) this.selectedVehicle.documents = {};
+      this.selectedVehicle.documents.agreement = agrObj;
+      if (this.isEditingSelectedVehicle) {
+        this.selectedVehicle.status = 'Under Review';
+        this.selectedVehicle.rejectionReason = undefined;
+        this.syncVehicleUpdateToBackend(this.selectedVehicle);
+        this.notifyAdminForReverification(this.selectedVehicle);
+      }
+    }
+    this.goBackFromDocUpload();
   }
 
   savePhotosDocument(): void {
+    const photosObj = {
+      front: this.photosForm.front || '',
+      side: this.photosForm.side || '',
+      rear: this.photosForm.rear || '',
+      cabin: this.photosForm.cabin || '',
+      engineSerialPlate: this.photosForm.engineSerial || ''
+    };
     if (this.newVehicle.documents) {
-      this.newVehicle.documents.photos = {
-        front: this.photosForm.front || '',
-        side: this.photosForm.side || '',
-        rear: this.photosForm.rear || '',
-        cabin: this.photosForm.cabin || '',
-        engineSerialPlate: this.photosForm.engineSerial || ''
-      };
+      this.newVehicle.documents.photos = photosObj;
     }
-    this.navigateTo('ADD_VEHICLE_FORM');
+    if (this.selectedVehicle) {
+      if (!this.selectedVehicle.documents) this.selectedVehicle.documents = {};
+      this.selectedVehicle.documents.photos = photosObj;
+      if (this.isEditingSelectedVehicle) {
+        this.selectedVehicle.status = 'Under Review';
+        this.selectedVehicle.rejectionReason = undefined;
+        this.syncVehicleUpdateToBackend(this.selectedVehicle);
+        this.notifyAdminForReverification(this.selectedVehicle);
+      }
+    }
+    this.goBackFromDocUpload();
+  }
+
+  notifyAdminForReverification(vehicle: DriverVehicle): void {
+    if (!vehicle) return;
+    const driverName = this.driverProfile?.fullName || 'Driver';
+    const regNum = vehicle.regNumber || 'Equipment';
+
+    const notifyPayload = {
+      title: 'Vehicle Re-verification Request',
+      message: `${driverName} re-submitted documents for vehicle ${vehicle.vehicleName || 'Equipment'} (${regNum}) for re-approval.`,
+      notificationType: 'VEHICLE',
+      deepLink: '/admin/approvals'
+    };
+
+    if (this.http) {
+      this.http.post(`${environment.serverApi}/api/v1/notifications/notify-admin`, notifyPayload).subscribe({
+        next: () => console.log('Admin notified of vehicle re-verification request'),
+        error: (err) => console.warn('Admin notification error:', err)
+      });
+    }
+  }
+
+  submitVehicleForReverification(): void {
+    if (!this.selectedVehicle) return;
+
+    this.selectedVehicle.status = 'Under Review';
+    this.selectedVehicle.rejectionReason = undefined;
+
+    this.syncVehicleUpdateToBackend(this.selectedVehicle);
+    this.notifyAdminForReverification(this.selectedVehicle);
+
+    this.navigateTo('VEHICLE_SUBMITTED');
+  }
+
+  syncVehicleUpdateToBackend(vehicle: DriverVehicle): void {
+    if (!vehicle || !vehicle.id || !this.http) return;
+    const body = {
+      rcFrontUrl: vehicle.documents?.rcFront?.url || '',
+      rcBackUrl: vehicle.documents?.rcBack?.url || '',
+      insuranceUrl: vehicle.documents?.insurance?.url || '',
+      frontPhotoUrl: vehicle.documents?.photos?.front || '',
+      sidePhotoUrl: vehicle.documents?.photos?.side || '',
+      rearPhotoUrl: vehicle.documents?.photos?.rear || '',
+      cabinPhotoUrl: vehicle.documents?.photos?.cabin || '',
+      enginePlatePhotoUrl: vehicle.documents?.photos?.engineSerialPlate || '',
+      status: 'UNDER_REVIEW',
+      rejectionReason: null
+    };
+    this.http.put<any>(`${environment.serverApi}/api/v1/vehicles/${vehicle.id}`, body).subscribe({
+      next: () => this.savePersistentVehicles(),
+      error: () => this.savePersistentVehicles()
+    });
   }
 
   submitVehicleVerification(): void {
@@ -1128,6 +1248,33 @@ export class ProfileComponent implements OnInit {
     if (view === 'MY_VEHICLES' || view === 'MAIN') {
       this.loadPersistentVehicles();
     }
+    this.scrollToTop();
+  }
+
+  scrollToTop(): void {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as any });
+      if (document.body) document.body.scrollTop = 0;
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      const scrollables = document.querySelectorAll('.profile-container, .main-content, .app-container, main, html, body');
+      scrollables.forEach(el => {
+        if (el) el.scrollTop = 0;
+      });
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as any });
+        if (document.body) document.body.scrollTop = 0;
+        if (document.documentElement) document.documentElement.scrollTop = 0;
+        scrollables.forEach(el => {
+          if (el) el.scrollTop = 0;
+        });
+      }, 0);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        scrollables.forEach(el => {
+          if (el) el.scrollTop = 0;
+        });
+      }, 50);
+    }
   }
 
   onSaveProfile(): void {
@@ -1135,7 +1282,7 @@ export class ProfileComponent implements OnInit {
       next: (res) => {
         if (res.success) {
           this.driverProfile = res.data;
-          this.currentView = 'PERSONAL_INFO';
+          this.navigateTo('PERSONAL_INFO');
         }
       }
     });
@@ -1162,7 +1309,7 @@ export class ProfileComponent implements OnInit {
         if (this.driverProfile) {
           this.driverProfile.preferredLanguage = this.selectedLanguage;
         }
-        this.currentView = 'MAIN';
+        this.navigateTo('MAIN');
       }
     });
   }
@@ -1172,7 +1319,7 @@ export class ProfileComponent implements OnInit {
     if (doc.status === 'NOT_UPLOADED') {
       this.openUploadForm();
     } else {
-      this.currentView = 'DOCUMENT_DETAIL';
+      this.navigateTo('DOCUMENT_DETAIL');
     }
   }
 
@@ -1186,7 +1333,7 @@ export class ProfileComponent implements OnInit {
     this.uploadedBackFile = null;
     this.frontPreviewUrl = '';
     this.backPreviewUrl = '';
-    this.currentView = 'UPLOAD_DOCUMENT';
+    this.navigateTo('UPLOAD_DOCUMENT');
   }
 
   onFileSelected(event: any, side: 'front' | 'back'): void {
@@ -1230,7 +1377,7 @@ export class ProfileComponent implements OnInit {
             this.selectedDocItem!.fileName = res.data.fileName;
             this.selectedDocItem!.fileUrl = this.documentService.downloadUrl(res.data.id);
             this.selectedDocItem!.docNumber = this.uploadDocNumber || this.selectedDocItem!.docNumber || 'DOC-' + res.data.id;
-            this.currentView = 'DOCUMENT_DETAIL';
+            this.navigateTo('DOCUMENT_DETAIL');
           }
         },
         error: () => {
@@ -1240,13 +1387,13 @@ export class ProfileComponent implements OnInit {
           if (this.frontPreviewUrl) {
             this.selectedDocItem!.fileUrl = this.frontPreviewUrl;
           }
-          this.currentView = 'DOCUMENT_DETAIL';
+          this.navigateTo('DOCUMENT_DETAIL');
         }
       });
     } else {
       this.selectedDocItem.status = 'UNDER_REVIEW';
       this.selectedDocItem.submittedOn = new Date().toLocaleDateString();
-      this.currentView = 'DOCUMENT_DETAIL';
+      this.navigateTo('DOCUMENT_DETAIL');
     }
   }
 
