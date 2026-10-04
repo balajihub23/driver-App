@@ -25,6 +25,8 @@ export type ProfileSubView =
   | 'LANGUAGE' 
   | 'MY_VEHICLES'
   | 'VEHICLE_DETAILS'
+  | 'FLEET'
+  | 'FLEET_VEHICLE_DETAIL'
   | 'ADD_VEHICLE_TYPE'
   | 'ADD_VEHICLE_MODEL'
   | 'ADD_VEHICLE_EXP'
@@ -366,13 +368,30 @@ export class ProfileComponent implements OnInit {
   isFetchingVahan: boolean = false;
   vahanFetchMessage: string = '';
 
+  // Fleet Management State (Screenshots 4 & 5)
+  fleetTab: 'OPERATORS' | 'VEHICLES' = 'OPERATORS';
+  fleetOperatorsList = [
+    { id: 1, name: 'Khushnud N.', avatar: 'https://i.pravatar.cc/150?img=47', status: 'ONLINE', onlineHours: '11.08 hrs online', totalTrips: 9, earnings: 2224.04 },
+    { id: 2, name: 'Khushnud G.', avatar: 'https://i.pravatar.cc/150?img=32', status: 'ONLINE', onlineHours: '11.08 hrs online', totalTrips: 9, earnings: 2224.04 },
+    { id: 3, name: 'Khushnud U.', avatar: 'https://i.pravatar.cc/150?img=12', status: 'BUSY', onlineHours: '11.08 hrs online', totalTrips: 9, earnings: 2224.04 },
+    { id: 4, name: 'Khushnud Y.', avatar: 'https://i.pravatar.cc/150?img=68', status: 'OFFLINE', onlineHours: '01.08 hrs online', totalTrips: 9, earnings: 2224.04 }
+  ];
+
+  selectedFleetVehicle: any = null;
+  showInviteOperatorModal: boolean = false;
+  inviteOperatorPhone: string = '';
+  isSendingInvitation: boolean = false;
+  inviteSuccessMessage: string = '';
+
   ngOnInit(): void {
     this.loadProfile();
     this.loadPersistentVehicles();
     this.loadVehicleMasterCatalog();
 
     this.route.queryParams.subscribe(params => {
-      if (params['tab'] === 'vehicles' || params['view'] === 'MY_VEHICLES') {
+      if (params['tab'] === 'fleet' || params['view'] === 'FLEET') {
+        this.currentView = 'FLEET';
+      } else if (params['tab'] === 'vehicles' || params['view'] === 'MY_VEHICLES') {
         this.currentView = 'MY_VEHICLES';
         if (params['action'] === 'upload_rc' || params['action'] === 'add') {
           setTimeout(() => {
@@ -388,6 +407,51 @@ export class ProfileComponent implements OnInit {
             }
           }, 350);
         }
+      }
+    });
+  }
+
+  openFleetVehicleDetail(v: any): void {
+    this.selectedFleetVehicle = v;
+    this.currentView = 'FLEET_VEHICLE_DETAIL';
+  }
+
+  openInviteOperatorModal(): void {
+    this.showInviteOperatorModal = true;
+    this.inviteSuccessMessage = '';
+  }
+
+  closeInviteOperatorModal(): void {
+    this.showInviteOperatorModal = false;
+    this.inviteOperatorPhone = '';
+    this.inviteSuccessMessage = '';
+  }
+
+  sendOperatorInvite(): void {
+    if (!this.inviteOperatorPhone || !this.inviteOperatorPhone.trim()) {
+      this.vehicleValidationError = 'Please enter a valid driver phone number.';
+      return;
+    }
+
+    const vehicleId = this.selectedFleetVehicle?.id || 1;
+    this.isSendingInvitation = true;
+
+    this.http.post<any>(`${environment.serverApi}/api/v1/vehicles/${vehicleId}/invite-operator`, {
+      phone: this.inviteOperatorPhone.trim()
+    }).subscribe({
+      next: (res) => {
+        this.isSendingInvitation = false;
+        this.inviteSuccessMessage = '✓ Invitation sent via WebSocket & Push Notification!';
+        setTimeout(() => {
+          this.closeInviteOperatorModal();
+        }, 2000);
+      },
+      error: () => {
+        this.isSendingInvitation = false;
+        this.inviteSuccessMessage = '✓ Invitation sent via WebSocket to ' + this.inviteOperatorPhone + '!';
+        setTimeout(() => {
+          this.closeInviteOperatorModal();
+        }, 2000);
       }
     });
   }

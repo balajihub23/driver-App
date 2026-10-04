@@ -11,6 +11,7 @@ import { VehicleMasterService, VehicleType } from '../../core/services/vehicle-m
 
 export type OnboardingStep = 
   | 'PROFILE_FORM' 
+  | 'BUSINESS_INFO'
   | 'VEHICLE_SELECTION' 
   | 'MACHINERY_SELECTION' 
   | 'OPERATION_TYPE' 
@@ -55,12 +56,26 @@ export class OnboardingComponent implements OnInit {
 
   currentStep: OnboardingStep = 'PROFILE_FORM';
 
+  get isFleetOwner(): boolean {
+    const savedRole = isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedRole') : '';
+    const savedOpType = isPlatformBrowser(this.platformId) ? localStorage.getItem('operationType') : '';
+    return savedRole === 'FLEET_OWNER' || savedOpType === 'FLEET' || this.formData.operationType === 'FLEET';
+  }
+
   formData = {
     fullName: '',
     email: '',
     city: 'Chennai',
     language: 'English',
     referralCode: '',
+    businessName: '',
+    buildingAddress: '',
+    streetAddress: '',
+    businessCity: 'Chennai',
+    businessState: 'Tamil Nadu',
+    businessPinCode: '',
+    hasGst: true,
+    gstNumber: '',
     vehicleType: 'Machinery',
     machineryModel: 'JCB 3DX',
     experience: '3-5 years',
@@ -70,6 +85,11 @@ export class OnboardingComponent implements OnInit {
     bankIfsc: '',
     bankUpi: ''
   };
+
+  statesList: string[] = [
+    'Tamil Nadu', 'Karnataka', 'Kerala', 'Andhra Pradesh', 'Telangana',
+    'Maharashtra', 'Delhi', 'Gujarat', 'West Bengal', 'Rajasthan'
+  ];
 
   uploadedDocs: { [key: string]: boolean } = {};
   showUploadModal: boolean = false;
@@ -385,12 +405,37 @@ export class OnboardingComponent implements OnInit {
       });
     });
 
-    this.currentStep = 'VEHICLE_SELECTION';
+    if (this.isFleetOwner) {
+      this.currentStep = 'BUSINESS_INFO';
+    } else {
+      this.currentStep = 'VEHICLE_SELECTION';
+    }
+  }
+
+  businessValidationError: string = '';
+
+  onBusinessInfoNext(): void {
+    if (!this.formData.businessName || !this.formData.businessName.trim()) {
+      this.businessValidationError = 'Business Name is required.';
+      return;
+    }
+    this.businessValidationError = '';
+    
+    const updatePayload = {
+      companyName: this.formData.businessName,
+      gstNumber: this.formData.hasGst ? this.formData.gstNumber : '',
+      city: this.formData.businessCity || this.formData.city,
+      address: `${this.formData.buildingAddress}, ${this.formData.streetAddress}, ${this.formData.businessState} - ${this.formData.businessPinCode}`
+    };
+
+    this.driverService.updateProfile(updatePayload).subscribe({ next: () => {}, error: () => {} });
+    this.currentStep = 'DOCUMENT_CHECKLIST';
   }
 
   getStepTitle(): string {
     switch (this.currentStep) {
       case 'PROFILE_FORM': return 'Step 1 of 5';
+      case 'BUSINESS_INFO': return 'Step 2 of 5';
       case 'VEHICLE_SELECTION': return 'Step 2 of 5';
       case 'MACHINERY_SELECTION': return 'Step 2 of 5';
       case 'OPERATION_TYPE': return 'Step 3 of 5';
@@ -404,11 +449,15 @@ export class OnboardingComponent implements OnInit {
 
   goBack(): void {
     if (this.currentStep === 'PROFILE_FORM') this.router.navigate(['/auth']);
+    else if (this.currentStep === 'BUSINESS_INFO') this.currentStep = 'PROFILE_FORM';
     else if (this.currentStep === 'VEHICLE_SELECTION') this.currentStep = 'PROFILE_FORM';
     else if (this.currentStep === 'MACHINERY_SELECTION') this.currentStep = 'VEHICLE_SELECTION';
     else if (this.currentStep === 'OPERATION_TYPE') this.currentStep = 'VEHICLE_SELECTION';
     else if (this.currentStep === 'FLEET_INFO') this.currentStep = 'OPERATION_TYPE';
-    else if (this.currentStep === 'DOCUMENT_CHECKLIST') this.currentStep = 'OPERATION_TYPE';
+    else if (this.currentStep === 'DOCUMENT_CHECKLIST') {
+      if (this.isFleetOwner) this.currentStep = 'BUSINESS_INFO';
+      else this.currentStep = 'OPERATION_TYPE';
+    }
     else if (this.currentStep === 'BANK_DETAILS') this.currentStep = 'DOCUMENT_CHECKLIST';
     else if (this.currentStep === 'TERMS') this.currentStep = 'BANK_DETAILS';
   }
@@ -486,15 +535,21 @@ export class OnboardingComponent implements OnInit {
 
   onCompleteRegistration(): void {
     this.loading = true;
+    const roleFromStorage = isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedRole') : 'DRIVER';
+    const opTypeFromStorage = isPlatformBrowser(this.platformId) ? localStorage.getItem('operationType') : 'OWN';
 
     const payload = {
       fullName: this.formData.fullName,
       phone: this.phone || '',
       email: this.formData.email,
       experience: this.formData.experience,
-      city: this.formData.city,
+      city: this.formData.businessCity || this.formData.city,
       preferredLanguage: this.formData.language,
-      operationType: this.formData.operationType,
+      operationType: this.formData.operationType || opTypeFromStorage || 'OWN',
+      selectedRole: roleFromStorage || 'DRIVER',
+      partnerType: this.isFleetOwner ? 'CONTRACTOR' : 'DRIVER',
+      companyName: this.formData.businessName,
+      gstNumber: this.formData.gstNumber,
       selectedVehicleType: this.formData.vehicleType,
       selectedMachineryModel: this.formData.machineryModel,
       bankHolder: this.formData.bankHolder,

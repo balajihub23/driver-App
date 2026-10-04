@@ -98,6 +98,78 @@
       </div>
     }
 
+    <!-- Step 1B (Fleet Role): Business Information (Screenshot 1) -->
+    @if (currentStep === 'BUSINESS_INFO') {
+      <div class="step-container animate-fade-in">
+        <h2>Tell us about your business</h2>
+        <p class="subtitle">Enter the details of your business.</p>
+
+        @if (businessValidationError) {
+          <div class="validation-error-box" style="color: #ef4444; background: rgba(239,68,68,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 13px;">
+            ⚠️ {{ businessValidationError }}
+          </div>
+        }
+
+        <div class="form-group">
+          <label class="form-label">BUSINESS NAME <span class="req" style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" placeholder="e.g. Acme Haulage & Logistics" [(ngModel)]="formData.businessName" />
+          <p class="input-hint" style="font-size: 11px; color: #64748b; margin-top: 4px;">Enter the registered trade or operational fleet name.</p>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="margin: 0;">BUSINESS ADDRESS <span class="req" style="color: #ef4444;">*</span></label>
+            <button type="button" class="btn-location" style="background: rgba(245,158,11,0.15); color: #d97706; border: 1px solid #f59e0b; padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer;">
+              🎯 Use Current Location
+            </button>
+          </div>
+          <input type="text" class="form-control mb-2" placeholder="Building / Flat / Plot No., Industrial Area" [(ngModel)]="formData.buildingAddress" style="margin-bottom: 8px;" />
+          <input type="text" class="form-control mb-2" placeholder="Street name, Locality, Landmark" [(ngModel)]="formData.streetAddress" style="margin-bottom: 8px;" />
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <input type="text" class="form-control" placeholder="Select or enter city" [(ngModel)]="formData.businessCity" style="flex: 1;" />
+            <select class="form-control" [(ngModel)]="formData.businessState" style="flex: 1;">
+              @for (st of statesList; track st) {
+                <option [value]="st">{{ st }}</option>
+              }
+            </select>
+          </div>
+          <input type="text" class="form-control" placeholder="6-digit PIN code" [(ngModel)]="formData.businessPinCode" />
+          <p class="input-hint" style="font-size: 11px; color: #64748b; margin-top: 4px;">Address must match your GSTIN or Trade License records.</p>
+        </div>
+
+        <!-- GST Registration Section -->
+        <div class="gst-section-card" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <strong style="font-size: 13px; color: #0f172a; display: block;">GST REGISTRATION</strong>
+              <span style="font-size: 11px; color: #64748b;">Do you have a GSTIN for your fleet operations?</span>
+            </div>
+            <span style="font-size: 18px;">📄</span>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+            <button type="button" class="btn-gst-toggle" [style.background]="formData.hasGst ? '#f59e0b' : '#e2e8f0'" [style.color]="formData.hasGst ? '#000' : '#475569'" (click)="formData.hasGst = true" style="flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer;">
+              ✓ Yes, I have GST
+            </button>
+            <button type="button" class="btn-gst-toggle" [style.background]="!formData.hasGst ? '#f59e0b' : '#e2e8f0'" [style.color]="!formData.hasGst ? '#000' : '#475569'" (click)="formData.hasGst = false" style="flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer;">
+              ✕ No, I don't
+            </button>
+          </div>
+
+          @if (formData.hasGst) {
+            <div>
+              <label class="form-label" style="font-size: 11px;">GSTIN <span class="req" style="color: #ef4444;">*</span></label>
+              <input type="text" class="form-control" placeholder="e.g., 33AAACD9281M1Z4" [(ngModel)]="formData.gstNumber" style="text-transform: uppercase;" />
+            </div>
+          }
+        </div>
+
+        <button class="btn-primary continue-btn" (click)="onBusinessInfoNext()">
+          Continue ➔
+        </button>
+      </div>
+    }
+
     <!-- Step 2: Select Vehicle (Dynamic) -->
     @if (currentStep === 'VEHICLE_SELECTION') {
       <div class="step-container animate-fade-in">
@@ -281,6 +353,19 @@
               {{ uploadedDocs['Profile Photo'] ? '✓ Uploaded' : '➔' }}
             </span>
           </div>
+
+          @if (isFleetOwner) {
+            <div class="doc-row" (click)="openUploadModal('Business Registration')">
+              <span class="doc-icon">🏬</span>
+              <div class="doc-info">
+                <h4>Business Registration <span class="req">*Required</span></h4>
+                <p>Required for Business name and address verification.</p>
+              </div>
+              <span class="status-indicator" [class.done]="uploadedDocs['Business Registration']">
+                {{ uploadedDocs['Business Registration'] ? '✓ Uploaded' : '➔' }}
+              </span>
+            </div>
+          }
 
           <div class="doc-row" (click)="openUploadModal('PAN Card')">
             <span class="doc-icon">💳</span>

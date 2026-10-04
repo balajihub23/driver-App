@@ -791,6 +791,196 @@
     </div>
   </main>
   }
+  <!-- ==================== VIEW: FLEET MANAGEMENT (SCREENSHOT 4) ==================== -->
+  @if (currentView === 'FLEET') {
+  <header class="sub-header">
+    <h2>Fleet</h2>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <!-- Top Segmented Control: Operators | Vehicles (Screenshot 4) -->
+    <div class="fleet-segmented-control" style="background: #f1f5f9; padding: 4px; border-radius: 24px; display: flex; gap: 4px; margin-bottom: 14px;">
+      <button type="button" [class.active]="fleetTab === 'OPERATORS'" (click)="fleetTab = 'OPERATORS'" style="flex: 1; padding: 10px; border-radius: 20px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;" [style.background]="fleetTab === 'OPERATORS' ? '#ffffff' : 'transparent'" [style.color]="fleetTab === 'OPERATORS' ? '#0f172a' : '#64748b'" [style.box-shadow]="fleetTab === 'OPERATORS' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'">
+        Operators
+      </button>
+      <button type="button" [class.active]="fleetTab === 'VEHICLES'" (click)="fleetTab = 'VEHICLES'" style="flex: 1; padding: 10px; border-radius: 20px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;" [style.background]="fleetTab === 'VEHICLES' ? '#ffffff' : 'transparent'" [style.color]="fleetTab === 'VEHICLES' ? '#0f172a' : '#64748b'" [style.box-shadow]="fleetTab === 'VEHICLES' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'">
+        Vehicles
+      </button>
+    </div>
+
+    <!-- OPERATORS TAB CONTENT (Screenshot 4) -->
+    @if (fleetTab === 'OPERATORS') {
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+        <select style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; font-size: 13px; color: #334155; font-weight: 600;">
+          <option>Today ▾</option>
+          <option>This Week</option>
+          <option>This Month</option>
+        </select>
+      </div>
+
+      <div class="operators-list" style="display: flex; flex-direction: column; gap: 10px;">
+        @for (op of fleetOperatorsList; track op.id) {
+          <div class="operator-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="position: relative; width: 44px; height: 44px;">
+                <img [src]="op.avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;" alt="avatar" />
+                <span [style.background]="op.status === 'ONLINE' ? '#10b981' : (op.status === 'BUSY' ? '#f59e0b' : '#94a3b8')" style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ffffff;"></span>
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #0f172a;">{{ op.name }}</h4>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">{{ op.onlineHours }} • {{ op.totalTrips }} total trips</p>
+              </div>
+            </div>
+            <div style="font-weight: 700; font-size: 14px; color: #0f172a;">
+              ₹ {{ op.earnings | number:'1.2-2' }}
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- VEHICLES TAB CONTENT -->
+    @if (fleetTab === 'VEHICLES') {
+      <div class="vehicles-list-grid" style="display: flex; flex-direction: column; gap: 10px;">
+        @for (v of (vehiclesList.length > 0 ? vehiclesList : [
+          { id: 101, vehicleName: 'JCB 3DX', category: 'Backhoe Loader', regNumber: 'TN 38 AB 4521', status: 'Idle', mfgYear: '2023', machineClass: 'Earth Moving' },
+          { id: 102, vehicleName: 'Tata EX 200', category: 'Excavator', regNumber: 'TN 11 AK 9081', status: 'Active', mfgYear: '2022', machineClass: 'Excavator' }
+        ]); track v.id) {
+          <div class="fleet-vehicle-card" (click)="openFleetVehicleDetail(v)" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 44px; height: 44px; background: #f8fafc; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                🚜
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">{{ v.vehicleName }}</h4>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">{{ v.category || 'Equipment' }} • <span style="font-weight: 600; color: #0f172a;">{{ v.regNumber || 'UNREGISTERED' }}</span></p>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="status-pill" style="background: #fef3c7; color: #d97706; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
+                • {{ v.status || 'Idle' }}
+              </span>
+              <span style="color: #94a3b8; font-size: 18px;">›</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+  }
+
+  <!-- ==================== VIEW: FLEET VEHICLE DETAILS - OPERATOR UNASSIGNED (SCREENSHOT 5) ==================== -->
+  @if (currentView === 'FLEET_VEHICLE_DETAIL') {
+  <header class="sub-header">
+    <button class="btn-back" (click)="currentView = 'FLEET'">‹</button>
+    <h2>Vehicle Details</h2>
+    <span class="spacer"></span>
+  </header>
+
+  <main class="profile-content animate-fade-in">
+    <!-- Vehicle Main Info Card -->
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div style="display: flex; gap: 14px; align-items: center;">
+        <div style="width: 70px; height: 70px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">
+          🚜
+        </div>
+        <div style="flex: 1;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">{{ selectedFleetVehicle?.vehicleName || 'JCB 3DX' }}</h3>
+          <p style="margin: 2px 0 6px 0; font-size: 13px; color: #64748b;">• {{ selectedFleetVehicle?.category || 'Backhoe Loader' }}</p>
+          <span style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; color: #0f172a;">
+            {{ selectedFleetVehicle?.regNumber || 'TN 38 AB 4521' }}
+          </span>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px solid #f1f5f9;">
+        <span style="font-size: 11px; color: #94a3b8;">ID: 3DX-2023-889</span>
+        <span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700;">• Idle</span>
+      </div>
+    </div>
+
+    <!-- NO OPERATOR ASSIGNED WARNING CARD (Screenshot 5) -->
+    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+      <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;">
+        <div style="width: 42px; height: 42px; background: #fef3c7; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #d97706; flex-shrink: 0;">
+          👤+
+        </div>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 14px; color: #78350f; font-weight: 800;">NO OPERATOR ASSIGNED</strong>
+            <span style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800;">ACTION REQUIRED</span>
+          </div>
+          <p style="margin: 6px 0 0 0; font-size: 12px; color: #92400e; line-height: 1.4;">
+            This vehicle is currently unassigned. Assign a certified operator or invite a driver to accept bookings and dispatch this machine.
+          </p>
+        </div>
+      </div>
+
+      <button type="button" (click)="openInviteOperatorModal()" style="width: 100%; padding: 12px; background: #ffc107; color: #000000; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 2px 6px rgba(245,158,11,0.3);">
+        + Invite Operator Now
+      </button>
+    </div>
+
+    <!-- VEHICLE SPECIFICATIONS -->
+    <h4 style="font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin: 0 0 10px 0;">VEHICLE SPECIFICATIONS</h4>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+        <span style="display: block; font-size: 11px; color: #64748b;">Model Year</span>
+        <strong style="font-size: 14px; color: #0f172a; font-weight: 700;">{{ selectedFleetVehicle?.mfgYear || '2023' }}</strong>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+        <span style="display: block; font-size: 11px; color: #64748b;">Machine Class</span>
+        <strong style="font-size: 14px; color: #0f172a; font-weight: 700;">{{ selectedFleetVehicle?.machineClass || 'Earth Moving' }}</strong>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+      <div style="width: 36px; height: 36px; background: #ecfdf5; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 18px;">
+        🛡️
+      </div>
+      <div>
+        <strong style="font-size: 13px; color: #0f172a; display: block;">RC & Insurance Valid</strong>
+        <span style="font-size: 11px; color: #64748b;">FC, Road Tax & Insurance active till Dec 2025</span>
+      </div>
+    </div>
+  </main>
+  }
+
+  <!-- INVITE OPERATOR MODAL POPUP -->
+  @if (showInviteOperatorModal) {
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px;">
+      <div style="background: #ffffff; border-radius: 20px; width: 100%; max-width: 400px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Invite Operator</h3>
+          <button type="button" (click)="closeInviteOperatorModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">✕</button>
+        </div>
+
+        <p style="font-size: 13px; color: #64748b; margin-top: 0; margin-bottom: 16px;">
+          Send a WebSocket & Push notification invite to a driver to assign them to {{ selectedFleetVehicle?.vehicleName || 'this vehicle' }}.
+        </p>
+
+        @if (inviteSuccessMessage) {
+          <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 14px;">
+            {{ inviteSuccessMessage }}
+          </div>
+        }
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">DRIVER PHONE NUMBER <span style="color: #ef4444;">*</span></label>
+          <input type="tel" [(ngModel)]="inviteOperatorPhone" placeholder="Enter 10-digit mobile number" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; box-sizing: border-radius;" />
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" (click)="closeInviteOperatorModal()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;">
+            Cancel
+          </button>
+          <button type="button" (click)="sendOperatorInvite()" [disabled]="isSendingInvitation" style="flex: 1; padding: 12px; background: #f59e0b; color: #000; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer;">
+            {{ isSendingInvitation ? 'Sending...' : 'Send Invite' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- ==================== VIEW 10: ADD VEHICLE STEP 1: CATEGORY & FETCH MODE (SCREENSHOT 3A) ==================== -->
   @if (currentView === 'ADD_VEHICLE_TYPE') {
