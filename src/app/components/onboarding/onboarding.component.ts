@@ -1,11 +1,13 @@
-import { Component, Input, Output, EventEmitter, inject, OnInit, HostListener, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, inject, OnInit, HostListener, ElementRef, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { DriverService } from '../../core/services/driver.service';
 import { DocumentService } from '../../core/services/document.service';
 import { ImageUploadModalComponent } from '../../shared/components/image-upload-modal/image-upload-modal.component';
+
+import { VehicleMasterService, VehicleType } from '../../core/services/vehicle-master.service';
 
 export type OnboardingStep = 
   | 'PROFILE_FORM' 
@@ -32,9 +34,11 @@ export class OnboardingComponent implements OnInit {
   authService = inject(AuthService);
   driverService = inject(DriverService);
   documentService = inject(DocumentService);
+  vehicleMasterService = inject(VehicleMasterService);
   router = inject(Router);
   route = inject(ActivatedRoute);
   elementRef = inject(ElementRef);
+  platformId = inject(PLATFORM_ID);
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -54,7 +58,7 @@ export class OnboardingComponent implements OnInit {
   formData = {
     fullName: '',
     email: '',
-    city: 'Gurugram',
+    city: 'Chennai',
     language: 'English',
     referralCode: '',
     vehicleType: 'Machinery',
@@ -132,7 +136,116 @@ export class OnboardingComponent implements OnInit {
 
   createdDriverId?: number;
 
+  // Dynamic Catalog state for vehicle selection & machinery selection
+  dynamicVehicleTypes: VehicleType[] = [];
+  dynamicMachineryModels: any[] = [];
+  machinerySubTabs: string[] = ['Backhoe', 'Excavator', 'Cranes', 'Bulldozer'];
+  activeMachineryTab: string = 'Backhoe';
+
+  fallbackVehicleTypes = [
+    { id: 1, name: 'Car', icon: '🚗', description: 'Drive passengers' },
+    { id: 2, name: 'Auto', icon: '🛺', description: 'Drive passengers' },
+    { id: 3, name: 'Bike', icon: '🛵', description: 'Take bike taxi trips' },
+    { id: 4, name: 'Machinery', icon: '🚜', description: 'Operate construction machinery' }
+  ];
+
+  fallbackMachineryModels = [
+    { id: 'm1', name: 'JCB 3DX', sub: 'Backhoe', specs: 'Backhoe Loader • 74 HP • 1.0 m³' },
+    { id: 'm2', name: 'Tata Hitachi EX 200', sub: 'Excavator', specs: 'Hydraulic Excavator • 133 HP • 2.0 Ton' },
+    { id: 'm3', name: 'CAT 424B2', sub: 'Backhoe', specs: 'Backhoe Loader • 75 HP • General Purpose' },
+    { id: 'm4', name: 'Mahindra EarthMaster', sub: 'Backhoe', specs: 'Backhoe Loader • 79 HP • Heavy Duty' },
+    { id: 'm5', name: 'Komatsu PC210', sub: 'Excavator', specs: 'Hydraulic Excavator • 165 HP' }
+  ];
+
+  loadVehicleCatalog(): void {
+    this.vehicleMasterService.getCatalog().subscribe({
+      next: (res) => {
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          this.dynamicVehicleTypes = res.data;
+          this.buildMachineryModelsFromCatalog(res.data);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  selectVehicleTypeCard(vType: any): void {
+    this.formData.vehicleType = vType.name;
+    if (vType.models && vType.models.length > 0) {
+      this.buildMachineryModelsFromType(vType);
+    }
+  }
+
+  buildMachineryModelsFromType(vType: VehicleType): void {
+    if (!vType.models || vType.models.length === 0) return;
+    const list: any[] = [];
+    const tabsSet = new Set<string>();
+
+    vType.models.forEach(m => {
+      tabsSet.add(m.name);
+      if (m.subModels && m.subModels.length > 0) {
+        m.subModels.forEach(sm => {
+          list.push({
+            id: `sub_${sm.id}`,
+            name: sm.name,
+            sub: m.name,
+            specs: `${sm.description || m.name}${sm.horsePower ? ' • ' + sm.horsePower : ''}`
+          });
+        });
+      } else {
+        list.push({
+          id: `mod_${m.id}`,
+          name: m.name,
+          sub: m.name,
+          specs: m.description || m.name
+        });
+      }
+    });
+
+    if (list.length > 0) {
+      this.dynamicMachineryModels = list;
+    }
+    if (tabsSet.size > 0) {
+      this.machinerySubTabs = Array.from(tabsSet);
+      this.activeMachineryTab = this.machinerySubTabs[0];
+    }
+  }
+
+  buildMachineryModelsFromCatalog(types: VehicleType[]): void {
+    const machineryType = types.find(t => t.name.toLowerCase().includes('machinery')) || types[0];
+    if (!machineryType || !machineryType.models) return;
+
+    this.buildMachineryModelsFromType(machineryType);
+  }
+
+  get filteredMachineryModels(): any[] {
+    const list = this.dynamicMachineryModels.length > 0 ? this.dynamicMachineryModels : this.fallbackMachineryModels;
+    if (!this.activeMachineryTab) return list;
+    const tab = this.activeMachineryTab.toLowerCase();
+    const filtered = list.filter(m => (m.sub || '').toLowerCase() === tab || (m.name || '').toLowerCase().includes(tab));
+    return filtered.length > 0 ? filtered : list;
+  }
+
+  getVehicleIcon(typeName: string): string {
+    const lower = (typeName || '').toLowerCase();
+    if (lower.includes('car')) return '🚗';
+    if (lower.includes('auto')) return '🛺';
+    if (lower.includes('bike')) return '🛵';
+    return '🚜';
+  }
+
+  getVehicleDescription(typeName: string): string {
+    const lower = (typeName || '').toLowerCase();
+    if (lower.includes('car')) return 'Drive passengers';
+    if (lower.includes('auto')) return 'Drive passengers';
+    if (lower.includes('bike')) return 'Take bike taxi trips';
+    if (lower.includes('machinery')) return 'Operate construction machinery';
+    return `Operate ${typeName}`;
+  }
+
   ngOnInit(): void {
+    this.loadVehicleCatalog();
+
     this.route.queryParams.subscribe(params => {
       if (params['step'] === 'SUBMITTED') {
         this.currentStep = 'SUBMITTED';
@@ -172,23 +285,38 @@ export class OnboardingComponent implements OnInit {
             const isSamePhone = !this.phone || this.phone.trim() === profile.phone.trim();
             if (isSamePhone) {
               if (profile.id) this.createdDriverId = profile.id;
+
+              // Preserve locally typed values when navigating back
               if (profile.fullName && profile.fullName !== 'Driver' && !profile.fullName.startsWith('Driver (')) {
-                this.formData.fullName = profile.fullName;
+                if (!this.formData.fullName) {
+                  this.formData.fullName = profile.fullName;
+                }
               }
               if (profile.email && !profile.email.startsWith('driver_') && !profile.email.endsWith('@rentron.com')) {
-                this.formData.email = profile.email;
-              } else {
-                this.formData.email = '';
+                if (!this.formData.email) {
+                  this.formData.email = profile.email;
+                }
               }
-              if (profile.city) this.formData.city = profile.city;
+              if (profile.city && (!this.formData.city || this.formData.city === 'Chennai')) {
+                this.formData.city = profile.city;
+              }
               if (profile.preferredLanguage) this.formData.language = profile.preferredLanguage;
-              if (profile.operationType) this.formData.operationType = profile.operationType;
+              if (profile.operationType) {
+                this.formData.operationType = profile.operationType;
+                if (isPlatformBrowser(this.platformId)) {
+                  localStorage.setItem('operationType', profile.operationType);
+                }
+              }
+              if (profile.selectedRole) {
+                if (isPlatformBrowser(this.platformId)) {
+                  localStorage.setItem('selectedRole', profile.selectedRole);
+                }
+              }
               if (profile.selectedVehicleType) this.formData.vehicleType = profile.selectedVehicleType;
               if (profile.selectedMachineryModel) this.formData.machineryModel = profile.selectedMachineryModel;
             } else {
-              // New driver registration for different phone: keep input fields clean
-              this.formData.fullName = '';
-              this.formData.email = '';
+              if (!this.formData.fullName) this.formData.fullName = '';
+              if (!this.formData.email) this.formData.email = '';
             }
           }
         }
@@ -197,10 +325,9 @@ export class OnboardingComponent implements OnInit {
   }
 
   ensureDriverRegistered(callback?: () => void): void {
-    if (this.createdDriverId) {
-      if (callback) callback();
-      return;
-    }
+    const roleFromStorage = isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedRole') : 'DRIVER';
+    const opTypeFromStorage = isPlatformBrowser(this.platformId) ? localStorage.getItem('operationType') : 'OWN';
+
     const payload = {
       fullName: this.formData.fullName || 'Driver',
       phone: this.phone || '',
@@ -208,11 +335,20 @@ export class OnboardingComponent implements OnInit {
       experience: this.formData.experience || '3-5 years',
       city: this.formData.city || 'Chennai',
       preferredLanguage: this.formData.language || 'English',
-      operationType: this.formData.operationType || 'OWN',
+      operationType: this.formData.operationType || opTypeFromStorage || 'OWN',
+      selectedRole: roleFromStorage || 'DRIVER',
       selectedVehicleType: this.formData.vehicleType || 'Machinery',
       selectedMachineryModel: this.formData.machineryModel || 'JCB 3DX',
       partnerType: 'DRIVER'
     };
+
+    if (this.createdDriverId) {
+      this.driverService.updateProfile(payload).subscribe({
+        next: () => { if (callback) callback(); },
+        error: () => { if (callback) callback(); }
+      });
+      return;
+    }
 
     this.authService.registerDriverPartner(payload).subscribe({
       next: (res) => {
@@ -226,6 +362,30 @@ export class OnboardingComponent implements OnInit {
         if (callback) callback();
       }
     });
+  }
+
+  onProfileFormNext(): void {
+    const roleFromStorage = isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedRole') : 'DRIVER';
+    const opTypeFromStorage = isPlatformBrowser(this.platformId) ? localStorage.getItem('operationType') : 'OWN';
+
+    const updatePayload = {
+      fullName: this.formData.fullName,
+      phone: this.phone || '',
+      email: this.formData.email,
+      city: this.formData.city || 'Chennai',
+      preferredLanguage: this.formData.language || 'English',
+      operationType: this.formData.operationType || opTypeFromStorage || 'OWN',
+      selectedRole: roleFromStorage || 'DRIVER'
+    };
+
+    this.ensureDriverRegistered(() => {
+      this.driverService.updateProfile(updatePayload).subscribe({
+        next: () => {},
+        error: () => {}
+      });
+    });
+
+    this.currentStep = 'VEHICLE_SELECTION';
   }
 
   getStepTitle(): string {
@@ -254,6 +414,15 @@ export class OnboardingComponent implements OnInit {
   }
 
   onVehicleSelected(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('selectedVehicleType', this.formData.vehicleType || '');
+    }
+    const updatePayload = {
+      selectedVehicleType: this.formData.vehicleType,
+      selectedMachineryModel: this.formData.machineryModel
+    };
+    this.driverService.updateProfile(updatePayload).subscribe({ next: () => {}, error: () => {} });
+
     if (this.formData.vehicleType === 'Machinery') {
       this.currentStep = 'MACHINERY_SELECTION';
     } else {
@@ -262,6 +431,14 @@ export class OnboardingComponent implements OnInit {
   }
 
   onOperationTypeNext(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('operationType', this.formData.operationType);
+    }
+    const updatePayload = {
+      operationType: this.formData.operationType
+    };
+    this.driverService.updateProfile(updatePayload).subscribe({ next: () => {}, error: () => {} });
+
     if (this.formData.operationType === 'FLEET') {
       this.currentStep = 'FLEET_INFO';
     } else {
@@ -275,13 +452,8 @@ export class OnboardingComponent implements OnInit {
     const hasAadhaar = !!this.uploadedDocs['Aadhaar Card / Government ID'];
     const hasPhoto = !!this.uploadedDocs['Profile Photo'];
     const hasPan = !!this.uploadedDocs['PAN Card'];
-    const hasLicense = !!this.uploadedDocs['Driving License / Operator License'];
 
-    if (this.formData.operationType !== 'FLEET') {
-      const hasRc = !!this.uploadedDocs['Equipment / Vehicle RC'];
-      return hasAadhaar && hasPhoto && hasPan && hasLicense && hasRc;
-    }
-    return hasAadhaar && hasPhoto && hasPan && hasLicense;
+    return hasAadhaar && hasPhoto && hasPan;
   }
 
   onDocumentNext(): void {

@@ -502,11 +502,21 @@
       </button>
     </div>
 
-    <!-- Register Another Vehicle Button matching Screenshot 1 -->
-    <button class="register-vehicle-btn" (click)="startAddVehicleFlow()">
-      <span class="plus-circle">+</span>
-      <strong>REGISTER ANOTHER MACHINE / VEHICLE</strong>
-    </button>
+    <!-- Register Another Vehicle Button (Hidden for Fleet Drivers per Step 5) -->
+    @if (!isFleetDriver) {
+      <button class="register-vehicle-btn" (click)="startAddVehicleFlow()">
+        <span class="plus-circle">+</span>
+        <strong>REGISTER ANOTHER MACHINE / VEHICLE</strong>
+      </button>
+    } @else {
+      <div class="vahan-status-banner banner-approved" style="margin-bottom: 16px;">
+        <span class="check-icon-circle">🏢</span>
+        <div>
+          <strong>ASSIGNED FLEET VEHICLES ONLY</strong>
+          <p>Your vehicles are assigned and managed by your Fleet Owner. Addition and editing of vehicles is disabled.</p>
+        </div>
+      </div>
+    }
 
     <!-- List of Vehicle Cards matching Screenshot 1 -->
     <div class="vehicles-card-list">
@@ -612,31 +622,38 @@
           <label class="form-label">REGISTRATION NUMBER <span class="req">*Required</span></label>
           <div class="input-with-badge">
             <span class="reg-icon">💳</span>
-            <input type="text" class="form-input" [value]="selectedVehicle.regNumber" readonly />
+            <input type="text" class="form-input" placeholder="e.g. TN01AB1234" [(ngModel)]="selectedVehicle.regNumber" />
           </div>
         </div>
-        <button class="vahan-sync-badge">⚡ VAHAN SYNCED</button>
+        <button type="button" class="btn-vahan-fetch" (click)="fetchVahanDetails(selectedVehicle)" [disabled]="!selectedVehicle.regNumber || selectedVehicle.regNumber.trim().length < 4" [class.btn-disabled]="!selectedVehicle.regNumber || selectedVehicle.regNumber.trim().length < 4">
+          {{ isFetchingVahan ? '⌛ FETCHING...' : (selectedVehicle.isVahanSynced ? '✓ VAHAN SYNCED' : '⚡ FETCH VAHAN') }}
+        </button>
       </div>
+      @if (vahanFetchMessage) {
+        <p class="vahan-success-text" style="color: #10b981; font-weight: 600; margin-top: 4px; font-size: 13px;">{{ vahanFetchMessage }}</p>
+      }
 
       <div class="form-row">
         <div class="form-group flex-1">
           <label class="form-label">MFG. YEAR</label>
-          <input type="text" class="form-input" [value]="selectedVehicle.mfgYear || '2023'" readonly />
+          <input type="text" class="form-input" placeholder="e.g. 2023" [(ngModel)]="selectedVehicle.mfgYear" />
         </div>
         <div class="form-group flex-2">
           <label class="form-label">MACHINE CLASS</label>
-          <input type="text" class="form-input" [value]="selectedVehicle.machineClass || 'Earth Moving (Loader)'" readonly />
+          <input type="text" class="form-input" placeholder="e.g. Earth Moving (Loader)" [(ngModel)]="selectedVehicle.machineClass" />
         </div>
       </div>
 
       <div class="form-group">
         <div class="label-with-match">
           <label class="form-label">CHASSIS / VIN NUMBER</label>
-          <span class="match-badge">✓ 17/17 CHARS MATCH</span>
+          @if (selectedVehicle.chassisVin && selectedVehicle.chassisVin.length >= 17) {
+            <span class="match-badge">✓ 17/17 CHARS MATCH</span>
+          }
         </div>
         <div class="input-with-badge">
           <span class="vin-icon">🪪</span>
-          <input type="text" class="form-input" [value]="selectedVehicle.chassisVin || 'MA1PB45JC9L088921'" readonly />
+          <input type="text" class="form-input" placeholder="Enter 17-digit Chassis / VIN No" [(ngModel)]="selectedVehicle.chassisVin" />
         </div>
       </div>
 
@@ -644,24 +661,29 @@
         <label class="form-label">ENGINE SERIAL NUMBER</label>
         <div class="input-with-badge">
           <span class="engine-icon">⚡</span>
-          <input type="text" class="form-input" [value]="selectedVehicle.engineSerial || '4H3829K912048E'" readonly />
+          <input type="text" class="form-input" placeholder="Enter Engine Serial No" [(ngModel)]="selectedVehicle.engineSerial" />
         </div>
       </div>
 
       <div class="form-group">
         <label class="form-label">POWERTRAIN / FUEL ARCHETYPE</label>
         <div class="fuel-archetype-pills">
-          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'DIESEL'">⛽ DIESEL</button>
-          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'PETROL'">🛢️ PETROL</button>
-          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'ELECTRIC'">⚡ ELECTRIC</button>
-          <button class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'HYBRID'">🌱 HYBRID</button>
+          <button type="button" class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'DIESEL'" (click)="selectedVehicle.powertrain = 'DIESEL'">⛽ DIESEL</button>
+          <button type="button" class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'PETROL'" (click)="selectedVehicle.powertrain = 'PETROL'">🛢️ PETROL</button>
+          <button type="button" class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'ELECTRIC'" (click)="selectedVehicle.powertrain = 'ELECTRIC'">⚡ ELECTRIC</button>
+          <button type="button" class="fuel-pill" [class.active]="selectedVehicle.powertrain === 'HYBRID'" (click)="selectedVehicle.powertrain = 'HYBRID'">🌱 HYBRID</button>
         </div>
       </div>
 
       <div class="form-group">
         <label class="form-label">VEHICLE DESCRIPTION</label>
-        <textarea class="form-input form-textarea" rows="3"
-          readonly>{{ selectedVehicle.vehicleDescription || 'JCB 3DX with extended dipper arm, rock breaker line installed, heavy duty teeth' }}</textarea>
+        <textarea class="form-input form-textarea" rows="3" placeholder="Enter vehicle description or attachments..." [(ngModel)]="selectedVehicle.vehicleDescription"></textarea>
+      </div>
+
+      <div class="save-vehicle-btn-wrap" style="margin-top: 14px; margin-bottom: 20px;">
+        <button type="button" class="btn-primary" (click)="saveVehicleDetails(selectedVehicle)" [disabled]="isSavingVehicle" style="width: 100%; padding: 12px; font-weight: 700; font-size: 14px;">
+          {{ isSavingVehicle ? 'Saving Details...' : '💾 Save Vehicle & RC Details' }}
+        </button>
       </div>
 
       <!-- Documents Section -->
@@ -779,17 +801,7 @@
   </header>
 
   <main class="profile-content animate-fade-in">
-    <!-- Manual vs Auto Fetching Toggle Pills -->
-    <div class="fetch-mode-bar">
-      <button class="mode-pill" [class.active]="newVehicle.fetchMode === 'AUTO_VAHAN'"
-        (click)="newVehicle.fetchMode = 'AUTO_VAHAN'">
-        ⚡ Auto Fetching (VAHAN)
-      </button>
-      <button class="mode-pill" [class.active]="newVehicle.fetchMode === 'MANUAL'"
-        (click)="newVehicle.fetchMode = 'MANUAL'">
-        ✏️ Manual Entry
-      </button>
-    </div>
+
 
     <p class="step-subtitle">Choose the vehicle you want to add</p>
 
@@ -885,7 +897,7 @@
       @for (m of filteredMachineryModels; track m.id) {
       <div class="model-option-card" [class.selected]="isModelOptionSelected(m)" (click)="selectMachineryOption(m)">
         <div class="m-icon-box">
-          <img *ngIf="m.iconUrl" [src]="m.iconUrl" (error)="onImgError($event)" class="opt-model-img" alt="icon" />
+          <img *ngIf="isImageUrl(m.iconUrl)" [src]="m.iconUrl" (error)="onImgError($event)" class="opt-model-img" alt="icon" />
           <span class="emoji-icon">{{ m.icon || '🚗' }}</span>
         </div>
         <div class="m-info">
@@ -960,12 +972,13 @@
             <input type="text" class="form-input" [(ngModel)]="newVehicle.regNumber" placeholder="TN 38 AB 4521" />
           </div>
         </div>
-        @if (newVehicle.fetchMode === 'AUTO_VAHAN') {
-        <button class="btn-vahan-fetch" (click)="fetchVahanDetails()">
-          {{ newVehicle.isVahanSynced ? '✓ VAHAN SYNCED' : '⚡ FETCH VAHAN' }}
+        <button type="button" class="btn-vahan-fetch" (click)="fetchVahanDetails(newVehicle)" [disabled]="!newVehicle.regNumber || newVehicle.regNumber.trim().length < 4" [class.btn-disabled]="!newVehicle.regNumber || newVehicle.regNumber.trim().length < 4">
+          {{ isFetchingVahan ? '⌛ FETCHING...' : (newVehicle.isVahanSynced ? '✓ VAHAN SYNCED' : '⚡ FETCH VAHAN') }}
         </button>
-        }
       </div>
+      @if (vahanFetchMessage) {
+        <p class="vahan-success-text" style="color: #10b981; font-weight: 600; margin-top: 4px; font-size: 13px;">{{ vahanFetchMessage }}</p>
+      }
       <p class="input-hint">Standard High-Security Registration Plate (HSRP) format</p>
 
       <div class="form-row">
@@ -1485,28 +1498,29 @@
     </div>
   </div>
   }
-  <!-- Activate Vehicle Modal Overlay -->
+  <!-- Activate Vehicle Modal Overlay (Matching Screenshot 2) -->
   @if (showActivateVehicleModal && activatingVehicle) {
   <div class="file-viewer-modal-backdrop animate-fade-in" (click)="closeActivateModal()">
-    <div class="activate-vehicle-modal-card animate-pop-in" (click)="$event.stopPropagation()">
-      <div class="activate-modal-header">
-        <div class="activate-icon-circle">⚡</div>
-        <h3>Activate Vehicle?</h3>
-        <button class="btn-close-sm" (click)="closeActivateModal()">✕</button>
+    <div class="activate-modal-card-v2 animate-pop-in" (click)="$event.stopPropagation()">
+      <div class="activate-icon-circle-v2">
+        @if (activatingVehicle.category === 'Machinery') { 🚜 }
+        @else if (activatingVehicle.category === 'Auto') { 🛺 }
+        @else if (activatingVehicle.category === 'Bike') { 🛵 }
+        @else { 🚗 }
       </div>
-      <div class="activate-modal-body">
-        <p class="modal-sub-title">
-          Are you sure you want to set <strong>{{ activatingVehicle.regNumber }}</strong> ({{ activatingVehicle.vehicleName || activatingVehicle.category }}) as your active vehicle allocation?
-        </p>
-        <div class="activate-info-box">
-          <span class="info-icon">ℹ️</span>
-          <p>All future customer bookings matching this vehicle category will be assigned to you for this vehicle only.</p>
-        </div>
-      </div>
-      <div class="activate-modal-footer">
-        <button class="btn-secondary-cancel" (click)="closeActivateModal()">Cancel</button>
-        <button class="btn-confirm-activate" [disabled]="isActivatingVehicle" (click)="confirmVehicleActivation()">
-          {{ isActivatingVehicle ? 'Activating...' : 'Activate Vehicle' }}
+      
+      <h3 class="activate-title-v2">Activate {{ activatingVehicle.vehicleName || activatingVehicle.category }}?</h3>
+
+      <ul class="activate-bullet-list">
+        <li>After activation, you'll receive jobs based on the selected vehicle.</li>
+      </ul>
+
+      <div class="activate-actions-v2">
+        <button class="btn-activate-coral" [disabled]="isActivatingVehicle" (click)="confirmVehicleActivation()">
+          {{ isActivatingVehicle ? 'Activating...' : 'Activate' }}
+        </button>
+        <button class="btn-cancel-outline" (click)="closeActivateModal()">
+          Cancel
         </button>
       </div>
     </div>

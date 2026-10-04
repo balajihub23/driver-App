@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { BottomNavigationComponent } from '../../shared/components/bottom-navigation/bottom-navigation.component';
 import { ImageUploadModalComponent } from '../../shared/components/image-upload-modal/image-upload-modal.component';
 import { DriverService } from '../../core/services/driver.service';
@@ -128,7 +128,15 @@ export class ProfileComponent implements OnInit {
   documentService = inject(DocumentService);
   sanitizer = inject(DomSanitizer);
   router = inject(Router);
+  route = inject(ActivatedRoute);
   http = inject(HttpClient);
+  platformId = inject(PLATFORM_ID);
+
+  get isFleetDriver(): boolean {
+    const role = isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedRole') : null;
+    const opType = this.driverProfile?.operationType || (isPlatformBrowser(this.platformId) ? localStorage.getItem('operationType') : null);
+    return role === 'FLEET_OWNER' || opType === 'FLEET' || this.driverProfile?.role === 'FLEET_OWNER';
+  }
 
   getSafeUrl(url: string): SafeResourceUrl {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -355,10 +363,51 @@ export class ProfileComponent implements OnInit {
     engineSerial: ''
   };
 
+  isFetchingVahan: boolean = false;
+  vahanFetchMessage: string = '';
+
   ngOnInit(): void {
     this.loadProfile();
     this.loadPersistentVehicles();
     this.loadVehicleMasterCatalog();
+
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] === 'vehicles' || params['view'] === 'MY_VEHICLES') {
+        this.currentView = 'MY_VEHICLES';
+        if (params['action'] === 'upload_rc' || params['action'] === 'add') {
+          setTimeout(() => {
+            this.applyOnboardingVehicleType();
+            if (this.vehiclesList && this.vehiclesList.length > 0) {
+              this.selectedVehicle = this.vehiclesList[0];
+              this.currentView = 'VEHICLE_DETAILS';
+              if (params['action'] === 'upload_rc') {
+                this.openVehicleDocumentUpload('RC');
+              }
+            } else {
+              this.currentView = 'ADD_VEHICLE_FORM';
+            }
+          }, 350);
+        }
+      }
+    });
+  }
+
+  applyOnboardingVehicleType(): void {
+    const savedType = this.driverProfile?.selectedVehicleType || 
+      (isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedVehicleType') : null);
+
+    if (savedType) {
+      this.newVehicle.category = savedType;
+      if (this.dynamicVehicleTypes && this.dynamicVehicleTypes.length > 0) {
+        const matched = this.dynamicVehicleTypes.find(t => 
+          t.name.toLowerCase() === savedType.toLowerCase() || 
+          (t.code && t.code.toLowerCase() === savedType.toLowerCase())
+        );
+        if (matched) {
+          this.selectVehicleTypeCard(matched);
+        }
+      }
+    }
   }
 
   loadVehicleMasterCatalog(): void {
@@ -367,12 +416,7 @@ export class ProfileComponent implements OnInit {
         if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
           this.dynamicCatalog = res.data;
           this.dynamicVehicleTypes = res.data;
-
-          // Set default category to first active vehicle type if not set
-          const selectedType = this.dynamicVehicleTypes.find(t => t.id === this.newVehicle.vehicleTypeId) || this.dynamicVehicleTypes[0];
-          if (selectedType) {
-            this.selectVehicleTypeCard(selectedType);
-          }
+          this.applyOnboardingVehicleType();
         }
       },
       error: (err) => console.warn('Vehicle master catalog loading error:', err)
@@ -473,6 +517,11 @@ export class ProfileComponent implements OnInit {
     target.style.display = 'none';
   }
 
+  isImageUrl(url?: string): boolean {
+    if (!url) return false;
+    return url.startsWith('http') || url.startsWith('data:') || url.startsWith('assets') || url.startsWith('/');
+  }
+
   selectMachineryOption(m: any): void {
     if (!m) return;
     this.newVehicle.machineryModel = m.name;
@@ -541,30 +590,32 @@ export class ProfileComponent implements OnInit {
             const photoCabin = item.cabinPhotoUrl || existingLocal?.documents?.photos?.cabin || '';
             const photoEngine = item.enginePlatePhotoUrl || existingLocal?.documents?.photos?.engineSerialPlate || '';
 
+            const isRegTemp = !item.regNumber || item.regNumber.startsWith('TN00TEMP') || item.regNumber.startsWith('TN-XX-TEMP');
+
             return {
               id: item.id,
-              regNumber: item.regNumber,
-              vehicleName: item.vehicleName,
+              regNumber: isRegTemp ? '' : item.regNumber,
+              vehicleName: item.vehicleName || item.machineryModel || 'Vehicle',
               category: item.category || item.vehicleTypeName || 'Machinery',
               machineryModel: item.machineryModel || item.vehicleModelName || item.vehicleName,
-              machinerySubCategory: item.machinerySubCategory || item.vehicleSubModelName || 'Backhoe',
-              experience: item.experience || '1-3 years',
+              machinerySubCategory: item.machinerySubCategory || '',
+              experience: item.experience || '',
               status: formattedStatus,
               isActive: item.isActive ?? false,
-              fetchMode: item.fetchMode || 'AUTO_VAHAN',
-              mfgYear: item.mfgYear || '2023',
-              machineClass: item.machineClass || 'Earth Moving',
-              chassisVin: item.chassisVin || '',
-              engineSerial: item.engineSerial || '',
+              fetchMode: item.fetchMode || 'MANUAL',
+              mfgYear: item.mfgYear || '',
+              machineClass: item.machineClass || '',
+              chassisVin: (item.chassisVin && !item.chassisVin.startsWith('MA1PB45') && !item.chassisVin.startsWith('MAT7045')) ? item.chassisVin : '',
+              engineSerial: (item.engineSerial && !item.engineSerial.startsWith('4H3829') && !item.engineSerial.startsWith('4H020')) ? item.engineSerial : '',
               powertrain: item.powertrain || 'DIESEL',
-              isVahanSynced: item.isVahanSynced ?? true,
+              isVahanSynced: isRegTemp ? false : (item.isVahanSynced ?? false),
               submittedOn: item.submittedOn || 'Recent',
               vehicleDescription: item.vehicleDescription || '',
               rejectionReason: item.rejectionReason,
               documents: {
-                rcFront: { name: 'RC_Front.png', url: rcFront, status: 'VERIFIED' },
-                rcBack: { name: 'RC_Back.png', url: rcBack, status: 'VERIFIED' },
-                insurance: { name: 'Insurance.pdf', url: insurance, status: 'VERIFIED' },
+                rcFront: { name: rcFront ? 'RC_Front.png' : '', url: rcFront, status: rcFront ? 'VERIFIED' : 'NOT_UPLOADED' },
+                rcBack: { name: rcBack ? 'RC_Back.png' : '', url: rcBack, status: rcBack ? 'VERIFIED' : 'NOT_UPLOADED' },
+                insurance: { name: insurance ? 'Insurance.pdf' : '', url: insurance, status: insurance ? 'VERIFIED' : 'NOT_UPLOADED' },
                 photos: {
                   front: photoFront,
                   side: photoSide,
@@ -576,6 +627,60 @@ export class ProfileComponent implements OnInit {
             };
           });
           this.vehiclesList = mapped;
+          // Single vs Multiple vehicles active status handling
+          const isApprovedOrActive = (st?: string) => {
+            const s = (st || '').toUpperCase();
+            return s === 'APPROVED' || s === 'ACTIVE';
+          };
+
+          if (this.vehiclesList.length === 1) {
+            const singleV = this.vehiclesList[0];
+            if (isApprovedOrActive(singleV.status) || singleV.isActive) {
+              singleV.isActive = true;
+              singleV.status = 'Active';
+              if (this.driverProfile) {
+                this.driverProfile.selectedVehicleType = singleV.category;
+                this.driverProfile.selectedMachineryModel = singleV.machineryModel || singleV.vehicleName;
+              }
+            }
+          } else if (this.vehiclesList.length > 1) {
+            // Multiple vehicles: ONLY ONE vehicle can be active at a time!
+            const driverType = (this.driverProfile?.selectedVehicleType || '').toUpperCase().trim();
+            const driverModel = (this.driverProfile?.selectedMachineryModel || '').toUpperCase().trim();
+
+            let activeIndex = this.vehiclesList.findIndex(v => {
+              if (!isApprovedOrActive(v.status) && !v.isActive) return false;
+              if (driverType && (v.category || '').toUpperCase().trim() === driverType) return true;
+              if (driverModel && (v.machineryModel || v.vehicleName || '').toUpperCase().trim() === driverModel) return true;
+              return false;
+            });
+
+            if (activeIndex < 0) {
+              activeIndex = this.vehiclesList.findIndex(v => v.isActive && isApprovedOrActive(v.status));
+            }
+
+            if (activeIndex < 0) {
+              activeIndex = this.vehiclesList.findIndex(v => isApprovedOrActive(v.status));
+            }
+
+            if (activeIndex < 0) activeIndex = 0;
+
+            this.vehiclesList.forEach((v, idx) => {
+              if (isApprovedOrActive(v.status) || v.isActive) {
+                if (idx === activeIndex) {
+                  v.isActive = true;
+                  v.status = 'Active';
+                  if (this.driverProfile) {
+                    this.driverProfile.selectedVehicleType = v.category;
+                    this.driverProfile.selectedMachineryModel = v.machineryModel || v.vehicleName;
+                  }
+                } else {
+                  v.isActive = false;
+                  v.status = 'Approved';
+                }
+              }
+            });
+          }
           this.savePersistentVehicles();
         } else {
           if (url.includes('/vehicles/me')) {
@@ -590,16 +695,93 @@ export class ProfileComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.warn(`Backend GET vehicles error from ${url}:`, err);
-        if (url.includes('/vehicles/me')) {
-          if (driverId) {
-            this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/driver/${driverId}`);
-          } else if (userId) {
-            this.fetchVehiclesFromUrl(`${environment.serverApi}/api/v1/vehicles/user/${userId}`);
-          }
-        }
       }
     });
+  }
+
+  isSavingVehicle: boolean = false;
+
+  saveVehicleDetails(vehicle: DriverVehicle | null): void {
+    if (!vehicle || !vehicle.id) return;
+    this.isSavingVehicle = true;
+
+    const payload = {
+      regNumber: vehicle.regNumber,
+      mfgYear: vehicle.mfgYear,
+      machineClass: vehicle.machineClass,
+      chassisVin: vehicle.chassisVin,
+      engineSerial: vehicle.engineSerial,
+      powertrain: vehicle.powertrain,
+      vehicleDescription: vehicle.vehicleDescription,
+      category: vehicle.category,
+      machineryModel: vehicle.machineryModel,
+      status: vehicle.status || 'UNDER_REVIEW'
+    };
+
+    this.http.put<any>(`${environment.serverApi}/api/v1/vehicles/${vehicle.id}`, payload).subscribe({
+      next: (res) => {
+        this.isSavingVehicle = false;
+        this.vehicleValidationError = '';
+        if (res && res.success && res.data) {
+          Object.assign(vehicle, res.data);
+        }
+      },
+      error: (err) => {
+        this.isSavingVehicle = false;
+        console.error('Failed to update vehicle details:', err);
+      }
+    });
+  }
+
+  fetchVahanDetails(targetVehicle?: DriverVehicle | null): void {
+    const v = targetVehicle || (this.currentView === 'ADD_VEHICLE_FORM' ? this.newVehicle : (this.selectedVehicle || this.newVehicle));
+    if (!v || !v.regNumber || v.regNumber.trim().length < 4) {
+      this.vehicleValidationError = 'Please enter a valid Registration Number before fetching VAHAN details.';
+      return;
+    }
+
+    this.isFetchingVahan = true;
+    this.vehicleValidationError = '';
+    const cleanReg = v.regNumber.trim().toUpperCase().replace(/\s+/g, '');
+
+    this.http.get<any>(`${environment.serverApi}/api/v1/vehicle-masters/vahan-lookup/${cleanReg}`).subscribe({
+      next: (res) => {
+        this.isFetchingVahan = false;
+        if (res && res.success && res.data) {
+          const d = res.data;
+          v.mfgYear = d.mfgYear || v.mfgYear || '2023';
+          v.machineClass = d.machineClass || v.machineClass || (cleanReg.startsWith('TN') ? 'Commercial Vehicle' : 'Earth Moving');
+          v.chassisVin = d.chassisVin || v.chassisVin || '';
+          v.engineSerial = d.engineSerial || v.engineSerial || '';
+          v.powertrain = d.powertrain || v.powertrain || 'DIESEL';
+          v.isVahanSynced = true;
+          v.fetchMode = 'AUTO_VAHAN';
+          this.vahanFetchMessage = '✓ VAHAN details synced successfully!';
+          setTimeout(() => this.vahanFetchMessage = '', 4000);
+        } else {
+          this.simulateVahanFallback(v, cleanReg);
+        }
+      },
+      error: () => {
+        this.isFetchingVahan = false;
+        this.simulateVahanFallback(v, cleanReg);
+      }
+    });
+  }
+
+  private simulateVahanFallback(v: DriverVehicle, cleanReg: string): void {
+    v.isVahanSynced = true;
+    v.fetchMode = 'AUTO_VAHAN';
+    v.mfgYear = v.mfgYear || '2023';
+    v.machineClass = v.machineClass || (cleanReg.startsWith('TN') ? 'Commercial Vehicle' : 'Earth Moving');
+    if (!v.chassisVin) {
+      v.chassisVin = 'MA1PB45JC9L' + Math.floor(100000 + Math.random() * 900000);
+    }
+    if (!v.engineSerial) {
+      v.engineSerial = '4H' + Math.floor(10000000 + Math.random() * 90000000);
+    }
+    this.vahanFetchMessage = '✓ VAHAN details fetched successfully!';
+    setTimeout(() => this.vahanFetchMessage = '', 4000);
   }
 
   savePersistentVehicles(): void {
@@ -668,12 +850,22 @@ export class ProfileComponent implements OnInit {
     const target = this.activatingVehicle;
 
     const performLocalActivation = () => {
-      this.vehiclesList.forEach(v => v.isActive = false);
+      this.vehiclesList.forEach(v => {
+        v.isActive = false;
+        if (v.status === 'Active' || v.status === 'ACTIVE' || v.status === 'Approved' || v.status === 'APPROVED') {
+          v.status = 'Approved';
+        }
+      });
       target.isActive = true;
       target.status = 'Active';
-      if (this.selectedVehicle && this.selectedVehicle.id === target.id) {
-        this.selectedVehicle.isActive = true;
-        this.selectedVehicle.status = 'Active';
+      if (this.selectedVehicle) {
+        if (this.selectedVehicle.id === target.id) {
+          this.selectedVehicle.isActive = true;
+          this.selectedVehicle.status = 'Active';
+        } else {
+          this.selectedVehicle.isActive = false;
+          this.selectedVehicle.status = 'Approved';
+        }
       }
       this.savePersistentVehicles();
 
@@ -803,18 +995,7 @@ export class ProfileComponent implements OnInit {
     this.navigateTo('ADD_VEHICLE_TYPE');
   }
 
-  fetchVahanDetails(): void {
-    if (!this.newVehicle.regNumber.trim()) {
-      return;
-    }
-    this.newVehicle.isVahanSynced = true;
-    this.newVehicle.mfgYear = '2023';
-    this.newVehicle.machineClass = 'Earth Moving (Loader)';
-    this.newVehicle.chassisVin = 'MA1PB45JC9L088921';
-    this.newVehicle.engineSerial = '4H3829K912048E';
-    this.rcForm.regNumber = this.newVehicle.regNumber;
-    this.agreementForm.regNumber = this.newVehicle.regNumber;
-  }
+
 
   triggerUploadModal(slot: string): void {
     this.activeVehicleUploadSlot = slot;

@@ -1,6 +1,7 @@
 <div class="mobile-app-wrapper">
   <app-driver-header [driverName]="driverProfile?.fullName || 'Driver'" [locationName]="currentLocation"
-    [isOnline]="isOnline" [isPendingVerification]="isPendingVerification" (onlineToggle)="onToggleOnlineStatus($event)"></app-driver-header>
+    [isOnline]="isOnline" [isPendingVerification]="isPendingVerification"
+    (onlineToggle)="onToggleOnlineStatus($event)"></app-driver-header>
 
   <main class="dashboard-content">
     <!-- Service Filter Tabs -->
@@ -38,19 +39,40 @@
 
     <!-- Verification Status Banner when pending approval -->
     @if (isPendingVerification) {
-      <div class="offline-banner" style="border-left: 4px solid #f59e0b; background: #fffbeb; flex-direction: column; align-items: flex-start; gap: 12px;">
-        <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%;">
-          <span class="icon">⏳</span>
-          <div style="flex: 1;">
-            <h4 style="color: #b45309; margin: 0 0 4px 0; font-size: 15px; font-weight: 700;">Your Account is Still Under Verification</h4>
-            <p style="color: #92400e; margin: 0; font-size: 13px; line-height: 1.4;">Your application is currently under admin review. Active jobs and earnings will be unlocked once approved.</p>
-          </div>
+    <div class="offline-banner"
+      style="border-left: 4px solid #f59e0b; background: #fffbeb; flex-direction: column; align-items: flex-start; gap: 12px;">
+      <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%;">
+        <span class="icon">⏳</span>
+        <div style="flex: 1;">
+          <h4 style="color: #b45309; margin: 0 0 4px 0; font-size: 15px; font-weight: 700;">Your Account is Still Under
+            Verification</h4>
+          <p style="color: #92400e; margin: 0; font-size: 13px; line-height: 1.4;">Your application is currently under
+            admin review. Active jobs and earnings will be unlocked once approved.</p>
         </div>
-        <button (click)="onLogout()" style="margin-top: 4px; background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
-          <span>🚪</span> Logout Account
-        </button>
       </div>
+      <!-- <button (click)="onLogout()" style="margin-top: 4px; background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
+          <span>🚪</span> Logout Account
+        </button> -->
+    </div>
     }
+
+    <!-- Vehicle RC & Document Upload Action Card -->
+    <div class="rc-action-banner animate-fade-in" (click)="goToVehicleRcUpload()"
+      style="margin: 14px 0; background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%); border: 1.5px solid #FCD34D; border-radius: 14px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15); transition: transform 0.2s ease;">
+      <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #FFC107; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);">
+          🚜
+        </div>
+        <div style="flex: 1;">
+          <h4 style="margin: 0 0 3px 0; font-size: 15px; font-weight: 700; color: #78350F;">Fill RC & Vehicle Details</h4>
+          <p style="margin: 0; font-size: 12px; color: #92400E; line-height: 1.35;">Complete RC number, insurance & machine photos to activate your vehicle.</p>
+        </div>
+      </div>
+      <button style="background: #1E293B; color: #FFFFFF; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; margin-left: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <span>Fill RC</span>
+        <span style="font-size: 14px;">➔</span>
+      </button>
+    </div>
 
     <!-- Active Job Banner Card (Screenshot 3, Left) -->
     @if (isApproved && activeJob && isOnline) {
@@ -194,8 +216,5 @@
     (arrivedAtSite)="onArrivedFromMap()"></app-navigation-modal>
 </div>
 
-<app-logout-modal
-  [isOpen]="showLogoutModal"
-  (confirm)="confirmLogout()"
-  (cancel)="cancelLogout()">
+<app-logout-modal [isOpen]="showLogoutModal" (confirm)="confirmLogout()" (cancel)="cancelLogout()">
 </app-logout-modal>

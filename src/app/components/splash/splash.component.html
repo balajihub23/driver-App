@@ -53,25 +53,76 @@
       </div>
   </div>
   } @else {
-  <!-- Welcome / Login Choice Screen (Figma Screen 5 & 6) -->
+  <!-- Welcome / Role Selection Screen (Matching Figma Screenshot 2) -->
   <div class="welcome-screen">
-    <div class="welcome-logo-header">
-      <img src="assets/images/rentron_logo.png" alt="Rentron Operator" class="welcome-logo-img" />
+    <div class="role-header-banner">
+      <div class="header-top-row">
+        <div class="logo-box">
+          <div class="mini-logo">R</div>
+        </div>
+        <span class="partner-badge">PARTNER APP</span>
+      </div>
+      <div class="header-titles">
+        <h2>Welcome to Rentron</h2>
+        <p>Your vehicles, jobs, and earnings — all in one place.</p>
+      </div>
     </div>
 
-    <div class="welcome-body-content">
-      <h3>Welcome to Rentron</h3>
-      <p>Your rides, jobs, and earnings in one place.</p>
-    </div>
+    <div class="role-body-container">
+      <div class="role-section-title">
+        <h3>Choose your role</h3>
+        <p>Select how you want to use the platform</p>
+      </div>
 
-    <div class="welcome-actions">
-      <button class="btn-primary login-btn" (click)="onSelectAction('LOGIN')">
-        Login <span class="arrow-icon">➔</span>
-      </button>
+      <div class="role-cards-grid">
+        <div 
+          class="role-card" 
+          [class.selected]="selectedRole === 'DRIVER'" 
+          (click)="selectRole('DRIVER')"
+        >
+          <div class="role-icon-box">
+            <span>🚜</span>
+          </div>
+          <div class="role-info">
+            <h4>Driver / Operator</h4>
+            <p>Drive or operate vehicles & machines</p>
+          </div>
+          <div class="role-radio-box">
+            @if (selectedRole === 'DRIVER') {
+              <span class="check-icon">✓</span>
+            }
+          </div>
+        </div>
 
-      <!-- <button class="btn-secondary create-btn" (click)="onSelectAction('REGISTER')">
-              Create Account
-            </button> -->
+        <div 
+          class="role-card" 
+          [class.selected]="selectedRole === 'FLEET_OWNER'" 
+          (click)="selectRole('FLEET_OWNER')"
+        >
+          <div class="role-icon-box">
+            <span>🚚</span>
+          </div>
+          <div class="role-info">
+            <h4>Fleet owner</h4>
+            <p>Manage vehicles, operators & bookings</p>
+          </div>
+          <div class="role-radio-box">
+            @if (selectedRole === 'FLEET_OWNER') {
+              <span class="check-icon">✓</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="role-actions">
+        <button 
+          class="btn-primary continue-role-btn" 
+          [disabled]="!selectedRole" 
+          (click)="onConfirmRole()"
+        >
+          Log in / Sign up <span class="arrow-icon">➔</span>
+        </button>
+      </div>
     </div>
   </div>
   }

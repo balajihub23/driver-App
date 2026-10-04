@@ -613,6 +613,40 @@
   }
 }
 
+.reg-vahan-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+
+  .btn-vahan-fetch {
+    height: 42px;
+    padding: 0 12px;
+    background: #0f172a;
+    color: #f59e0b;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:disabled, &.btn-disabled {
+      background: #334155 !important;
+      color: #94a3b8 !important;
+      border-color: #475569 !important;
+      cursor: not-allowed !important;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+}
+
 .doc-info-block {
   background: var(--surface);
   border-radius: 12px;
@@ -1232,6 +1266,13 @@
   }
 }
 
+/* Step Subtitle */
+.step-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary, #4B5563);
+  margin-bottom: 14px;
+}
+
 /* Sub-category Filter Pills (Screenshot 3B) */
 .subcat-filter-pills {
   display: flex;
@@ -1249,6 +1290,7 @@
     font-weight: 600;
     color: var(--text-secondary, #4B5563);
     cursor: pointer;
+    transition: all 0.2s ease;
 
     &.active {
       background: #FFC107;
@@ -1274,6 +1316,7 @@
     background: var(--surface, #FFFFFF);
     border: 1.5px solid var(--border, #E5E5EA);
     cursor: pointer;
+    transition: all 0.2s ease;
 
     &.selected {
       border-color: #FFC107;
@@ -1284,12 +1327,13 @@
       width: 44px;
       height: 44px;
       border-radius: 10px;
-      background: #FFF9E6;
+      background: var(--surface-secondary, #FFF9E6);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
       overflow: hidden;
+      flex-shrink: 0;
 
       .opt-model-img {
         width: 30px;
@@ -1300,8 +1344,19 @@
 
     .m-info {
       flex: 1;
-      h4 { margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: var(--text-primary); }
-      p { margin: 0; font-size: 11px; color: var(--text-secondary); }
+      min-width: 0;
+
+      h4 { 
+        margin: 0 0 2px 0; 
+        font-size: 14px; 
+        font-weight: 700; 
+        color: var(--text-primary, #111827); 
+      }
+      p { 
+        margin: 0; 
+        font-size: 11px; 
+        color: var(--text-secondary, #4B5563); 
+      }
     }
 
     .radio-circle {
@@ -1340,13 +1395,13 @@
 
     &.selected {
       border-color: #FFC107;
-      background: #FFFDF5;
+      background: var(--primary-light, #FFFDF5);
     }
 
     .exp-text {
       font-size: 14px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--text-primary, #111827);
     }
 
     input[type="radio"] { display: none; }
@@ -1355,13 +1410,81 @@
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      border: 2px solid #D1D5DB;
+      border: 2px solid var(--border, #D1D5DB);
     }
 
     &.selected .radio-dot {
       border-color: #FFC107;
       background: #FFC107;
-      box-shadow: inset 0 0 0 3px #FFFFFF;
+      box-shadow: inset 0 0 0 3px var(--surface, #FFFFFF);
+    }
+  }
+}
+
+/* Dark Theme Explicit Overrides for Model Selection and Forms */
+[data-theme="dark"] {
+  .step-subtitle {
+    color: #CBD5E1 !important;
+  }
+
+  .subcat-filter-pills .sub-pill {
+    background: #334155;
+    color: #CBD5E1;
+    border-color: #475569;
+
+    &.active {
+      background: #FFC107;
+      color: #0F172A;
+      border-color: #FFC107;
+    }
+  }
+
+  .machinery-models-list .model-option-card {
+    background: #1E293B;
+    border-color: #334155;
+
+    &.selected {
+      border-color: #FFC107 !important;
+      background: rgba(255, 193, 7, 0.18) !important;
+
+      .radio-circle {
+        border-color: #FFC107;
+        background: #FFC107;
+        box-shadow: inset 0 0 0 3px #1E293B;
+      }
+    }
+
+    .m-icon-box {
+      background: #334155;
+    }
+
+    .m-info {
+      h4 {
+        color: #F8FAFC !important;
+      }
+      p {
+        color: #CBD5E1 !important;
+      }
+    }
+  }
+
+  .experience-radio-list .exp-radio-card {
+    background: #1E293B;
+    border-color: #334155;
+
+    &.selected {
+      border-color: #FFC107 !important;
+      background: rgba(255, 193, 7, 0.18) !important;
+
+      .radio-dot {
+        border-color: #FFC107;
+        background: #FFC107;
+        box-shadow: inset 0 0 0 3px #1E293B;
+      }
+    }
+
+    .exp-text {
+      color: #F8FAFC !important;
     }
   }
 }
@@ -1378,6 +1501,9 @@
     background: #ECFDF5;
     border: 1px solid #A7F3D0;
     color: #065F46;
+
+    strong { color: #047857; font-weight: 800; }
+    p { color: #065F46; opacity: 1; margin: 0; font-size: 11.5px; line-height: 1.4; }
 
     .check-icon-circle {
       width: 24px;
@@ -1398,6 +1524,8 @@
     background: #FFF7ED;
     border: 1px solid #FFEDD5;
     color: #C2410C;
+    strong { color: #9A3412; font-weight: 800; }
+    p { color: #C2410C; opacity: 1; margin: 0; font-size: 11.5px; line-height: 1.4; }
     .warn-icon-circle { font-size: 20px; color: #EA580C; }
   }
 
@@ -1405,11 +1533,38 @@
     background: #FEF2F2;
     border: 1px solid #FEE2E2;
     color: #B91C1C;
+    strong { color: #991B1B; font-weight: 800; }
+    p { color: #B91C1C; opacity: 1; margin: 0; font-size: 11.5px; line-height: 1.4; }
     .warn-icon-circle { font-size: 20px; color: #EF4444; }
   }
 
   strong { display: block; font-size: 13px; font-weight: 800; margin-bottom: 2px; }
-  p { margin: 0; font-size: 11.5px; line-height: 1.4; opacity: 0.9; }
+  p { margin: 0; font-size: 11.5px; line-height: 1.4; }
+}
+
+/* Dark Theme Overrides for VAHAN Banners */
+[data-theme="dark"] .vahan-status-banner {
+  &.banner-approved {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    color: #34D399 !important;
+    strong { color: #34D399 !important; }
+    p { color: #A7F3D0 !important; opacity: 1 !important; }
+  }
+  &.banner-under-review {
+    background: rgba(245, 158, 11, 0.15) !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    color: #FBBF24 !important;
+    strong { color: #FBBF24 !important; }
+    p { color: #FDE68A !important; opacity: 1 !important; }
+  }
+  &.banner-rejected {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    color: #F87171 !important;
+    strong { color: #F87171 !important; }
+    p { color: #FCA5A5 !important; opacity: 1 !important; }
+  }
 }
 
 /* Vehicle Details Form (Screenshot 2 & 5) */
@@ -1438,14 +1593,15 @@
     }
 
     .vahan-sync-badge {
-      background: #F3F4F6;
-      color: #4B5563;
-      border: none;
+      background: #FFFFFF;
+      color: #111827;
+      border: 1px solid #E5E7EB;
       border-radius: 8px;
       padding: 10px 12px;
       font-size: 11px;
       font-weight: 800;
       margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -1464,7 +1620,7 @@
     .match-badge {
       font-size: 10.5px;
       font-weight: 800;
-      color: #059669;
+      color: #10B981;
     }
   }
 
@@ -1519,13 +1675,12 @@
     border: 1px solid var(--border, #F3F4F6);
     background: var(--surface, #FFFFFF);
     margin-bottom: 8px;
-    cursor: pointer;
 
     .doc-icon-circle {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: #F3F4F6;
+      background: var(--surface-secondary, #F3F4F6);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1536,6 +1691,42 @@
       flex: 1;
       strong { display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); }
       p { margin: 0; font-size: 11px; color: var(--text-secondary); }
+    }
+
+    .btn-view-sm {
+      background-color: #FFFFFF !important;
+      color: #111827 !important;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #F3F4F6 !important;
+      }
+    }
+
+    .btn-reupload-sm {
+      background-color: #FFC107 !important;
+      color: #111827 !important;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #FFB300 !important;
+      }
     }
 
     .status-check-badge {
@@ -2046,6 +2237,105 @@
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+      }
+    }
+  }
+}
+
+/* Activate Vehicle Modal - Screenshot 2 Exact Style */
+.activate-modal-card-v2 {
+  background: #FFFFFF;
+  width: 90%;
+  max-width: 360px;
+  border-radius: 28px;
+  padding: 32px 24px 28px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .activate-icon-circle-v2 {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #FFF4E6;
+    color: #FF8A00;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .activate-title-v2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1E293B;
+    margin: 0 0 16px 0;
+    line-height: 1.3;
+  }
+
+  .activate-bullet-list {
+    text-align: left;
+    margin: 0 0 28px 0;
+    padding-left: 20px;
+    color: #475569;
+    font-size: 13.5px;
+    line-height: 1.5;
+
+    li {
+      margin-bottom: 8px;
+      &::marker {
+        color: #475569;
+      }
+    }
+  }
+
+  .activate-actions-v2 {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .btn-activate-coral {
+      width: 100%;
+      background: #FF4D4D;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 28px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(255, 77, 77, 0.3);
+      transition: all 0.2s ease;
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-cancel-outline {
+      width: 100%;
+      background: #FFFFFF;
+      color: #334155;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 28px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:active {
+        background: #F8FAFC;
       }
     }
   }

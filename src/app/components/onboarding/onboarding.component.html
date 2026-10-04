@@ -92,50 +92,32 @@
           <input type="tel" class="form-control" placeholder="Register Mobile number" [(ngModel)]="formData.referralCode" />
         </div>
 
-        <button class="btn-primary continue-btn" [disabled]="!formData.fullName" (click)="currentStep = 'VEHICLE_SELECTION'">
+        <button class="btn-primary continue-btn" [disabled]="!formData.fullName" (click)="onProfileFormNext()">
           Continue ➔
         </button>
       </div>
     }
 
-    <!-- Step 2: Select Vehicle -->
+    <!-- Step 2: Select Vehicle (Dynamic) -->
     @if (currentStep === 'VEHICLE_SELECTION') {
       <div class="step-container animate-fade-in">
         <h2>Select your vehicle</h2>
         <p class="subtitle">Choose the vehicle you want to operate</p>
 
         <div class="selection-grid">
-          <div class="option-card" [class.selected]="formData.vehicleType === 'Car'" (click)="formData.vehicleType = 'Car'">
-            <span class="icon">🚗</span>
-            <div>
-              <h4>Car</h4>
-              <p>Drive passengers</p>
+          @for (vType of (dynamicVehicleTypes.length > 0 ? dynamicVehicleTypes : fallbackVehicleTypes); track vType.name) {
+            <div 
+              class="option-card" 
+              [class.selected]="formData.vehicleType === vType.name" 
+              (click)="selectVehicleTypeCard(vType)"
+            >
+              <span class="icon">{{ getVehicleIcon(vType.name) }}</span>
+              <div>
+                <h4>{{ vType.name }}</h4>
+                <p>{{ vType.description || getVehicleDescription(vType.name) }}</p>
+              </div>
             </div>
-          </div>
-
-          <div class="option-card" [class.selected]="formData.vehicleType === 'Auto'" (click)="formData.vehicleType = 'Auto'">
-            <span class="icon">🛺</span>
-            <div>
-              <h4>Auto</h4>
-              <p>Drive passengers</p>
-            </div>
-          </div>
-
-          <div class="option-card" [class.selected]="formData.vehicleType === 'Bike'" (click)="formData.vehicleType = 'Bike'">
-            <span class="icon">🛵</span>
-            <div>
-              <h4>Bike</h4>
-              <p>Take bike taxi trips</p>
-            </div>
-          </div>
-
-          <div class="option-card" [class.selected]="formData.vehicleType === 'Machinery'" (click)="formData.vehicleType = 'Machinery'">
-            <span class="icon">🚜</span>
-            <div>
-              <h4>Machinery</h4>
-              <p>Operate construction machinery</p>
-            </div>
-          </div>
+          }
         </div>
 
         <button class="btn-primary continue-btn" [disabled]="!formData.vehicleType" (click)="onVehicleSelected()">
@@ -144,39 +126,35 @@
       </div>
     }
 
-    <!-- Step 3: Machinery Model Selection & Experience -->
+    <!-- Step 3: Machinery Model Selection & Experience (Dynamic) -->
     @if (currentStep === 'MACHINERY_SELECTION') {
       <div class="step-container animate-fade-in">
         <h2>Select machinery model</h2>
         <p class="subtitle">Choose the specific equipment you will operate</p>
 
         <div class="sub-tabs">
-          <span class="tab active">Backhoe</span>
-          <span class="tab">Excavator</span>
-          <span class="tab">Cranes</span>
-          <span class="tab">Bulldozer</span>
+          @for (tab of machinerySubTabs; track tab) {
+            <span 
+              class="tab" 
+              [class.active]="activeMachineryTab === tab" 
+              (click)="activeMachineryTab = tab"
+            >
+              {{ tab }}
+            </span>
+          }
         </div>
 
         <div class="selection-list">
-          <div class="model-item" [class.selected]="formData.machineryModel === 'JCB 3DX'" (click)="formData.machineryModel = 'JCB 3DX'">
-            <strong>JCB 3DX</strong>
-            <p>Backhoe Loader • 76 HP • 1.0 m³</p>
-          </div>
-
-          <div class="model-item" [class.selected]="formData.machineryModel === 'Tata Hitachi EX 200'" (click)="formData.machineryModel = 'Tata Hitachi EX 200'">
-            <strong>Tata Hitachi EX 200</strong>
-            <p>Heavy Excavator • 133 HP</p>
-          </div>
-
-          <div class="model-item" [class.selected]="formData.machineryModel === 'CAT 424B2'" (click)="formData.machineryModel = 'CAT 424B2'">
-            <strong>CAT 424B2</strong>
-            <p>Backhoe Loader • 79 HP</p>
-          </div>
-
-          <div class="model-item" [class.selected]="formData.machineryModel === 'Komatsu PC210'" (click)="formData.machineryModel = 'Komatsu PC210'">
-            <strong>Komatsu PC210</strong>
-            <p>Crawler Excavator • 165 HP</p>
-          </div>
+          @for (model of filteredMachineryModels; track model.name) {
+            <div 
+              class="model-item" 
+              [class.selected]="formData.machineryModel === model.name" 
+              (click)="formData.machineryModel = model.name"
+            >
+              <strong>{{ model.name }}</strong>
+              <p>{{ model.specs || model.sub || 'Construction Machinery' }}</p>
+            </div>
+          }
         </div>
 
         <h3 class="section-title">Tell us about your experience</h3>
@@ -316,6 +294,8 @@
           </div>
         </div>
 
+        <!-- DRIVING & EQUIPMENT SECTION (Hidden/Commented out per Step 4) -->
+        <!--
         <div class="doc-section">
           <span class="section-badge">DRIVING & EQUIPMENT</span>
 
@@ -343,6 +323,7 @@
             </div>
           }
         </div>
+        -->
 
         <button class="btn-primary continue-btn" [disabled]="!areRequiredDocsUploaded()" (click)="onDocumentNext()">
           Continue ➔

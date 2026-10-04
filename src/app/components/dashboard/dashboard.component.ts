@@ -37,6 +37,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   router = inject(Router);
 
+  goToVehicleRcUpload(): void {
+    this.router.navigate(['/profile'], { queryParams: { tab: 'vehicles', action: 'upload_rc' } });
+  }
+
   showLogoutModal: boolean = false;
 
   onLogout(): void {

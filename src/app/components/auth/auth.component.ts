@@ -1,5 +1,5 @@
-import { Component, Output, EventEmitter, inject, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Output, EventEmitter, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -19,6 +19,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   driverService = inject(DriverService);
   router = inject(Router);
+  platformId = inject(PLATFORM_ID);
 
   currentStep: 'PHONE' | 'OTP' = 'PHONE';
   phoneNumber: string = '';
@@ -173,6 +174,14 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.driverService.getProfile().subscribe({
       next: (res) => {
         const profile = res?.data || res;
+        if (profile) {
+          if (profile.operationType && isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('operationType', profile.operationType);
+          }
+          if (profile.selectedRole && isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('selectedRole', profile.selectedRole);
+          }
+        }
         const status = (profile?.status || '').toUpperCase();
         const vStatus = (profile?.verificationStatus || '').toUpperCase();
         const hasSubmittedDetails = profile && (profile.operationType != null || profile.city != null || profile.licenseNumber != null);

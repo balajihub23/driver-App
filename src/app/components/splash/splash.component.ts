@@ -54,10 +54,11 @@ export class SplashComponent implements OnInit {
       return;
     }
 
-    // 2. If user is not logged in but has visited/seen splash before, go directly to login page (/auth)
+    // 2. If user is not logged in but has visited splash before, show role choice screen directly
     const hasSeenSplash = localStorage.getItem('hasSeenSplash');
     if (hasSeenSplash === 'true') {
-      this.router.navigate(['/auth']);
+      this.showInitialSplash = false;
+      this.activeSlideIndex = 3;
       return;
     }
 
@@ -69,6 +70,14 @@ export class SplashComponent implements OnInit {
     this.driverService.getProfile().subscribe({
       next: (res) => {
         const profile = res?.data || res;
+        if (profile) {
+          if (profile.operationType && isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('operationType', profile.operationType);
+          }
+          if (profile.selectedRole && isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('selectedRole', profile.selectedRole);
+          }
+        }
         const status = (profile?.status || '').toUpperCase();
         const vStatus = (profile?.verificationStatus || '').toUpperCase();
         const hasSubmittedDetails = profile && (profile.operationType != null || profile.city != null || profile.licenseNumber != null);
@@ -108,15 +117,14 @@ export class SplashComponent implements OnInit {
   }
 
   nextSlide(): void {
-    if (this.activeSlideIndex < this.slides.length - 1) {
+    if (this.activeSlideIndex < 3) {
       this.activeSlideIndex++;
-    } else {
-      this.markSplashAsSeenAndNavigate('/auth');
     }
   }
 
   skipSlides(): void {
-    this.markSplashAsSeenAndNavigate('/auth');
+    this.showInitialSplash = false;
+    this.activeSlideIndex = 3;
   }
 
   onSelectAction(action: 'LOGIN' | 'REGISTER'): void {
@@ -125,6 +133,25 @@ export class SplashComponent implements OnInit {
     } else {
       this.markSplashAsSeenAndNavigate('/onboarding');
     }
+  }
+
+  selectedRole: 'DRIVER' | 'FLEET_OWNER' = 'DRIVER';
+
+  selectRole(role: 'DRIVER' | 'FLEET_OWNER'): void {
+    this.selectedRole = role;
+  }
+
+  onConfirmRole(): void {
+    if (!this.selectedRole) return;
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('selectedRole', this.selectedRole);
+      if (this.selectedRole === 'FLEET_OWNER') {
+        localStorage.setItem('operationType', 'FLEET');
+      } else {
+        localStorage.setItem('operationType', 'OWN');
+      }
+    }
+    this.markSplashAsSeenAndNavigate('/auth');
   }
 
   private markSplashAsSeenAndNavigate(targetRoute: string): void {
