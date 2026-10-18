@@ -178,6 +178,28 @@
     }
   }
 
+  .btn-accept-pill {
+    flex: 1.4;
+    padding: 14px;
+    border: none;
+    background: #10b981;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #059669;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
   .btn-review-pill {
     flex: 1.4;
     padding: 14px;
@@ -193,6 +215,34 @@
       background: #eab308;
     }
   }
+}
+
+.review-link-wrapper {
+  margin-top: 10px;
+
+  .btn-review-link {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: #0f172a;
+    }
+  }
+}
+
+.booking-type-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
 .reasons-pill-list {

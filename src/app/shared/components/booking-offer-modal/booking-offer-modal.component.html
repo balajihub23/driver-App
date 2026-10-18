@@ -1,7 +1,7 @@
 @if (isOpen && offerData) {
   <div class="offer-backdrop animate-fade-in">
 
-    <!-- 1. NEW JOB REQUEST MODAL (Screenshot 1, Left) -->
+    <!-- 1. NEW JOB REQUEST MODAL -->
     @if (currentStep === 'NEW_REQUEST') {
       <div class="offer-sheet animate-slide-up">
         <div class="sheet-drag-handle"></div>
@@ -24,8 +24,8 @@
           <div class="clock-badge">🕒</div>
         </div>
 
-        <h3 class="offer-title">New Job Request!</h3>
-        <p class="offer-subtitle">Accept quickly to enquiry the job</p>
+        <h3 class="offer-title text-center">New Job Offer!</h3>
+        <p class="offer-subtitle text-center">Accept quickly before this request expires</p>
 
         <!-- Offer Attributes Box -->
         <div class="attributes-box">
@@ -33,39 +33,52 @@
             <div class="attr-left">
               <span class="attr-icon yellow-icon">📍</span>
               <div>
-                <span class="attr-label">Location</span>
-                <strong class="attr-value">{{ offerData.pickupLocation || 'Sector 18, Noida' }}</strong>
+                <span class="attr-label">Pickup Location</span>
+                <strong class="attr-value">{{ offerData.pickupLocation || 'Nearby Site' }}</strong>
               </div>
             </div>
             <span class="distance-badge">{{ offerData.distance || '2.4 km' }}</span>
           </div>
 
-          <div class="attr-row">
-            <div class="attr-left">
-              <span class="attr-icon yellow-icon">⇄</span>
-              <div>
-                <span class="attr-label">Vehicle Required</span>
-                <strong class="attr-value">{{ offerData.productName || 'JCB 3DX' }}</strong>
+          @if (offerData.dropLocation) {
+            <div class="attr-row">
+              <div class="attr-left">
+                <span class="attr-icon yellow-icon">🏁</span>
+                <div>
+                  <span class="attr-label">Destination</span>
+                  <strong class="attr-value">{{ offerData.dropLocation }}</strong>
+                </div>
               </div>
             </div>
+          }
+
+          <div class="attr-row">
+            <div class="attr-left">
+              <span class="attr-icon yellow-icon">🚜</span>
+              <div>
+                <span class="attr-label">Vehicle / Machinery</span>
+                <strong class="attr-value">{{ offerData.productName || 'Standard' }}</strong>
+              </div>
+            </div>
+            <span class="booking-type-badge">{{ offerData.rawPayload?.bookingType || 'RIDE' }}</span>
           </div>
 
           <div class="attr-row">
             <div class="attr-left">
               <span class="attr-icon yellow-icon">🕒</span>
               <div>
-                <span class="attr-label">Duration</span>
-                <strong class="attr-value">{{ offerData.duration || '4 hours' }}</strong>
+                <span class="attr-label">Est. Duration</span>
+                <strong class="attr-value">{{ offerData.duration || 'Standard' }}</strong>
               </div>
             </div>
           </div>
 
-          <div class="attr-row">
+          <div class="attr-row highlight-earning">
             <div class="attr-left">
               <span class="attr-icon yellow-icon">💰</span>
               <div>
-                <span class="attr-label">Estimated Earning</span>
-                <strong class="attr-value price-text">₹{{ (offerData.estimatedEarning || offerData.totalAmount || 2400) | number }}</strong>
+                <span class="attr-label">Your Earning</span>
+                <strong class="attr-value price-text">₹{{ (offerData.estimatedEarning || offerData.totalAmount || 0) | number:'1.0-0' }}</strong>
               </div>
             </div>
           </div>
@@ -73,19 +86,27 @@
 
         <!-- Action Buttons -->
         <div class="sheet-actions">
-          <button class="btn-decline-pill" (click)="onDeclineClick()">Decline</button>
-          <button class="btn-review-pill" (click)="onReviewConnectClick()">Review & Connect</button>
+          <button class="btn-decline-pill" [disabled]="isSubmitting" (click)="onDeclineClick()">Decline</button>
+          <button class="btn-accept-pill" [disabled]="isSubmitting" (click)="onAcceptClick()">
+            {{ isSubmitting ? 'Accepting...' : 'Accept Job' }}
+          </button>
+        </div>
+
+        <div class="review-link-wrapper text-center">
+          <button class="btn-review-link" (click)="onReviewConnectClick()">
+            🔍 View details & instructions
+          </button>
         </div>
       </div>
     }
 
-    <!-- 2. DECLINE JOB REASON MODAL (Screenshot 1, Right) -->
+    <!-- 2. DECLINE JOB REASON MODAL -->
     @if (currentStep === 'DECLINE_REASONS') {
       <div class="offer-sheet animate-slide-up">
         <div class="sheet-drag-handle"></div>
 
         <h3 class="offer-title">Decline Job</h3>
-        <p class="offer-subtitle">Select a reason to help us find better matches.</p>
+        <p class="offer-subtitle">Select a reason to help us dispatch better matches.</p>
 
         <div class="reasons-pill-list">
           @for (reason of declineReasons; track reason) {
@@ -109,7 +130,7 @@
       </div>
     }
 
-    <!-- 3. JOB DECLINED CONFIRMATION MODAL (Screenshot 2, Left) -->
+    <!-- 3. JOB DECLINED CONFIRMATION MODAL -->
     @if (currentStep === 'DECLINED_CONFIRMATION') {
       <div class="offer-sheet text-center animate-slide-up">
         <div class="sheet-drag-handle"></div>
@@ -119,13 +140,13 @@
         </div>
 
         <h3 class="offer-title mt-3">Job Declined</h3>
-        <p class="offer-subtitle">Job request removed. We'll notify you when a matching opportunity is available.</p>
+        <p class="offer-subtitle">Job offer dismissed. We will notify you when new bookings match your location.</p>
 
         <button class="btn-yellow-full mt-4" (click)="onCloseDone()">Done</button>
       </div>
     }
 
-    <!-- 4. REVIEW & CONNECT MODAL (Screenshot 2, Right) -->
+    <!-- 4. REVIEW & CONNECT MODAL -->
     @if (currentStep === 'REVIEW_CONNECT') {
       <div class="offer-sheet animate-slide-up">
         <div class="sheet-drag-handle"></div>
@@ -134,27 +155,36 @@
           <span class="check-icon">✓</span>
         </div>
 
-        <h3 class="offer-title text-center mt-2">Review & Connect</h3>
-        <p class="offer-subtitle text-center">Review the job details and connect with the customer before confirming the dispatch.</p>
+        <h3 class="offer-title text-center mt-2">Job Details Summary</h3>
+        <p class="offer-subtitle text-center">Review location and earnings before accepting.</p>
 
         <div class="review-summary-card">
           <div class="summary-row">
-            <span class="lbl">📍 Location</span>
-            <strong class="val">{{ offerData.pickupLocation || 'Sector 18, Noida' }}</strong>
+            <span class="lbl">📍 Pickup Location</span>
+            <strong class="val">{{ offerData.pickupLocation || 'Nearby' }}</strong>
           </div>
+          @if (offerData.dropLocation) {
+            <div class="summary-row">
+              <span class="lbl">🏁 Destination</span>
+              <strong class="val">{{ offerData.dropLocation }}</strong>
+            </div>
+          }
           <div class="summary-row">
             <span class="lbl">🛠️ Vehicle</span>
-            <strong class="val">{{ offerData.productName || 'JCB 3DX' }}</strong>
+            <strong class="val">{{ offerData.productName || 'Standard' }}</strong>
           </div>
           <div class="summary-row">
-            <span class="lbl">💳 Earning</span>
-            <strong class="val price-highlight">₹{{ (offerData.estimatedEarning || offerData.totalAmount || 2400) | number }}</strong>
+            <span class="lbl">💳 Estimated Earning</span>
+            <strong class="val price-highlight">₹{{ (offerData.estimatedEarning || offerData.totalAmount || 0) | number:'1.0-0' }}</strong>
           </div>
         </div>
 
-        <button class="btn-yellow-full mt-3" (click)="onViewJobDetailsClick()">
-          📄 View Job Details
-        </button>
+        <div class="sheet-actions mt-3">
+          <button class="btn-decline-pill" [disabled]="isSubmitting" (click)="onDeclineClick()">Decline</button>
+          <button class="btn-accept-pill" [disabled]="isSubmitting" (click)="onAcceptClick()">
+            {{ isSubmitting ? 'Accepting...' : 'Accept Job' }}
+          </button>
+        </div>
       </div>
     }
 

@@ -9,9 +9,9 @@ import { NavigationModalComponent } from '../../shared/components/navigation-mod
 import { DriverService } from '../../core/services/driver.service';
 import { BookingService } from '../../core/services/booking.service';
 import { LocationService } from '../../core/services/location.service';
-import { WebSocketService, JobOfferEvent } from '../../core/services/websocket.service';
+import { WebSocketService, JobOfferEvent, LifecycleSocketEvent } from '../../core/services/websocket.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { AuthService } from '../../core/services/auth.service';
-
 import { LogoutModalComponent } from '../../shared/components/logout-modal/logout-modal.component';
 
 @Component({
@@ -34,6 +34,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   bookingService = inject(BookingService);
   locationService = inject(LocationService);
   webSocketService = inject(WebSocketService);
+  notificationService = inject(NotificationService);
   authService = inject(AuthService);
   router = inject(Router);
 
@@ -53,6 +54,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   confirmLogout(): void {
     this.showLogoutModal = false;
+    this.locationService.stopTracking();
+    this.webSocketService.disconnectWebSocket();
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/auth']),
       error: () => {
@@ -65,7 +68,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   driverProfile: any = null;
   earningsSummary: any = null;
   currentLocation: string = 'Auto-detecting...';
-  isOnline: boolean = true;
+  isOnline: boolean = false;
   selectedService: 'ALL' | 'CAB' | 'BIKE' | 'EQUIPMENT' = 'EQUIPMENT';
 
   isApproved: boolean = false;
@@ -79,6 +82,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showNavModal: boolean = false;
 
   private wsSubscription?: Subscription;
+  private lifecycleSubscription?: Subscription;
 
   ngOnInit(): void {
     this.detectCurrentLocation();
@@ -93,7 +97,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (res && res.address) {
         this.currentLocation = res.address;
       } else {
-        this.currentLocation = 'Sector 18, Gurugram';
+        this.currentLocation = 'Nearby Location';
       }
       return res;
     });
@@ -107,10 +111,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.driverProfile = profile;
           const status = (profile.status || '').toUpperCase();
           this.isApproved = (status === 'ACTIVE' || status === 'ONLINE' || status === 'ACTIVE_ONLINE');
-          this.isPendingVerification = (status === 'PENDING_VERIFICATION');
-          this.isOnline = profile.isOnline ?? true;
+          this.isPendingVerification = (status === 'PENDING_VERIFICATION' || status === 'DRAFT');
+          this.isOnline = profile.isOnline ?? false;
+
+          // Register device push token with backend
+          if (profile.userId) {
+            this.notificationService.registerDeviceToken(`driver-token-${profile.userId}`, 'ANDROID').subscribe({
+              error: () => {}
+            });
+          }
+
           if (this.isOnline && this.isApproved) {
             this.webSocketService.connectWebSocket(this.driverProfile.userId || this.driverProfile.id);
+            this.startLiveLocationTracking();
           }
         } else {
           this.driverProfile = null;
@@ -129,9 +142,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   initWebSocketOffers(): void {
     this.wsSubscription = this.webSocketService.jobOffer$.subscribe((offer: JobOfferEvent) => {
       console.log('Incoming real-time WebSocket job offer received:', offer);
-      if (this.isOnline && offer && this.isApproved) {
+      if (this.isOnline && offer) {
         this.incomingOfferData = offer;
         this.showIncomingOffer = true;
+      }
+    });
+
+    this.lifecycleSubscription = this.webSocketService.lifecycleEvent$.subscribe((evt: LifecycleSocketEvent) => {
+      if (evt.event === 'BOOKING_ALREADY_ASSIGNED' && this.incomingOfferData?.bookingId === evt.bookingId) {
+        this.showIncomingOffer = false;
+      } else if (evt.status === 'COMPLETED' || evt.status === 'CANCELLED') {
+        this.loadJobs();
       }
     });
   }
@@ -152,44 +173,83 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadJobs(): void {
-    this.bookingService.getBookings().subscribe({
+    // 1. Fetch active ongoing job
+    this.bookingService.getActiveJob().subscribe({
       next: (res) => {
-        if (res.success && res.data && res.data.length > 0) {
-          this.recentJobs = res.data;
-          const active = res.data.find((j: any) => ['IN_PROGRESS', 'STARTED', 'DRIVER_ON_THE_WAY', 'ARRIVED'].includes(j.status));
-          this.activeJob = active || null;
+        if (res && res.success && res.data) {
+          this.activeJob = res.data;
         } else {
-          this.recentJobs = [];
           this.activeJob = null;
         }
       },
       error: () => {
-        this.recentJobs = [];
         this.activeJob = null;
+      }
+    });
+
+    // 2. Fetch driver's job history
+    this.bookingService.getMyJobHistory().subscribe({
+      next: (res) => {
+        if (res && res.success && res.data && res.data.length > 0) {
+          this.recentJobs = res.data;
+          if (!this.activeJob) {
+            const active = res.data.find((j: any) => 
+              ['ASSIGNED', 'ACCEPTED', 'DRIVER_ON_THE_WAY', 'ARRIVED', 'STARTED', 'IN_PROGRESS'].includes(j.status)
+            );
+            if (active) this.activeJob = active;
+          }
+        } else {
+          this.recentJobs = [];
+        }
+      },
+      error: () => {
+        this.recentJobs = [];
+      }
+    });
+  }
+
+  startLiveLocationTracking(): void {
+    this.locationService.startTracking(15000, (loc) => {
+      if (loc && loc.latitude && loc.longitude) {
+        this.currentLocation = loc.address || this.currentLocation;
+        this.driverService.updateLocation(loc.latitude, loc.longitude).subscribe({
+          error: () => {}
+        });
       }
     });
   }
 
   onToggleOnlineStatus(online: boolean): void {
-    if (this.isPendingVerification) {
+    if (this.isPendingVerification && online) {
       this.isOnline = false;
+      alert('Your account is under verification. You can go online once your documents are approved.');
       return;
     }
-    this.isOnline = online;
 
     if (online) {
-      this.detectCurrentLocation().then(locRes => {
-        if (locRes && locRes.latitude && locRes.longitude) {
-          this.driverService.updateLocation(locRes.latitude, locRes.longitude).subscribe();
+      this.driverService.toggleOnline(true).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.isOnline = true;
+            this.webSocketService.connectWebSocket(this.driverProfile?.userId || this.driverProfile?.id);
+            this.startLiveLocationTracking();
+          } else {
+            this.isOnline = false;
+            alert(res.message || 'Unable to go online');
+          }
+        },
+        error: (err) => {
+          this.isOnline = false;
+          alert(err?.error?.message || 'Driver profile not verified or cannot go online.');
         }
       });
-      this.webSocketService.connectWebSocket(this.driverProfile?.userId || this.driverProfile?.id);
     } else {
+      this.isOnline = false;
+      this.locationService.stopTracking();
       this.webSocketService.disconnectWebSocket();
       this.showIncomingOffer = false;
+      this.driverService.toggleOnline(false).subscribe();
     }
-
-    this.driverService.toggleOnline(online).subscribe();
   }
 
   openNavigationMap(job?: any): void {
@@ -203,32 +263,55 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   goToJobDetails(jobId?: number): void {
-    const id = jobId || this.activeJob?.id || 1082;
-    this.router.navigate(['/jobs'], { queryParams: { jobId: id } });
+    const id = jobId || this.activeJob?.id;
+    if (id) {
+      this.router.navigate(['/jobs'], { queryParams: { jobId: id } });
+    } else {
+      this.router.navigate(['/jobs']);
+    }
   }
 
   onAcceptOffer(offer: any): void {
     this.showIncomingOffer = false;
     if (offer && offer.bookingId) {
-      this.bookingService.acceptOffer(offer.bookingId, this.driverProfile?.id || 1).subscribe({
-        next: () => {
-          this.router.navigate(['/jobs'], { queryParams: { jobId: offer.bookingId } });
+      this.bookingService.acceptOffer(offer.bookingId).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.router.navigate(['/jobs'], { queryParams: { jobId: offer.bookingId } });
+          } else {
+            alert(res.message || 'Offer already assigned to another driver.');
+          }
         },
-        error: () => {
-          this.router.navigate(['/jobs'], { queryParams: { jobId: offer.bookingId } });
+        error: (err) => {
+          alert(err?.error?.message || 'Offer expired or already assigned to another driver.');
         }
+      });
+    }
+  }
+
+  onDeclineOffer(offer: any): void {
+    this.showIncomingOffer = false;
+    if (offer && offer.bookingId) {
+      this.bookingService.rejectOffer(offer.bookingId, offer.declineReason || 'Declined by driver').subscribe({
+        error: () => {}
       });
     }
   }
 
   onArrivedFromMap(): void {
     this.showNavModal = false;
-    this.router.navigate(['/jobs'], { queryParams: { jobId: this.activeJob?.id || 1082 } });
+    if (this.activeJob?.id) {
+      this.router.navigate(['/jobs'], { queryParams: { jobId: this.activeJob.id } });
+    }
   }
 
   ngOnDestroy(): void {
     if (this.wsSubscription) {
       this.wsSubscription.unsubscribe();
     }
+    if (this.lifecycleSubscription) {
+      this.lifecycleSubscription.unsubscribe();
+    }
+    this.locationService.stopTracking();
   }
 }

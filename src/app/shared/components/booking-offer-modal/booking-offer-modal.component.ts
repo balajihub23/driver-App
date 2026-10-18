@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export type OfferStep = 'NEW_REQUEST' | 'DECLINE_REASONS' | 'DECLINED_CONFIRMATION' | 'REVIEW_CONNECT';
@@ -10,7 +10,7 @@ export type OfferStep = 'NEW_REQUEST' | 'DECLINE_REASONS' | 'DECLINED_CONFIRMATI
   templateUrl: './booking-offer-modal.component.html',
   styleUrl: './booking-offer-modal.component.scss'
 })
-export class BookingOfferModalComponent implements OnInit, OnDestroy {
+export class BookingOfferModalComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isOpen: boolean = false;
   @Input() offerData: any = null;
   @Input() timeoutSeconds: number = 30;
@@ -23,6 +23,7 @@ export class BookingOfferModalComponent implements OnInit, OnDestroy {
   remainingSeconds: number = 30;
   strokeDashoffset: number = 0;
   selectedDeclineReason: string = '';
+  isSubmitting: boolean = false;
   private intervalId: any = null;
 
   declineReasons: string[] = [
@@ -36,17 +37,35 @@ export class BookingOfferModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isOpen) {
-      this.startCountdown();
+      this.resetAndStart();
     }
   }
 
-  startCountdown(): void {
-    this.remainingSeconds = this.timeoutSeconds;
-    this.updateRing();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && this.isOpen) {
+      this.resetAndStart();
+    } else if (changes['offerData'] && this.isOpen) {
+      this.resetAndStart();
+    }
+  }
+
+  private resetAndStart(): void {
+    this.currentStep = 'NEW_REQUEST';
+    this.isSubmitting = false;
+    this.selectedDeclineReason = '';
+    const secs = this.offerData?.expiresInSeconds || this.timeoutSeconds || 30;
+    this.remainingSeconds = secs;
+    this.startCountdown(secs);
+  }
+
+  startCountdown(totalSecs: number = 30): void {
+    this.clearTimer();
+    this.remainingSeconds = totalSecs;
+    this.updateRing(totalSecs);
 
     this.intervalId = setInterval(() => {
       this.remainingSeconds--;
-      this.updateRing();
+      this.updateRing(totalSecs);
 
       if (this.remainingSeconds <= 0) {
         this.clearTimer();
@@ -55,11 +74,17 @@ export class BookingOfferModalComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  updateRing(): void {
-    // Circumference = 2 * PI * r (r = 40 => ~251.3)
+  updateRing(totalSecs: number = 30): void {
     const circumference = 251.3;
-    const progress = this.remainingSeconds / this.timeoutSeconds;
+    const progress = Math.max(0, this.remainingSeconds) / (totalSecs || 30);
     this.strokeDashoffset = circumference * (1 - progress);
+  }
+
+  onAcceptClick(): void {
+    if (this.isSubmitting) return;
+    this.isSubmitting = true;
+    this.clearTimer();
+    this.accepted.emit(this.offerData);
   }
 
   onDeclineClick(): void {
@@ -73,7 +98,6 @@ export class BookingOfferModalComponent implements OnInit, OnDestroy {
   }
 
   onReviewConnectClick(): void {
-    this.clearTimer();
     this.currentStep = 'REVIEW_CONNECT';
   }
 
@@ -84,6 +108,7 @@ export class BookingOfferModalComponent implements OnInit, OnDestroy {
   onCloseDone(): void {
     this.isOpen = false;
     this.currentStep = 'NEW_REQUEST';
+    this.isSubmitting = false;
   }
 
   private clearTimer(): void {

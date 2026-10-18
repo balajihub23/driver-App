@@ -29,6 +29,13 @@ export interface SupportSocketEvent {
   rawPayload?: any;
 }
 
+export interface LifecycleSocketEvent {
+  bookingId: number;
+  status: string;
+  event: string;
+  rawPayload?: any;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -41,9 +48,11 @@ export class WebSocketService {
   private ws: WebSocket | null = null;
   private jobOfferSubject = new Subject<JobOfferEvent>();
   private supportMessageSubject = new Subject<SupportSocketEvent>();
+  private lifecycleSubject = new Subject<LifecycleSocketEvent>();
 
   jobOffer$: Observable<JobOfferEvent> = this.jobOfferSubject.asObservable();
   supportMessage$: Observable<SupportSocketEvent> = this.supportMessageSubject.asObservable();
+  lifecycleEvent$: Observable<LifecycleSocketEvent> = this.lifecycleSubject.asObservable();
 
   connectWebSocket(userId?: number | string): void {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -65,16 +74,23 @@ export class WebSocketService {
 
         this.ws.onopen = () => {
           console.log('WebSocket connected successfully to:', targetUrl);
-          if (userId) {
-            // Send STOMP CONNECT frame
-            const connectFrame = `CONNECT\naccept-version:1.1,1.0\nheart-beat:10000,10000\n\n\u0000`;
-            this.ws?.send(connectFrame);
+          const token = this.authService.getAccessToken();
+          const authHeaders = token
+            ? `Authorization:Bearer ${token}\ntoken:${token}\n`
+            : '';
 
-            // Send STOMP SUBSCRIBE frames for offers and support messages
+          // Send STOMP CONNECT frame with auth tokens
+          const connectFrame = `CONNECT\naccept-version:1.1,1.0\nheart-beat:10000,10000\n${authHeaders}\n\u0000`;
+          this.ws?.send(connectFrame);
+
+          if (userId) {
+            // Send STOMP SUBSCRIBE frames for offers, support messages, and personal user events
             const subOffers = `SUBSCRIBE\nid:sub-0\ndestination:/topic/booking-offers/${userId}\n\n\u0000`;
             const subSupport = `SUBSCRIBE\nid:sub-1\ndestination:/topic/support-messages/${userId}\n\n\u0000`;
+            const subEvents = `SUBSCRIBE\nid:sub-2\ndestination:/topic/user-events/${userId}\n\n\u0000`;
             this.ws?.send(subOffers);
             this.ws?.send(subSupport);
+            this.ws?.send(subEvents);
           }
         };
 
@@ -88,10 +104,12 @@ export class WebSocketService {
                 const jsonStr = raw.substring(jsonStart, jsonEnd + 1);
                 const data = JSON.parse(jsonStr);
 
-                if (data && (data.type === 'NEW_BOOKING' || data.bookingId)) {
+                if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || (data.bookingId && !data.status))) {
                   this.emitOffer(data);
                 } else if (data && (data.type === 'SUPPORT_CHAT_MESSAGE' || data.type === 'SUPPORT_TICKET_STATUS')) {
                   this.emitSupportEvent(data);
+                } else if (data && (data.status || data.event || data.type === 'BOOKING_ALREADY_ASSIGNED')) {
+                  this.emitLifecycleEvent(data);
                 }
               }
             }
@@ -102,7 +120,6 @@ export class WebSocketService {
 
         this.ws.onerror = () => {
           if (!isFallback) {
-            // Try secondary fallback URL silently
             tryConnect(fallbackWsUrl, true);
           } else {
             console.warn('WebSocket server unavailable at', targetUrl, '. Polling/REST fallback mode active.');
@@ -127,21 +144,38 @@ export class WebSocketService {
     tryConnect(primaryWsUrl);
   }
 
+  subscribeToBooking(bookingId: number): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      const subFrame = `SUBSCRIBE\nid:sub-booking-${bookingId}\ndestination:/topic/booking/${bookingId}\n\n\u0000`;
+      this.ws.send(subFrame);
+    }
+  }
+
   emitOffer(data: any): void {
     const offer: JobOfferEvent = {
       bookingId: data.bookingId,
       bookingNumber: data.bookingNumber || `BK-${data.bookingId}`,
-      productName: data.productName || 'JCB 3DX Earthmover',
-      pickupLocation: data.pickupLocation || 'Sector 18, Noida',
-      dropLocation: data.dropLocation || 'Sector 62, Noida',
-      distance: data.distanceKm ? `${data.distanceKm} km` : '3.4 km',
-      estimatedEarning: data.totalAmount || data.estimatedEarning || 2400,
-      duration: data.duration || '4 Hours',
+      productName: data.productName || (data.vehicleType ? `${data.vehicleType} Vehicle` : 'Rentron Ride'),
+      pickupLocation: data.pickupAddress || data.pickupLocation || 'Nearby Pickup Location',
+      dropLocation: data.destinationAddress || data.dropLocation || 'Destination',
+      distance: data.distanceKm ? `${data.distanceKm} km` : (data.distance || 'Near you'),
+      estimatedEarning: data.driverAmount || data.totalAmount || data.estimatedEarning || 0,
+      duration: data.estimatedDurationMinutes ? `${data.estimatedDurationMinutes} mins` : (data.duration || 'Standard'),
       expiresInSeconds: data.expiresInSeconds || 30,
       rawPayload: data
     };
 
     this.jobOfferSubject.next(offer);
+  }
+
+  emitLifecycleEvent(data: any): void {
+    const evt: LifecycleSocketEvent = {
+      bookingId: data.bookingId,
+      status: data.status,
+      event: data.event || data.type || '',
+      rawPayload: data
+    };
+    this.lifecycleSubject.next(evt);
   }
 
   emitSupportEvent(data: any): void {

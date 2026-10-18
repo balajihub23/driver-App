@@ -1,12 +1,12 @@
 import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BottomNavigationComponent } from '../../shared/components/bottom-navigation/bottom-navigation.component';
-import { RazorPayComponent } from '../../shared/components/razor-pay/razor-pay.component';
 import { NavigationModalComponent } from '../../shared/components/navigation-modal/navigation-modal.component';
 import { EndJobModalComponent } from '../../shared/components/end-job-modal/end-job-modal.component';
 import { BookingService } from '../../core/services/booking.service';
+import { LocationService } from '../../core/services/location.service';
 
 export type JobTab = 'ONGOING' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
 
@@ -17,7 +17,6 @@ export type JobTab = 'ONGOING' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
     CommonModule,
     FormsModule,
     BottomNavigationComponent,
-    RazorPayComponent,
     NavigationModalComponent,
     EndJobModalComponent
   ],
@@ -26,13 +25,22 @@ export type JobTab = 'ONGOING' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
 })
 export class JobsComponent implements OnInit, OnDestroy {
   bookingService = inject(BookingService);
+  locationService = inject(LocationService);
   route = inject(ActivatedRoute);
+  router = inject(Router);
 
   activeTab: JobTab = 'ONGOING';
   jobs: any[] = [];
+  isLoading: boolean = false;
 
   selectedJob: any = null;
   viewMode: 'DETAILS' | 'ARRIVED' | 'IN_PROGRESS' = 'DETAILS';
+
+  // OTP Verification state
+  showOtpDialog: boolean = false;
+  otpValue: string = '';
+  otpError: string = '';
+  isVerifyingOtp: boolean = false;
 
   elapsedSeconds: number = 0;
   isPaused: boolean = false;
@@ -47,59 +55,64 @@ export class JobsComponent implements OnInit, OnDestroy {
     this.route.queryParams.subscribe(params => {
       if (params['jobId']) {
         const jobId = Number(params['jobId']);
-        const found = this.jobs.find(j => j.id === jobId);
-        if (found) {
-          this.selectedJob = found;
-        } else {
-          this.selectedJob = this.getFallbackJob(jobId);
-        }
+        this.loadJobById(jobId);
       }
     });
   }
 
   loadBookings(): void {
-    this.bookingService.getBookings().subscribe({
+    this.isLoading = true;
+    this.bookingService.getMyJobHistory().subscribe({
       next: (res) => {
-        if (res.success && res.data && res.data.length > 0) {
+        this.isLoading = false;
+        if (res && res.success && Array.isArray(res.data)) {
           this.jobs = res.data;
+          this.checkActiveJobFromList();
         } else {
-          this.jobs = [this.getFallbackJob(1082)];
+          this.jobs = [];
         }
       },
       error: () => {
-        this.jobs = [this.getFallbackJob(1082)];
+        this.isLoading = false;
+        this.jobs = [];
       }
     });
   }
 
-  getFallbackJob(id: number = 1082): any {
-    return {
-      id: id,
-      bookingNumber: 'RD-8824',
-      productName: 'JCB 3DX Backhoe Loader',
-      pickupLocation: 'Metro Construction Site, Sector 21',
-      dropLocation: 'North Industrial Zone',
-      totalAmount: 2400,
-      paymentStatus: 'PENDING',
-      status: 'ASSIGNED',
-      customerName: 'Urban Infra Projects',
-      customerPhone: '+919876543210',
-      bookingDate: 'May 15, 2024',
-      workSchedule: '09:00 AM - 05:00 PM (8 Hrs)',
-      addOns: [
-        { name: 'Extra Bucket Set', desc: 'Heavy duty digging', price: 500 },
-        { name: 'Extended Reach Arm', desc: '+2m reach depth', price: 800 },
-        { name: 'Transport: ₹80/km', desc: 'Distance: 25 km', price: 2000 }
-      ]
-    };
+  loadJobById(jobId: number): void {
+    this.bookingService.getBookingById(jobId).subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          this.selectJob(res.data);
+        } else {
+          const found = this.jobs.find(j => j.id === jobId);
+          if (found) this.selectJob(found);
+        }
+      },
+      error: () => {
+        const found = this.jobs.find(j => j.id === jobId);
+        if (found) this.selectJob(found);
+      }
+    });
+  }
+
+  private checkActiveJobFromList(): void {
+    if (!this.selectedJob) {
+      const active = this.jobs.find(j => 
+        ['ASSIGNED', 'ACCEPTED', 'DRIVER_ON_THE_WAY', 'ARRIVED', 'STARTED', 'IN_PROGRESS'].includes(j.status)
+      );
+      if (active) {
+        this.selectJob(active);
+      }
+    }
   }
 
   filteredJobs(): any[] {
     return this.jobs.filter(j => {
       if (this.activeTab === 'ONGOING') return ['ASSIGNED', 'ACCEPTED', 'DRIVER_ON_THE_WAY', 'ARRIVED', 'STARTED', 'IN_PROGRESS'].includes(j.status);
-      if (this.activeTab === 'SCHEDULED') return j.status === 'CONFIRMED' || j.status === 'PENDING';
+      if (this.activeTab === 'SCHEDULED') return j.status === 'CONFIRMED' || j.status === 'PENDING' || j.status === 'SEARCHING_DRIVER';
       if (this.activeTab === 'COMPLETED') return j.status === 'COMPLETED';
-      if (this.activeTab === 'CANCELLED') return j.status === 'CANCELLED' || j.status === 'REJECTED';
+      if (this.activeTab === 'CANCELLED') return j.status === 'CANCELLED' || j.status === 'REJECTED' || j.status === 'EXPIRED';
       return true;
     });
   }
@@ -110,6 +123,7 @@ export class JobsComponent implements OnInit, OnDestroy {
       this.viewMode = 'ARRIVED';
     } else if (['STARTED', 'IN_PROGRESS'].includes(job.status)) {
       this.viewMode = 'IN_PROGRESS';
+      this.startJobTimer();
     } else {
       this.viewMode = 'DETAILS';
     }
@@ -126,37 +140,98 @@ export class JobsComponent implements OnInit, OnDestroy {
     this.showNavModal = true;
   }
 
+  onStartDrivingToPickup(): void {
+    if (!this.selectedJob) return;
+    this.bookingService.markArriving(this.selectedJob.id).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.selectedJob = res.data;
+        } else {
+          this.selectedJob.status = 'DRIVER_ON_THE_WAY';
+        }
+      },
+      error: (err) => {
+        alert(err?.error?.message || 'Could not update status to DRIVER_ON_THE_WAY');
+      }
+    });
+  }
+
+  onMarkArrived(): void {
+    if (!this.selectedJob) return;
+    this.bookingService.markArrived(this.selectedJob.id).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.selectedJob = res.data;
+        } else {
+          this.selectedJob.status = 'ARRIVED';
+        }
+        this.viewMode = 'ARRIVED';
+      },
+      error: (err) => {
+        alert(err?.error?.message || 'Could not update status to ARRIVED');
+      }
+    });
+  }
+
   onArrivedFromMap(): void {
     this.showNavModal = false;
-    if (this.selectedJob) {
-      this.selectedJob.status = 'ARRIVED';
-      this.viewMode = 'ARRIVED';
-      this.bookingService.updateStatus(this.selectedJob.id, 'ARRIVED').subscribe();
-    }
+    this.onMarkArrived();
   }
 
-  onStartJobClick(): void {
-    if (this.selectedJob) {
-      this.selectedJob.status = 'IN_PROGRESS';
-      this.viewMode = 'IN_PROGRESS';
-      this.startJobTimer();
-    }
+  openOtpDialog(): void {
+    this.showOtpDialog = true;
+    this.otpValue = '';
+    this.otpError = '';
   }
 
-  onAcknowledgeDispatch(): void {
-    if (this.selectedJob) {
-      this.selectedJob.status = 'ACCEPTED';
-      this.bookingService.updateStatus(this.selectedJob.id, 'ACCEPTED').subscribe();
-      alert('Dispatch Acknowledged! You can now start navigation to the site.');
+  closeOtpDialog(): void {
+    this.showOtpDialog = false;
+    this.otpValue = '';
+    this.otpError = '';
+  }
+
+  onVerifyOtp(): void {
+    if (!this.otpValue || this.otpValue.trim().length < 4) {
+      this.otpError = 'Please enter the valid 4-digit OTP provided by customer.';
+      return;
     }
+
+    if (!this.selectedJob) return;
+
+    this.isVerifyingOtp = true;
+    this.otpError = '';
+
+    this.bookingService.verifyOtp(this.selectedJob.id, this.otpValue.trim()).subscribe({
+      next: (res) => {
+        this.isVerifyingOtp = false;
+        if (res.success && res.data) {
+          this.selectedJob = res.data;
+          this.showOtpDialog = false;
+          this.viewMode = 'IN_PROGRESS';
+          this.startJobTimer();
+        } else {
+          this.otpError = res.message || 'OTP Verification failed';
+        }
+      },
+      error: (err) => {
+        this.isVerifyingOtp = false;
+        this.otpError = err?.error?.message || 'Invalid OTP. Please check with customer and try again.';
+      }
+    });
   }
 
   onDeclineJob(): void {
     if (this.selectedJob) {
-      this.selectedJob.status = 'REJECTED';
-      this.bookingService.updateStatus(this.selectedJob.id, 'REJECTED').subscribe();
-      alert('Job declined successfully.');
-      this.selectedJob = null;
+      if (confirm('Are you sure you want to decline this job?')) {
+        this.bookingService.rejectOffer(this.selectedJob.id, 'Declined by driver').subscribe({
+          next: () => {
+            alert('Job declined.');
+            this.selectedJob = null;
+            this.loadBookings();
+          },
+          error: (err) => alert(err?.error?.message || 'Could not decline job')
+        });
+      }
     }
   }
 
@@ -171,9 +246,6 @@ export class JobsComponent implements OnInit, OnDestroy {
   }
 
   startJobTimer(): void {
-    if (this.selectedJob) {
-      this.bookingService.updateStatus(this.selectedJob.id, 'IN_PROGRESS').subscribe();
-    }
     this.startedTimeText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     this.isPaused = false;
 
@@ -200,12 +272,37 @@ export class JobsComponent implements OnInit, OnDestroy {
 
   onJobEndedWithProof(event: { proofPhoto: File | null; description: string }): void {
     this.showEndJobModal = false;
-    if (this.selectedJob) {
-      this.selectedJob.status = 'COMPLETED';
-      this.bookingService.updateStatus(this.selectedJob.id, 'COMPLETED').subscribe();
+    if (!this.selectedJob) return;
+
+    const finalize = () => {
+      this.bookingService.completeJob(this.selectedJob.id).subscribe({
+        next: (res) => {
+          if (res.success && res.data) {
+            this.selectedJob = res.data;
+          } else {
+            this.selectedJob.status = 'COMPLETED';
+          }
+          this.clearTimer();
+          alert('Job marked as COMPLETED! Earnings have been credited to your account.');
+          this.loadBookings();
+        },
+        error: (err) => alert(err?.error?.message || 'Failed to complete job')
+      });
+    };
+
+    if (event.proofPhoto) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Url = reader.result as string;
+        this.bookingService.uploadProof(this.selectedJob.id, base64Url).subscribe({
+          next: () => finalize(),
+          error: () => finalize()
+        });
+      };
+      reader.readAsDataURL(event.proofPhoto);
+    } else {
+      finalize();
     }
-    this.clearTimer();
-    alert(`Job Completed successfully!\nProof Image Attached: ${event.proofPhoto ? 'Yes' : 'No'}\nNotes: ${event.description}`);
   }
 
   formatTimer(totalSeconds: number): string {

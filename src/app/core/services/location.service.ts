@@ -141,4 +141,28 @@ export class LocationService {
       );
     });
   }
+
+  private trackingInterval: any = null;
+
+  startTracking(intervalMs: number = 15000, onUpdate?: (loc: LocationResult) => void): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.stopTracking();
+
+    this.autoDetectLocation().then(loc => {
+      if (onUpdate && loc) onUpdate(loc);
+    });
+
+    this.trackingInterval = setInterval(() => {
+      this.autoDetectLocation().then(loc => {
+        if (onUpdate && loc) onUpdate(loc);
+      });
+    }, intervalMs);
+  }
+
+  stopTracking(): void {
+    if (this.trackingInterval) {
+      clearInterval(this.trackingInterval);
+      this.trackingInterval = null;
+    }
+  }
 }
