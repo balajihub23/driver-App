@@ -103,13 +103,14 @@ export class WebSocketService {
               if (jsonStart !== -1 && jsonEnd !== -1) {
                 const jsonStr = raw.substring(jsonStart, jsonEnd + 1);
                 const data = JSON.parse(jsonStr);
+                const payload = data.payload || data;
 
-                if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || (data.bookingId && !data.status))) {
-                  this.emitOffer(data);
+                if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || data.eventType === 'DRIVER_OFFER' || payload.type === 'NEW_BOOKING' || payload.type === 'NEW_BOOKING_OFFER' || (payload.bookingId && !payload.status))) {
+                  this.emitOffer(payload);
                 } else if (data && (data.type === 'SUPPORT_CHAT_MESSAGE' || data.type === 'SUPPORT_TICKET_STATUS')) {
                   this.emitSupportEvent(data);
-                } else if (data && (data.status || data.event || data.type === 'BOOKING_ALREADY_ASSIGNED')) {
-                  this.emitLifecycleEvent(data);
+                } else if (data && (data.status || data.event || data.type === 'BOOKING_ALREADY_ASSIGNED' || payload.status || payload.event)) {
+                  this.emitLifecycleEvent(payload);
                 }
               }
             }

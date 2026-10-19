@@ -26,8 +26,10 @@ export class AuthService {
       const userRaw = localStorage.getItem('userData');
       if (token && userRaw) {
         try {
-          this.currentUser.set(JSON.parse(userRaw));
+          const userObj = JSON.parse(userRaw);
+          this.currentUser.set(userObj);
           this.isLoggedIn.set(true);
+          this.registerDeviceToken(userObj?.id);
         } catch {
           this.clearSession();
         }
@@ -91,6 +93,7 @@ export class AuthService {
     }
     this.currentUser.set(authData.user);
     this.isLoggedIn.set(true);
+    this.registerDeviceToken(authData?.user?.id);
   }
 
   clearSession(): void {
@@ -108,4 +111,26 @@ export class AuthService {
   getRefreshToken(): string | null {
     return isPlatformBrowser(this.platformId) ? localStorage.getItem('refreshToken') : null;
   }
+
+  registerDeviceToken(userId?: number): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    let did = localStorage.getItem('rentron_driver_device_id');
+    if (!did) {
+      did = 'drv_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now();
+      localStorage.setItem('rentron_driver_device_id', did);
+    }
+    const token = 'fcm_drv_' + did;
+    const body: any = {
+      deviceToken: token,
+      platform: 'ANDROID',
+      deviceId: did
+    };
+    if (userId) body.userId = String(userId);
+
+    this.http.post<any>(`${this.baseUrl}/api/v1/notifications/devices/register`, body).subscribe({
+      next: (res) => console.log('Driver device token registered for push:', res),
+      error: (err) => console.warn('Driver device token registration error:', err)
+    });
+  }
+
 }
