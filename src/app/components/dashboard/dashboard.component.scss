@@ -1,7 +1,12 @@
 .mobile-app-wrapper {
   min-height: 100vh;
-  background: #f8fafc;
+  background-color: var(--app-background);
   padding-bottom: 80px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .dashboard-content {
@@ -36,7 +41,7 @@
 
 /* Active Job Card (Screenshot 3, Left) */
 .active-job-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1.5px solid #22c55e;
   border-radius: 20px;
   padding: 18px;
@@ -261,8 +266,8 @@
   gap: 10px;
 
   .job-item-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 14px 16px;
     cursor: pointer;
@@ -336,7 +341,8 @@
   .empty-state {
     text-align: center;
     padding: 32px;
-    background: #ffffff;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
 
     .icon {

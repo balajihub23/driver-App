@@ -535,7 +535,7 @@
             <span class="v-reg-badge">{{ v.regNumber }}</span>
           </div>
           <div class="v-status-box">
-            @if (v.isActive) {
+            @if (v.isActive && (v.status === 'Active' || v.status === 'Approved' || v.status === 'APPROVED')) {
             <span class="badge-status badge-active">● Active</span>
             } @else if (v.status === 'Approved' || v.status === 'APPROVED') {
             <span class="badge-status badge-approved">● Approved</span>
@@ -617,6 +617,24 @@
     }
 
     <div class="vehicle-form-card">
+      <!-- Selected Vehicle Type & Model Summary Card -->
+      <div class="selected-model-summary-card">
+        <div class="model-icon-box">
+          {{ getDefaultEmojiForCategory(selectedVehicle.category) }}
+        </div>
+        <div class="model-info">
+          <span class="model-category-badge">{{ selectedVehicle.category || 'Vehicle' }}</span>
+          <h3 class="model-title">{{ selectedVehicle.vehicleName || selectedVehicle.machineryModel || 'Vehicle Model' }}</h3>
+          @if (selectedVehicle.machinerySubCategory) {
+            <p class="model-sub">{{ selectedVehicle.machinerySubCategory }}</p>
+          }
+        </div>
+        <button type="button" class="btn-change-model" (click)="openChangeModelView(selectedVehicle)" title="Change Model">
+          <span>Change</span>
+          <span class="arrow">➔</span>
+        </button>
+      </div>
+
       <div class="reg-vahan-row">
         <div class="form-group flex-1">
           <label class="form-label">REGISTRATION NUMBER <span class="req">*Required</span></label>
@@ -1152,6 +1170,24 @@
         ⚠️ {{ vehicleValidationError }}
       </div>
       }
+
+      <!-- Selected Vehicle Type & Model Summary Card -->
+      <div class="selected-model-summary-card">
+        <div class="model-icon-box">
+          {{ getDefaultEmojiForCategory(newVehicle.category) }}
+        </div>
+        <div class="model-info">
+          <span class="model-category-badge">{{ newVehicle.category || 'Vehicle' }}</span>
+          <h3 class="model-title">{{ newVehicle.vehicleName || newVehicle.machineryModel || 'Vehicle Model' }}</h3>
+          @if (newVehicle.machinerySubCategory) {
+            <p class="model-sub">{{ newVehicle.machinerySubCategory }}</p>
+          }
+        </div>
+        <button type="button" class="btn-change-model" (click)="navigateTo(newVehicle.category === 'Machinery' ? 'ADD_VEHICLE_MODEL' : 'ADD_VEHICLE_TYPE')" title="Change Model">
+          <span>Change</span>
+          <span class="arrow">➔</span>
+        </button>
+      </div>
 
       <!-- Registration & VAHAN fetch trigger -->
       <div class="reg-vahan-row">

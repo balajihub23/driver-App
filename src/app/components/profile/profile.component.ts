@@ -15,14 +15,14 @@ import { LogoutModalComponent } from '../../shared/components/logout-modal/logou
 
 import { VehicleMasterService, VehicleType, VehicleModel, VehicleSubModel } from '../../core/services/vehicle-master.service';
 
-export type ProfileSubView = 
-  | 'MAIN' 
-  | 'PERSONAL_INFO' 
-  | 'EDIT_PERSONAL_INFO' 
-  | 'MY_DOCUMENTS' 
-  | 'DOCUMENT_DETAIL' 
-  | 'UPLOAD_DOCUMENT' 
-  | 'LANGUAGE' 
+export type ProfileSubView =
+  | 'MAIN'
+  | 'PERSONAL_INFO'
+  | 'EDIT_PERSONAL_INFO'
+  | 'MY_DOCUMENTS'
+  | 'DOCUMENT_DETAIL'
+  | 'UPLOAD_DOCUMENT'
+  | 'LANGUAGE'
   | 'MY_VEHICLES'
   | 'VEHICLE_DETAILS'
   | 'FLEET'
@@ -36,7 +36,7 @@ export type ProfileSubView =
   | 'UPLOAD_VEHICLE_AGREEMENT'
   | 'UPLOAD_VEHICLE_PHOTOS'
   | 'VEHICLE_SUBMITTED'
-  | 'TERMS' 
+  | 'TERMS'
   | 'PRIVACY';
 
 export interface DocumentItem {
@@ -396,8 +396,18 @@ export class ProfileComponent implements OnInit {
         if (params['action'] === 'upload_rc' || params['action'] === 'add') {
           setTimeout(() => {
             this.applyOnboardingVehicleType();
-            if (this.vehiclesList && this.vehiclesList.length > 0) {
-              this.selectedVehicle = this.vehiclesList[0];
+            // Look for existing blank placeholder vehicle first, or first vehicle in list
+            const blankVehicle = this.vehiclesList?.find(v => !v.regNumber || !v.regNumber.trim());
+            const targetVehicle = blankVehicle || (this.vehiclesList && this.vehiclesList.length > 0 ? this.vehiclesList[0] : null);
+
+            if (targetVehicle) {
+              this.selectedVehicle = targetVehicle;
+              this.isEditingSelectedVehicle = true;
+              this.newVehicle.id = targetVehicle.id;
+              if (targetVehicle.category) this.newVehicle.category = targetVehicle.category;
+              if (targetVehicle.machineryModel) this.newVehicle.machineryModel = targetVehicle.machineryModel;
+              if (targetVehicle.vehicleName) this.newVehicle.vehicleName = targetVehicle.vehicleName;
+              if (targetVehicle.regNumber) this.newVehicle.regNumber = targetVehicle.regNumber;
               this.currentView = 'VEHICLE_DETAILS';
               if (params['action'] === 'upload_rc') {
                 this.openVehicleDocumentUpload('RC');
@@ -457,14 +467,14 @@ export class ProfileComponent implements OnInit {
   }
 
   applyOnboardingVehicleType(): void {
-    const savedType = this.driverProfile?.selectedVehicleType || 
+    const savedType = this.driverProfile?.selectedVehicleType ||
       (isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedVehicleType') : null);
 
     if (savedType) {
       this.newVehicle.category = savedType;
       if (this.dynamicVehicleTypes && this.dynamicVehicleTypes.length > 0) {
-        const matched = this.dynamicVehicleTypes.find(t => 
-          t.name.toLowerCase() === savedType.toLowerCase() || 
+        const matched = this.dynamicVehicleTypes.find(t =>
+          t.name.toLowerCase() === savedType.toLowerCase() ||
           (t.code && t.code.toLowerCase() === savedType.toLowerCase())
         );
         if (matched) {
@@ -658,6 +668,9 @@ export class ProfileComponent implements OnInit {
 
             return {
               id: item.id,
+              vehicleTypeId: item.vehicleTypeId,
+              vehicleModelId: item.vehicleModelId,
+              vehicleSubModelId: item.vehicleSubModelId,
               regNumber: isRegTemp ? '' : item.regNumber,
               vehicleName: item.vehicleName || item.machineryModel || 'Vehicle',
               category: item.category || item.vehicleTypeName || 'Machinery',
@@ -690,58 +703,65 @@ export class ProfileComponent implements OnInit {
               }
             };
           });
-          this.vehiclesList = mapped;
-          // Single vs Multiple vehicles active status handling
-          const isApprovedOrActive = (st?: string) => {
-            const s = (st || '').toUpperCase();
+          // Filter out blank unconfigured placeholder if configured vehicle exists
+          const hasConfiguredVehicle = mapped.some(v => v.regNumber && v.regNumber.trim().length > 0);
+          const finalVehicles = hasConfiguredVehicle
+            ? mapped.filter(v => v.regNumber && v.regNumber.trim().length > 0)
+            : mapped;
+
+          this.vehiclesList = finalVehicles;
+
+          // Strict approval classification: ONLY vehicles with APPROVED or ACTIVE status in DB are approved!
+          const isApprovedVehicle = (st?: string) => {
+            const s = (st || '').toUpperCase().trim();
             return s === 'APPROVED' || s === 'ACTIVE';
           };
 
-          if (this.vehiclesList.length === 1) {
-            const singleV = this.vehiclesList[0];
-            if (isApprovedOrActive(singleV.status) || singleV.isActive) {
-              singleV.isActive = true;
-              singleV.status = 'Active';
-              if (this.driverProfile) {
-                this.driverProfile.selectedVehicleType = singleV.category;
-                this.driverProfile.selectedMachineryModel = singleV.machineryModel || singleV.vehicleName;
+          // Step 1: Ensure all non-approved vehicles NEVER have isActive = true and remain Under Review or Rejected!
+          this.vehiclesList.forEach(v => {
+            if (!isApprovedVehicle(v.status)) {
+              v.isActive = false;
+              if (v.status !== 'Rejected' && v.status !== 'REJECTED') {
+                v.status = 'Under Review';
               }
             }
-          } else if (this.vehiclesList.length > 1) {
-            // Multiple vehicles: ONLY ONE vehicle can be active at a time!
+          });
+
+          // Step 2: Only among vehicles that are truly approved by admin, pick ONE to be Active
+          const approvedVehicles = this.vehiclesList.filter(v => isApprovedVehicle(v.status));
+
+          if (approvedVehicles.length === 1) {
+            approvedVehicles[0].isActive = true;
+            approvedVehicles[0].status = 'Active';
+            if (this.driverProfile) {
+              this.driverProfile.selectedVehicleType = approvedVehicles[0].category;
+              this.driverProfile.selectedMachineryModel = approvedVehicles[0].machineryModel || approvedVehicles[0].vehicleName;
+            }
+          } else if (approvedVehicles.length > 1) {
             const driverType = (this.driverProfile?.selectedVehicleType || '').toUpperCase().trim();
             const driverModel = (this.driverProfile?.selectedMachineryModel || '').toUpperCase().trim();
 
-            let activeIndex = this.vehiclesList.findIndex(v => {
-              if (!isApprovedOrActive(v.status) && !v.isActive) return false;
+            let activeVehicle = approvedVehicles.find(v => {
               if (driverType && (v.category || '').toUpperCase().trim() === driverType) return true;
               if (driverModel && (v.machineryModel || v.vehicleName || '').toUpperCase().trim() === driverModel) return true;
               return false;
             });
 
-            if (activeIndex < 0) {
-              activeIndex = this.vehiclesList.findIndex(v => v.isActive && isApprovedOrActive(v.status));
+            if (!activeVehicle) {
+              activeVehicle = approvedVehicles.find(v => v.isActive) || approvedVehicles[0];
             }
 
-            if (activeIndex < 0) {
-              activeIndex = this.vehiclesList.findIndex(v => isApprovedOrActive(v.status));
-            }
-
-            if (activeIndex < 0) activeIndex = 0;
-
-            this.vehiclesList.forEach((v, idx) => {
-              if (isApprovedOrActive(v.status) || v.isActive) {
-                if (idx === activeIndex) {
-                  v.isActive = true;
-                  v.status = 'Active';
-                  if (this.driverProfile) {
-                    this.driverProfile.selectedVehicleType = v.category;
-                    this.driverProfile.selectedMachineryModel = v.machineryModel || v.vehicleName;
-                  }
-                } else {
-                  v.isActive = false;
-                  v.status = 'Approved';
+            approvedVehicles.forEach(v => {
+              if (v === activeVehicle) {
+                v.isActive = true;
+                v.status = 'Active';
+                if (this.driverProfile) {
+                  this.driverProfile.selectedVehicleType = v.category;
+                  this.driverProfile.selectedMachineryModel = v.machineryModel || v.vehicleName;
                 }
+              } else {
+                v.isActive = false;
+                v.status = 'Approved';
               }
             });
           }
@@ -770,6 +790,13 @@ export class ProfileComponent implements OnInit {
     this.isSavingVehicle = true;
 
     const payload = {
+      vehicleTypeId: vehicle.vehicleTypeId,
+      vehicleModelId: vehicle.vehicleModelId,
+      vehicleSubModelId: vehicle.vehicleSubModelId,
+      vehicleName: vehicle.vehicleName || vehicle.machineryModel || 'Vehicle',
+      category: vehicle.category,
+      machineryModel: vehicle.machineryModel || vehicle.vehicleName,
+      machinerySubCategory: vehicle.machinerySubCategory,
       regNumber: vehicle.regNumber,
       mfgYear: vehicle.mfgYear,
       machineClass: vehicle.machineClass,
@@ -777,8 +804,6 @@ export class ProfileComponent implements OnInit {
       engineSerial: vehicle.engineSerial,
       powertrain: vehicle.powertrain,
       vehicleDescription: vehicle.vehicleDescription,
-      category: vehicle.category,
-      machineryModel: vehicle.machineryModel,
       status: vehicle.status || 'UNDER_REVIEW'
     };
 
@@ -795,6 +820,23 @@ export class ProfileComponent implements OnInit {
         console.error('Failed to update vehicle details:', err);
       }
     });
+  }
+
+  openChangeModelView(v: DriverVehicle | null): void {
+    if (!v) return;
+    this.selectedVehicle = v;
+    this.isEditingSelectedVehicle = true;
+    Object.assign(this.newVehicle, v);
+    this.navigateTo('ADD_VEHICLE_TYPE');
+  }
+
+  getDefaultEmojiForCategory(cat?: string): string {
+    const c = (cat || '').toUpperCase();
+    if (c.includes('CAR') || c.includes('CAB') || c.includes('TAXI')) return '🚗';
+    if (c.includes('AUTO') || c.includes('RICKSHAW')) return '🛺';
+    if (c.includes('BIKE') || c.includes('MOTO')) return '🏍️';
+    if (c.includes('TRUCK') || c.includes('LORRY')) return '🚛';
+    return '🚜';
   }
 
   fetchVahanDetails(targetVehicle?: DriverVehicle | null): void {
@@ -855,6 +897,9 @@ export class ProfileComponent implements OnInit {
         localStorage.setItem('rentron_shared_vehicles', jsonStr);
         localStorage.setItem('admin_vehicles_list', jsonStr);
         localStorage.setItem('rentron_driver_vehicles', jsonStr);
+        if (Array.isArray(this.vehiclesList) && this.vehiclesList.some(v => v.regNumber && v.regNumber.trim().length > 0 && !v.regNumber.startsWith('TN00TEMP') && !v.regNumber.startsWith('TN-XX-TEMP'))) {
+          localStorage.setItem('driver_vehicle_completed', 'true');
+        }
       } catch (e) {
         console.warn('LocalStorage quota limit reached, bypassing local cache update:', e);
       }
@@ -864,10 +909,10 @@ export class ProfileComponent implements OnInit {
   get filteredVehicles(): DriverVehicle[] {
     if (this.vehicleFilter === 'ALL') return this.vehiclesList;
     if (this.vehicleFilter === 'Approved') {
-      return this.vehiclesList.filter(v => v.status === 'Approved' || v.status === 'APPROVED' || v.status === 'Active' || v.isActive);
+      return this.vehiclesList.filter(v => v.status === 'Approved' || v.status === 'APPROVED' || v.status === 'Active');
     }
     if (this.vehicleFilter === 'Pending') {
-      return this.vehiclesList.filter(v => v.status === 'Under Review' || v.status === 'PENDING_VERIFICATION' || v.status === 'Pending');
+      return this.vehiclesList.filter(v => v.status === 'Under Review' || v.status === 'UNDER_REVIEW' || v.status === 'PENDING_VERIFICATION' || v.status === 'Pending');
     }
     if (this.vehicleFilter === 'Rejected') {
       return this.vehiclesList.filter(v => v.status === 'Rejected' || v.status === 'REJECTED');
@@ -876,11 +921,11 @@ export class ProfileComponent implements OnInit {
   }
 
   get approvedVehiclesCount(): number {
-    return this.vehiclesList.filter(v => v.status === 'Approved' || v.status === 'APPROVED' || v.status === 'Active' || v.isActive).length;
+    return this.vehiclesList.filter(v => v.status === 'Approved' || v.status === 'APPROVED' || v.status === 'Active').length;
   }
 
   get pendingVehiclesCount(): number {
-    return this.vehiclesList.filter(v => v.status === 'Under Review' || v.status === 'PENDING_VERIFICATION' || v.status === 'Pending').length;
+    return this.vehiclesList.filter(v => v.status === 'Under Review' || v.status === 'UNDER_REVIEW' || v.status === 'PENDING_VERIFICATION' || v.status === 'Pending').length;
   }
 
   get rejectedVehiclesCount(): number {
@@ -893,6 +938,11 @@ export class ProfileComponent implements OnInit {
   }
 
   activateVehicle(vehicle: DriverVehicle, event?: Event): void {
+    const s = (vehicle.status || '').toUpperCase().trim();
+    if (s !== 'APPROVED' && s !== 'ACTIVE') {
+      alert('Only approved vehicles can be activated. This vehicle is currently Under Review.');
+      return;
+    }
     this.openActivateModal(vehicle, event);
   }
 
@@ -996,9 +1046,11 @@ export class ProfileComponent implements OnInit {
   }
 
   openVehicleDocumentUpload(type: 'RC' | 'INSURANCE' | 'AGREEMENT' | 'PHOTOS'): void {
-    this.isEditingSelectedVehicle = false;
+    if (!this.selectedVehicle) {
+      this.isEditingSelectedVehicle = false;
+    }
     if (type === 'RC') {
-      this.rcForm.regNumber = this.newVehicle.regNumber || '';
+      this.rcForm.regNumber = this.selectedVehicle?.regNumber || this.newVehicle.regNumber || '';
       this.navigateTo('UPLOAD_VEHICLE_RC');
     }
     else if (type === 'INSURANCE') this.navigateTo('UPLOAD_VEHICLE_INSURANCE');
@@ -1023,33 +1075,7 @@ export class ProfileComponent implements OnInit {
     this.isEditingSelectedVehicle = false;
     this.vehicleValidationError = '';
     this.loadVehicleMasterCatalog();
-    this.newVehicle = {
-      id: Date.now(),
-      regNumber: '',
-      vehicleName: 'JCB 3DX EcoXcellence',
-      category: 'Machinery',
-      machineryModel: 'JCB 3DX',
-      machinerySubCategory: 'Backhoe',
-      experience: '3-5 years',
-      status: 'Under Review',
-      isActive: false,
-      fetchMode: 'AUTO_VAHAN',
-      mfgYear: '',
-      machineClass: '',
-      chassisVin: '',
-      engineSerial: '',
-      powertrain: 'DIESEL',
-      vehicleDescription: '',
-      isVahanSynced: false,
-      applicationId: '#OP' + Math.floor(10000 + Math.random() * 90000),
-      documents: {
-        rcFront: {},
-        rcBack: {},
-        insurance: {},
-        agreement: {},
-        photos: {}
-      }
-    };
+    this.newVehicle = {} as any;
 
     this.rcForm = { regNumber: '', frontName: '', frontPreview: '', backName: '', backPreview: '' };
     this.insuranceForm = { policyNumber: '', providerName: '', fileName: '', previewUrl: '' };
@@ -1245,6 +1271,20 @@ export class ProfileComponent implements OnInit {
   syncVehicleUpdateToBackend(vehicle: DriverVehicle): void {
     if (!vehicle || !vehicle.id || !this.http) return;
     const body = {
+      vehicleTypeId: vehicle.vehicleTypeId,
+      vehicleModelId: vehicle.vehicleModelId,
+      vehicleSubModelId: vehicle.vehicleSubModelId,
+      vehicleName: vehicle.vehicleName || vehicle.machineryModel || 'Vehicle',
+      category: vehicle.category,
+      machineryModel: vehicle.machineryModel || vehicle.vehicleName,
+      machinerySubCategory: vehicle.machinerySubCategory,
+      regNumber: vehicle.regNumber,
+      mfgYear: vehicle.mfgYear,
+      machineClass: vehicle.machineClass,
+      chassisVin: vehicle.chassisVin,
+      engineSerial: vehicle.engineSerial,
+      powertrain: vehicle.powertrain,
+      vehicleDescription: vehicle.vehicleDescription,
       rcFrontUrl: vehicle.documents?.rcFront?.url || '',
       rcBackUrl: vehicle.documents?.rcBack?.url || '',
       insuranceUrl: vehicle.documents?.insurance?.url || '',
@@ -1296,6 +1336,12 @@ export class ProfileComponent implements OnInit {
     const driverName = this.driverProfile?.fullName || this.editForm.fullName || 'Driver Partner';
     const driverPhone = this.driverProfile?.phone || this.editForm.phone || '7074953565';
 
+    // Find if we are updating an existing vehicle (e.g. placeholder with blank regNumber or selected vehicle)
+    const existingBlank = this.vehiclesList.find(v => (!v.regNumber || !v.regNumber.trim()) && v.id);
+    const targetVehicleId = (this.newVehicle.id && typeof this.newVehicle.id === 'number' && this.newVehicle.id < 1000000000)
+      ? this.newVehicle.id
+      : (existingBlank?.id || (this.isEditingSelectedVehicle && this.selectedVehicle?.id ? this.selectedVehicle.id : null));
+
     const vehicleDbPayload = {
       userId: userId,
       driverId: this.driverProfile?.id || 1,
@@ -1303,7 +1349,7 @@ export class ProfileComponent implements OnInit {
       vehicleModelId: this.newVehicle.vehicleModelId,
       vehicleSubModelId: this.newVehicle.vehicleSubModelId,
       regNumber: this.newVehicle.regNumber,
-      vehicleName: this.newVehicle.vehicleName,
+      vehicleName: this.newVehicle.vehicleName || this.newVehicle.machineryModel || 'Vehicle',
       category: this.newVehicle.category,
       machineryModel: this.newVehicle.machineryModel,
       machinerySubCategory: this.newVehicle.machinerySubCategory,
@@ -1314,7 +1360,7 @@ export class ProfileComponent implements OnInit {
       engineSerial: this.newVehicle.engineSerial,
       powertrain: this.newVehicle.powertrain,
       status: 'UNDER_REVIEW',
-      isActive: this.vehiclesList.length === 0,
+      isActive: true,
       fetchMode: this.newVehicle.fetchMode,
       submittedOn: new Date().toLocaleDateString(),
       vehicleDescription: this.newVehicle.vehicleDescription,
@@ -1330,14 +1376,25 @@ export class ProfileComponent implements OnInit {
       enginePlatePhotoUrl: this.newVehicle.documents?.photos?.engineSerialPlate || ''
     };
 
-    this.http.post<any>(`${environment.serverApi}/api/v1/vehicles`, vehicleDbPayload).subscribe({
+    const saveRequest$ = targetVehicleId
+      ? this.http.put<any>(`${environment.serverApi}/api/v1/vehicles/${targetVehicleId}`, vehicleDbPayload)
+      : this.http.post<any>(`${environment.serverApi}/api/v1/vehicles`, vehicleDbPayload);
+
+    saveRequest$.subscribe({
       next: (res) => {
         this.isSubmittingVehicle = false;
-        if (res && res.data) {
-          this.newVehicle.id = res.data.id;
-        }
+        const savedData = res?.data;
+        const savedId = savedData?.id || targetVehicleId || Date.now();
+        this.newVehicle.id = savedId;
+        this.newVehicle.status = 'Under Review';
 
-        this.vehiclesList.unshift({ ...this.newVehicle });
+        // Update in-memory list: update existing if present, else prepend
+        const existingIdx = this.vehiclesList.findIndex(v => v.id === savedId || (!v.regNumber && v.id === targetVehicleId));
+        if (existingIdx >= 0) {
+          this.vehiclesList[existingIdx] = { ...this.vehiclesList[existingIdx], ...this.newVehicle, id: savedId };
+        } else {
+          this.vehiclesList.unshift({ ...this.newVehicle, id: savedId });
+        }
         this.savePersistentVehicles();
 
         // Send Admin Notification to notify admin user of new vehicle registration

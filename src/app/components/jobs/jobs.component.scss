@@ -1,13 +1,18 @@
 .mobile-app-wrapper {
   min-height: 100vh;
-  background: #f8fafc;
+  background-color: var(--app-background);
   padding-bottom: 80px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .jobs-header {
-  background: #ffffff;
+  background: var(--surface);
   padding: 16px 20px 12px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border);
 
   h2 {
     font-size: 22px;
@@ -24,19 +29,21 @@
 
     .tab {
       padding: 8px 16px;
-      border: 1px solid #e2e8f0;
-      background: #ffffff;
+      border: 1px solid var(--border);
+      background: var(--surface-secondary);
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
-      color: #64748b;
+      color: var(--text-secondary);
       white-space: nowrap;
       cursor: pointer;
+      transition: all 0.2s ease;
 
       &.active {
-        background: #1e293b;
-        color: #ffffff;
-        border-color: #1e293b;
+        background: var(--primary);
+        color: var(--primary-contrast);
+        border-color: var(--primary);
+        font-weight: 700;
       }
     }
   }
@@ -52,8 +59,8 @@
   gap: 12px;
 
   .job-card-item {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 16px;
     cursor: pointer;
@@ -868,5 +875,31 @@
         cursor: not-allowed;
       }
     }
+  }
+}
+
+
+.empty-jobs {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-secondary);
+
+  .icon {
+    font-size: 44px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 6px 0;
+  }
+
+  p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
   }
 }

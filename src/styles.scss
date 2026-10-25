@@ -378,3 +378,88 @@ p {
   }
 }
 
+
+
+/* Global Dark Theme Component Overrides */
+[data-theme="dark"] {
+  .mobile-app-wrapper,
+  .main-app-container {
+    background-color: var(--app-background) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .dashboard-content,
+  .jobs-content {
+    background-color: var(--app-background) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .driver-header,
+  .jobs-header {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .location-box,
+  .online-toggle-container {
+    background-color: var(--surface-secondary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .section-header h3,
+  .jobs-header h2,
+  .user-greeting h2 {
+    color: var(--text-primary) !important;
+  }
+
+  .job-card-item,
+  .job-item-card,
+  .active-job-card,
+  .empty-state,
+  .empty-jobs {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+
+    h3, h4, .val, strong {
+      color: var(--text-primary) !important;
+    }
+
+    p, .location, .lbl, span:not(.badge-count):not(.chip):not(.status-badge) {
+      color: var(--text-secondary) !important;
+    }
+  }
+
+  .jobs-tabs .tab {
+    background-color: var(--surface-secondary) !important;
+    border-color: var(--border) !important;
+    color: var(--text-secondary) !important;
+
+    &.active {
+      background-color: var(--primary) !important;
+      color: var(--primary-contrast) !important;
+      border-color: var(--primary) !important;
+    }
+  }
+
+  .offline-banner {
+    background: rgba(245, 158, 11, 0.12) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    h4 { color: #FBBF24 !important; }
+    p { color: #FDE68A !important; }
+  }
+
+  .rc-action-banner {
+    background: rgba(255, 193, 7, 0.12) !important;
+    border-color: rgba(255, 193, 7, 0.35) !important;
+    h4 { color: #FBBF24 !important; }
+    p { color: #FDE68A !important; }
+  }
+
+  .bottom-nav {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+  }
+}

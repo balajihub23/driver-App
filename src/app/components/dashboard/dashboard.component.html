@@ -56,7 +56,8 @@
     </div>
     }
 
-    <!-- Vehicle RC & Document Upload Action Card -->
+    <!-- Vehicle RC & Document Upload Action Card (Only shown if driver has NOT completed vehicle details yet) -->
+    @if (!hasCompletedVehicleDetails) {
     <div class="rc-action-banner animate-fade-in" (click)="goToVehicleRcUpload()"
       style="margin: 14px 0; background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%); border: 1.5px solid #FCD34D; border-radius: 14px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15); transition: transform 0.2s ease;">
       <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
@@ -73,6 +74,7 @@
         <span style="font-size: 14px;">➔</span>
       </button>
     </div>
+    }
 
     <!-- Active Job Banner Card (Screenshot 3, Left) -->
     @if (isApproved && activeJob && isOnline) {

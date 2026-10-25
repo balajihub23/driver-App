@@ -2343,3 +2343,130 @@
 
 
 
+
+
+/* Selected Model Summary Card (Screenshot 2) */
+.selected-model-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--surface-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+
+  .model-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #FFC107;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
+  }
+
+  .model-info {
+    flex: 1;
+    min-width: 0;
+
+    .model-category-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #B45309;
+      background: #FEF3C7;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .model-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 0;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .model-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin: 2px 0 0 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .btn-change-model {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    color: var(--primary);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--primary);
+      color: var(--primary-contrast);
+      border-color: var(--primary);
+    }
+
+    .arrow {
+      font-size: 13px;
+    }
+  }
+}
+
+[data-theme="dark"] {
+  .selected-model-summary-card {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+
+    .model-info {
+      .model-category-badge {
+        background: rgba(255, 193, 7, 0.15) !important;
+        color: #FBBF24 !important;
+      }
+
+      .model-title {
+        color: #F8FAFC !important;
+      }
+
+      .model-sub {
+        color: #94A3B8 !important;
+      }
+    }
+
+    .btn-change-model {
+      background: var(--surface-secondary) !important;
+      border-color: var(--border) !important;
+      color: #FFC107 !important;
+
+      &:hover {
+        background: #FFC107 !important;
+        color: #0F172A !important;
+      }
+    }
+  }
+}

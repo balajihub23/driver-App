@@ -84,7 +84,18 @@ export class NotificationService {
     );
   }
 
-  registerDeviceToken(deviceToken: string, platform: string = 'WEB'): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/api/v1/notifications/devices/register?deviceToken=${encodeURIComponent(deviceToken)}&platform=${platform}`, null);
+  registerDeviceToken(deviceToken?: string, platform: string = 'ANDROID'): Observable<any> {
+    let did = isPlatformBrowser(this.platformId) ? localStorage.getItem('rentron_driver_device_id') : null;
+    if (!did && isPlatformBrowser(this.platformId)) {
+      did = 'drv_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now();
+      localStorage.setItem('rentron_driver_device_id', did);
+    }
+    const token = (deviceToken && !deviceToken.startsWith('driver-token-')) ? deviceToken : ('fcm_drv_' + did);
+    const body: any = {
+      deviceToken: token,
+      platform,
+      deviceId: did
+    };
+    return this.http.post<any>(`${this.baseUrl}/api/v1/notifications/devices/register`, body);
   }
 }

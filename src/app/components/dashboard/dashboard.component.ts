@@ -1,3 +1,5 @@
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
@@ -37,6 +39,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   notificationService = inject(NotificationService);
   authService = inject(AuthService);
   router = inject(Router);
+  http = inject(HttpClient);
+
+  hasCompletedVehicleDetails: boolean = true;
 
   goToVehicleRcUpload(): void {
     this.router.navigate(['/profile'], { queryParams: { tab: 'vehicles', action: 'upload_rc' } });
@@ -87,6 +92,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.detectCurrentLocation();
     this.loadProfile();
+    this.checkVehicleStatus();
     this.loadEarnings();
     this.loadJobs();
     this.initWebSocketOffers();
@@ -116,15 +122,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
           // Register device push token with backend
           if (profile.userId) {
-            this.notificationService.registerDeviceToken(`driver-token-${profile.userId}`, 'ANDROID').subscribe({
-              error: () => {}
-            });
+            this.authService.registerDeviceToken(profile.userId);
           }
 
           if (this.isOnline && this.isApproved) {
             this.webSocketService.connectWebSocket(this.driverProfile.userId || this.driverProfile.id);
             this.startLiveLocationTracking();
           }
+          this.checkVehicleStatus();
         } else {
           this.driverProfile = null;
           this.isApproved = false;
@@ -303,6 +308,81 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.activeJob?.id) {
       this.router.navigate(['/jobs'], { queryParams: { jobId: this.activeJob.id } });
     }
+  }
+
+  checkVehicleStatus(): void {
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem('driver_vehicle_completed') === 'true') {
+        this.hasCompletedVehicleDetails = true;
+      }
+    }
+
+    const token = this.authService.getAccessToken();
+    const driverId = this.driverProfile?.id;
+    const url = token 
+      ? `${environment.serverApi}/api/v1/vehicles/me`
+      : (driverId ? `${environment.serverApi}/api/v1/vehicles/driver/${driverId}` : null);
+
+    if (!url) {
+      this.checkLocalVehicleFallback();
+      return;
+    }
+
+    this.http.get<any>(url).subscribe({
+      next: (res) => {
+        const list = res?.data;
+        if (Array.isArray(list) && list.length > 0) {
+          const hasFilled = list.some((v: any) => v.regNumber && v.regNumber.trim().length > 0 && !v.regNumber.startsWith('TN00TEMP') && !v.regNumber.startsWith('TN-XX-TEMP'));
+          this.hasCompletedVehicleDetails = hasFilled;
+          if (hasFilled && typeof window !== 'undefined') {
+            localStorage.setItem('driver_vehicle_completed', 'true');
+          }
+        } else if (driverId && !url.includes('/driver/')) {
+          this.http.get<any>(`${environment.serverApi}/api/v1/vehicles/driver/${driverId}`).subscribe({
+            next: (dRes) => {
+              const dList = dRes?.data;
+              if (Array.isArray(dList) && dList.length > 0) {
+                const hasFilled = dList.some((v: any) => v.regNumber && v.regNumber.trim().length > 0 && !v.regNumber.startsWith('TN00TEMP') && !v.regNumber.startsWith('TN-XX-TEMP'));
+                this.hasCompletedVehicleDetails = hasFilled;
+                if (hasFilled && typeof window !== 'undefined') {
+                  localStorage.setItem('driver_vehicle_completed', 'true');
+                }
+              } else {
+                this.checkLocalVehicleFallback();
+              }
+            },
+            error: () => this.checkLocalVehicleFallback()
+          });
+        } else {
+          this.checkLocalVehicleFallback();
+        }
+      },
+      error: () => this.checkLocalVehicleFallback()
+    });
+  }
+
+  private checkLocalVehicleFallback(): void {
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem('driver_vehicle_completed') === 'true') {
+        this.hasCompletedVehicleDetails = true;
+        return;
+      }
+      try {
+        const cached = localStorage.getItem('rentron_driver_vehicles') || localStorage.getItem('rentron_shared_vehicles');
+        if (cached) {
+          const arr = JSON.parse(cached);
+          if (Array.isArray(arr) && arr.length > 0) {
+            const hasFilled = arr.some((v: any) => v.regNumber && v.regNumber.trim().length > 0 && !v.regNumber.startsWith('TN00TEMP') && !v.regNumber.startsWith('TN-XX-TEMP'));
+            this.hasCompletedVehicleDetails = hasFilled;
+            if (hasFilled) {
+              localStorage.setItem('driver_vehicle_completed', 'true');
+            }
+            return;
+          }
+        }
+      } catch (e) {}
+    }
+    this.hasCompletedVehicleDetails = false;
   }
 
   ngOnDestroy(): void {
