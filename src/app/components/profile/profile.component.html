@@ -1105,12 +1105,14 @@
       @for (m of filteredMachineryModels; track m.id) {
       <div class="model-option-card" [class.selected]="isModelOptionSelected(m)" (click)="selectMachineryOption(m)">
         <div class="m-icon-box">
-          <img *ngIf="isImageUrl(m.iconUrl)" [src]="m.iconUrl" (error)="onImgError($event)" class="opt-model-img" alt="icon" />
-          <span class="emoji-icon">{{ m.icon || '🚗' }}</span>
+          <img [src]="isImageUrl(m.iconUrl) ? m.iconUrl : defaultVehicleImage" 
+               (error)="onImgError($event)" 
+               class="opt-model-img" 
+               [alt]="m.name || 'Vehicle'" />
         </div>
         <div class="m-info">
-          <h4>{{ m.name }}</h4>
-          <p>{{ m.specs }}</p>
+          <h4>{{ m.name || 'Vehicle Model' }}</h4>
+          <p>{{ m.specs || 'Standard specification' }}</p>
         </div>
         <div class="radio-circle"></div>
       </div>

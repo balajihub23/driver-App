@@ -1324,21 +1324,21 @@
     }
 
     .m-icon-box {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: var(--surface-secondary, #FFF9E6);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--surface-secondary, #F1F5F9);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
       overflow: hidden;
       flex-shrink: 0;
+      border: 1px solid var(--border, #E2E8F0);
 
       .opt-model-img {
-        width: 30px;
-        height: 30px;
-        object-fit: contain;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
     }
 
@@ -2466,6 +2466,38 @@
       &:hover {
         background: #FFC107 !important;
         color: #0F172A !important;
+      }
+    }
+  }
+}
+
+:host-context([data-theme="dark"]) {
+  .machinery-models-list .model-option-card {
+    background: #1E293B !important;
+    border-color: #334155 !important;
+
+    &.selected {
+      border-color: #FFC107 !important;
+      background: rgba(255, 193, 7, 0.18) !important;
+
+      .radio-circle {
+        border-color: #FFC107 !important;
+        background: #FFC107 !important;
+        box-shadow: inset 0 0 0 3px #1E293B !important;
+      }
+    }
+
+    .m-icon-box {
+      background: #334155 !important;
+      border-color: #475569 !important;
+    }
+
+    .m-info {
+      h4 {
+        color: #F8FAFC !important;
+      }
+      p {
+        color: #CBD5E1 !important;
       }
     }
   }

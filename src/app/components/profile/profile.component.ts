@@ -284,6 +284,7 @@ export class ProfileComponent implements OnInit {
 
   // Add Vehicle Wizard State
   machinerySubCategoryFilter: string = 'All';
+  defaultVehicleImage: string = 'assets/images/no-vehicle-image.svg';
   machineryModels: any[] = [
     { id: 'jcb_3dx', name: 'JCB 3DX', sub: 'Backhoe', specs: 'Backhoe Loader • 74 HP • 1.0 m³', icon: '🚜', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
     { id: 'tata_ex200', name: 'Tata Hitachi EX 200', sub: 'Excavator', specs: 'Hydraulic Excavator • 133 HP • 2.0 Ton', icon: '🏗️', iconUrl: '', subModelId: 0, modelId: 0, typeId: 0 },
@@ -503,17 +504,24 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
+    const defaultEmoji = this.getDefaultEmojiForType(vType);
     const dynamicList: any[] = [];
     vType.models.forEach(m => {
+      const modelIconUrl = this.isImageUrl(m.iconUrl) ? m.iconUrl : (this.isImageUrl((m as any).icon_url) ? (m as any).icon_url : '');
+      const typeIconUrl = this.isImageUrl(vType.iconUrl) ? vType.iconUrl : (this.isImageUrl((vType as any).icon_url) ? (vType as any).icon_url : '');
+
       if (m.subModels && m.subModels.length > 0) {
         m.subModels.forEach(sm => {
+          const subIconUrl = this.isImageUrl(sm.iconUrl) ? sm.iconUrl : (this.isImageUrl((sm as any).icon_url) ? (sm as any).icon_url : '');
+          const chosenIconUrl = subIconUrl || modelIconUrl || typeIconUrl || '';
+
           dynamicList.push({
             id: `sub_${sm.id}`,
-            name: sm.name,
-            sub: m.name,
-            specs: `${sm.description || sm.machineClass || m.name}${sm.horsePower ? ' • ' + sm.horsePower : ''}${sm.capacity ? ' • ' + sm.capacity : ''}`,
-            icon: sm.iconUrl || m.iconUrl || vType.iconUrl || this.getDefaultEmojiForType(vType),
-            iconUrl: sm.iconUrl || m.iconUrl || vType.iconUrl,
+            name: sm.name || m.name || 'Vehicle Model',
+            sub: m.name || 'Model',
+            specs: `${sm.description || sm.machineClass || m.description || m.name || 'Standard specification'}${sm.horsePower ? ' • ' + sm.horsePower : ''}${sm.capacity ? ' • ' + sm.capacity : ''}`,
+            icon: defaultEmoji,
+            iconUrl: chosenIconUrl,
             subModelId: sm.id,
             modelId: m.id,
             typeId: vType.id,
@@ -521,13 +529,14 @@ export class ProfileComponent implements OnInit {
           });
         });
       } else {
+        const chosenIconUrl = modelIconUrl || typeIconUrl || '';
         dynamicList.push({
           id: `mod_${m.id}`,
-          name: m.name,
-          sub: m.name,
-          specs: m.description || m.name,
-          icon: m.iconUrl || vType.iconUrl || this.getDefaultEmojiForType(vType),
-          iconUrl: m.iconUrl || vType.iconUrl,
+          name: m.name || 'Vehicle Model',
+          sub: m.name || 'Model',
+          specs: m.description || m.name || 'Standard specification',
+          icon: defaultEmoji,
+          iconUrl: chosenIconUrl,
           subModelId: undefined,
           modelId: m.id,
           typeId: vType.id,
@@ -566,8 +575,12 @@ export class ProfileComponent implements OnInit {
       this.vehicleMasterService.getModelsByType(type.id).subscribe({
         next: (res) => {
           if (res && res.data) {
-            type.models = res.data;
-            this.dynamicModels = res.data;
+            const filtered = (res.data as any[]).filter(m =>
+              (m.vehicleTypeId && m.vehicleTypeId === type.id) ||
+              (m.vehicle_type_id && m.vehicle_type_id === type.id)
+            );
+            type.models = filtered.length > 0 ? filtered : res.data;
+            this.dynamicModels = type.models;
             this.buildDynamicMachineryModelsList(type);
           }
         }
@@ -588,12 +601,16 @@ export class ProfileComponent implements OnInit {
 
   onImgError(event: Event): void {
     const target = event.target as HTMLImageElement;
-    target.style.display = 'none';
+    if (target && target.src !== this.defaultVehicleImage && !target.src.endsWith(this.defaultVehicleImage)) {
+      target.src = this.defaultVehicleImage;
+    }
   }
 
   isImageUrl(url?: string): boolean {
-    if (!url) return false;
-    return url.startsWith('http') || url.startsWith('data:') || url.startsWith('assets') || url.startsWith('/');
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (trimmed.startsWith('data:image/') && trimmed.length > 500000) return false;
+    return trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/') || trimmed.startsWith('assets/') || trimmed.startsWith('/');
   }
 
   selectMachineryOption(m: any): void {
