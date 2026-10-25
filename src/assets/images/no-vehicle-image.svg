@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="carGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#94A3B8"/>
+      <stop offset="100%" stop-color="#64748B"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Card -->
+  <rect width="80" height="80" rx="12" fill="url(#bgGrad)"/>
+  
+  <!-- Car Silhouette -->
+  <g transform="translate(16, 20)">
+    <!-- Car Body Upper -->
+    <path d="M12 4 C14 1, 34 1, 36 4 L42 12 L6 12 Z" fill="url(#carGrad)" opacity="0.9"/>
+    <!-- Car Body Lower -->
+    <rect x="2" y="11" width="44" height="13" rx="4" fill="url(#carGrad)"/>
+    <!-- Headlights -->
+    <rect x="42" y="13" width="4" height="3" rx="1.5" fill="#FBBF24" opacity="0.9"/>
+    <rect x="2" y="13" width="3" height="3" rx="1" fill="#EF4444" opacity="0.8"/>
+    <!-- Wheels -->
+    <circle cx="12" cy="24" r="5" fill="#0F172A" stroke="#64748B" stroke-width="1.5"/>
+    <circle cx="12" cy="24" r="2" fill="#94A3B8"/>
+    <circle cx="36" cy="24" r="5" fill="#0F172A" stroke="#64748B" stroke-width="1.5"/>
+    <circle cx="36" cy="24" r="2" fill="#94A3B8"/>
+  </g>
+  
+  <!-- Badge: No Image -->
+  <rect x="12" y="56" width="56" height="15" rx="4" fill="#0F172A" opacity="0.75"/>
+  <text x="40" y="67" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8.5" font-weight="700" fill="#94A3B8" text-anchor="middle" letter-spacing="0.5">NO IMAGE</text>
+</svg>
