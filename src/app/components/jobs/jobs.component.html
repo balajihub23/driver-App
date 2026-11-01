@@ -1,4 +1,5 @@
 <div class="mobile-app-wrapper">
+  <!-- Top Header for Jobs List -->
   <header class="jobs-header" *ngIf="!selectedJob">
     <h2>My Jobs</h2>
 
@@ -10,12 +11,28 @@
     </div>
   </header>
 
+  <!-- Unified Top Bar for Active Job Screens -->
+  <header class="job-detail-top-bar" *ngIf="selectedJob">
+    <button class="btn-top-back" (click)="selectedJob = null" title="Back to Jobs list">
+      <span class="back-arrow">←</span>
+      <span class="back-text">Jobs</span>
+    </button>
+    <div class="top-bar-center">
+      <span class="booking-code">#{{ selectedJob.bookingNumber || ('BK-' + selectedJob.id) }}</span>
+      <h3 class="top-bar-title">{{ selectedJob.productName || 'Assigned Job' }}</h3>
+    </div>
+    <div class="top-bar-right">
+      <span class="status-badge" [class]="getStatusClass(selectedJob.status)">{{ selectedJob.status }}</span>
+    </div>
+  </header>
+
   <main class="jobs-content">
     @if (!selectedJob) {
       <!-- Filtered Jobs List -->
       <div class="jobs-list">
         @if (isLoading) {
-          <div class="text-center py-8 text-slate-500">
+          <div class="loading-state">
+            <div class="spinner"></div>
             <p>Loading your jobs...</p>
           </div>
         } @else {
@@ -52,37 +69,46 @@
       <!-- VIEW 1: YOU HAVE ARRIVED! SCREEN -->
       @if (viewMode === 'ARRIVED') {
         <div class="arrived-screen animate-fade-in">
-          <button class="back-link" (click)="selectedJob = null">← Back to Jobs</button>
-
-          <div class="arrived-card text-center">
-            <div class="arrived-icon-circle">
-              <span class="check-icon">✓</span>
+          <div class="arrived-card">
+            <!-- Glowing Yellow Checkmark Circle -->
+            <div class="arrived-icon-wrap">
+              <div class="arrived-icon-glow"></div>
+              <div class="arrived-icon-circle">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
             </div>
 
             <h2 class="arrived-title">You Have Arrived!</h2>
             <p class="arrived-subtitle">Customer has been notified of your arrival. Request the 4-digit OTP to start the job.</p>
 
-            <div class="arrived-details-box text-left">
+            <div class="arrived-details-box">
               <div class="box-row">
-                <span class="box-icon">📍</span>
-                <div>
-                  <span class="lbl">Pickup Site</span>
-                  <strong class="val">{{ selectedJob.pickupAddressText || selectedJob.pickupLocation || 'Customer Location' }}</strong>
+                <div class="box-icon-wrap pin-icon">📍</div>
+                <div class="box-text">
+                  <span class="lbl">PICKUP SITE</span>
+                  <p class="val">{{ selectedJob.pickupAddressText || selectedJob.pickupLocation || 'Customer Location' }}</p>
                 </div>
               </div>
 
               <div class="box-row">
-                <span class="box-icon">🚜</span>
-                <div>
-                  <span class="lbl">Service / Vehicle</span>
-                  <strong class="val">{{ selectedJob.productName || 'Rentron Equipment / Cab' }}</strong>
-                  <span class="badge-cleared">Cleared for Operation</span>
+                <div class="box-icon-wrap vehicle-icon">🚜</div>
+                <div class="box-text">
+                  <span class="lbl">SERVICE / VEHICLE</span>
+                  <div class="val-with-badge">
+                    <span class="val-name">{{ selectedJob.productName || 'Rentron Equipment / Cab' }}</span>
+                    <span class="badge-cleared">
+                      <span class="dot"></span> Cleared for Operation
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <button class="btn-yellow-full mt-4" (click)="openOtpDialog()">
-              🔑 Enter Ride-Start OTP
+            <button class="btn-yellow-full mt-2" (click)="openOtpDialog()">
+              <span class="btn-icon">🔑</span>
+              <span>Enter Ride-Start OTP</span>
             </button>
           </div>
         </div>
@@ -91,33 +117,47 @@
       <!-- VIEW 2: JOB IN PROGRESS TIMER SCREEN -->
       @if (viewMode === 'IN_PROGRESS') {
         <div class="in-progress-screen animate-fade-in">
-          <div class="screen-header-row">
-            <button class="back-link" (click)="selectedJob = null">← Back to Jobs</button>
-            <span class="badge-active-dot">• In Progress</span>
-          </div>
-
-          <!-- Status Banner -->
-          <div class="in-progress-banner">
-            <div>
-              <h3>Job #{{ selectedJob.bookingNumber || selectedJob.id }}</h3>
-              <p>{{ selectedJob.pickupAddressText || selectedJob.pickupLocation || 'Active Site' }}</p>
+          <!-- Active Site / Route Card -->
+          <div class="in-progress-location-card">
+            <div class="loc-pill-left">
+              <div class="loc-icon-bubble">📍</div>
+              <div class="loc-text-col">
+                <span class="loc-micro-label">ACTIVE SITE / PICKUP</span>
+                <p class="loc-addr-text">{{ selectedJob.pickupAddressText || selectedJob.pickupLocation || 'Active Site Location' }}</p>
+              </div>
             </div>
+            <button class="btn-map-shortcut" (click)="openNavigationMap()" title="Open Interactive Navigation Map">
+              <span class="map-icon">🗺️</span>
+              <span class="map-text">Map</span>
+            </button>
           </div>
 
-          <!-- Large Timer Display Card -->
-          <div class="timer-display-card">
-            <span class="timer-label">ELAPSED TIME</span>
-            <h1 class="timer-digits">{{ formatTimer(elapsedSeconds) }}</h1>
+          <!-- Large HUD Timer Display Card -->
+          <div class="timer-display-card" [class.paused]="isPaused">
+            <div class="timer-header-pill">
+              <span class="live-dot" [class.paused-dot]="isPaused"></span>
+              <span class="timer-status-text">{{ isPaused ? 'TRIP PAUSED' : 'TRIP IN PROGRESS' }}</span>
+            </div>
 
-            <div class="timer-sub-metrics">
-              <div>
-                <span class="sub-lbl">Started At</span>
+            <div class="timer-main-readout">
+              <h1 class="timer-digits">{{ formatTimer(elapsedSeconds) }}</h1>
+              <span class="timer-unit-label">HOURS : MINUTES : SECONDS</span>
+            </div>
+
+            <div class="timer-sub-metrics-grid">
+              <div class="metric-item">
+                <span class="sub-lbl">STARTED AT</span>
                 <strong class="sub-val">{{ startedTimeText || 'Now' }}</strong>
               </div>
-              <div class="sub-divider"></div>
-              <div>
-                <span class="sub-lbl">Estimated Earning</span>
-                <strong class="sub-val">₹{{ (selectedJob.driverAmount || selectedJob.totalAmount || 0) | number:'1.0-0' }}</strong>
+              <div class="metric-divider"></div>
+              <div class="metric-item">
+                <span class="sub-lbl">EST. EARNING</span>
+                <strong class="sub-val text-emerald">₹{{ (selectedJob.driverAmount || selectedJob.totalAmount || 0) | number:'1.0-0' }}</strong>
+              </div>
+              <div class="metric-divider"></div>
+              <div class="metric-item">
+                <span class="sub-lbl">VEHICLE</span>
+                <strong class="sub-val">{{ selectedJob.productName || 'Equipment' }}</strong>
               </div>
             </div>
           </div>
@@ -125,27 +165,41 @@
           <!-- Customer Card -->
           <div class="card customer-card">
             <div class="customer-info-left">
-              <div class="avatar-circle">👤</div>
-              <div>
-                <span class="lbl-cust">Customer</span>
+              <div class="avatar-circle">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <div class="customer-text-col">
+                <span class="lbl-cust">CUSTOMER</span>
                 <h4 class="cust-name">{{ selectedJob.customerName || 'Customer' }}</h4>
-                <p class="text-xs text-slate-500">{{ selectedJob.customerPhone || 'Verified Account' }}</p>
+                <span class="cust-sub">{{ selectedJob.customerPhone || 'Verified Account' }}</span>
               </div>
             </div>
             <div class="customer-actions-right">
-              <button class="btn-circle-action" (click)="onMessageCustomer()">💬</button>
-              <button class="btn-circle-action" (click)="onCallCustomer()">📞</button>
+              <button class="btn-circle-action btn-msg" (click)="onMessageCustomer()" title="Message Customer">💬</button>
+              <button class="btn-circle-action btn-call" (click)="onCallCustomer()" title="Call Customer">📞</button>
             </div>
           </div>
 
-          <!-- Action Buttons -->
+          <!-- In-Trip Action Buttons Row -->
           <div class="timer-actions-row">
             @if (!isPaused) {
-              <button class="btn-outline-pause" (click)="pauseJobTimer()">⏸️ Pause</button>
+              <button class="btn-trip-pause" (click)="pauseJobTimer()">
+                <span class="action-icon">⏸️</span>
+                <span>Pause</span>
+              </button>
             } @else {
-              <button class="btn-yellow-resume" (click)="resumeJobTimer()">▶️ Resume</button>
+              <button class="btn-trip-resume" (click)="resumeJobTimer()">
+                <span class="action-icon">▶️</span>
+                <span>Resume</span>
+              </button>
             }
-            <button class="btn-yellow-end" (click)="onOpenEndJobModal()">Complete Ride</button>
+            <button class="btn-trip-complete" (click)="onOpenEndJobModal()">
+              <span class="action-icon">🏁</span>
+              <span>{{ isMachineryJob(selectedJob) ? 'End Job' : 'Complete Ride' }}</span>
+            </button>
           </div>
         </div>
       }
@@ -153,16 +207,6 @@
       <!-- VIEW 3: FULL JOB DETAILS VIEW -->
       @if (viewMode === 'DETAILS') {
         <div class="job-details-screen animate-fade-in">
-          <div class="screen-header-row">
-            <button class="back-link" (click)="selectedJob = null">← Back to Jobs</button>
-            <span class="status-badge" [class]="getStatusClass(selectedJob.status)">{{ selectedJob.status }}</span>
-          </div>
-
-          <div class="job-details-title-row">
-            <span class="booking-ref">#{{ selectedJob.bookingNumber || ('BK-' + selectedJob.id) }}</span>
-            <h2>{{ selectedJob.productName || 'Rentron Service' }}</h2>
-          </div>
-
           <!-- Estimated Earnings Banner -->
           <div class="earnings-banner-card">
             <div class="earnings-left">
@@ -179,14 +223,14 @@
             <div class="customer-info-left">
               <div class="avatar-circle">👤</div>
               <div>
-                <span class="lbl-cust">Customer</span>
+                <span class="lbl-cust">CUSTOMER</span>
                 <h4 class="cust-name">{{ selectedJob.customerName || 'Customer' }}</h4>
                 <p class="text-xs text-slate-500">{{ selectedJob.customerPhone || 'Verified Account' }}</p>
               </div>
             </div>
             <div class="customer-actions-right">
-              <button class="btn-circle-action" (click)="onMessageCustomer()">💬</button>
-              <button class="btn-circle-action" (click)="onCallCustomer()">📞</button>
+              <button class="btn-circle-action" (click)="onMessageCustomer()" title="Message Customer">💬</button>
+              <button class="btn-circle-action" (click)="onCallCustomer()" title="Call Customer">📞</button>
             </div>
           </div>
 
@@ -235,7 +279,7 @@
                 ⏱️ View Active Timer
               </button>
               <button class="btn-yellow-end mt-2" (click)="onOpenEndJobModal()">
-                🏁 Complete Ride
+                🏁 {{ isMachineryJob(selectedJob) ? 'End Job' : 'Complete Ride' }}
               </button>
             }
 
@@ -254,8 +298,8 @@
 
   <!-- OTP Verification Modal Dialog -->
   @if (showOtpDialog) {
-    <div class="otp-dialog-backdrop animate-fade-in">
-      <div class="otp-dialog-card animate-slide-up">
+    <div class="otp-dialog-backdrop animate-fade-in" (click)="closeOtpDialog()">
+      <div class="otp-dialog-card animate-slide-up" (click)="$event.stopPropagation()">
         <div class="sheet-drag-handle"></div>
         <div class="otp-icon-circle">🔑</div>
         <h3>Enter Ride-Start OTP</h3>
@@ -263,7 +307,9 @@
 
         <div class="otp-input-box">
           <input 
-            type="number" 
+            type="tel" 
+            inputmode="numeric" 
+            pattern="[0-9]*" 
             [(ngModel)]="otpValue" 
             placeholder="0000" 
             maxlength="6"
@@ -282,6 +328,46 @@
           <button class="btn-cancel-otp" [disabled]="isVerifyingOtp" (click)="closeOtpDialog()">Cancel</button>
           <button class="btn-confirm-otp" [disabled]="isVerifyingOtp || !otpValue" (click)="onVerifyOtp()">
             {{ isVerifyingOtp ? 'Verifying...' : 'Verify & Start' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  
+  <!-- Payment Settlement Modal Dialog -->
+  @if (showPaymentModal && selectedJob) {
+    <div class="otp-dialog-backdrop animate-fade-in" (click)="showPaymentModal = false">
+      <div class="payment-settle-card animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="sheet-drag-handle"></div>
+        <div class="pay-icon-circle">💵</div>
+        <h3>Collect Ride Payment</h3>
+        <p class="pay-sub">Ride has finished. Please confirm payment collection to close the booking.</p>
+
+        <!-- Big Amount Display -->
+        <div class="fare-collect-box">
+          <span class="fare-lbl">TOTAL FARE TO COLLECT</span>
+          <h1 class="fare-digits">₹{{ (selectedJob.finalFare || selectedJob.totalAmount || 274) | number:'1.0-0' }}</h1>
+          <div class="fare-method-tag">
+            <span>Payment Mode: <strong>{{ selectedJob.paymentMethod || 'CASH' }}</strong></span>
+          </div>
+        </div>
+
+        <div class="payment-actions-col">
+          <!-- Button 1: Cash Received -->
+          <button class="btn-cash-received" [disabled]="isProcessingCash" (click)="onConfirmCashPayment()">
+            <span class="btn-icon">✓</span>
+            <span>{{ isProcessingCash ? 'Confirming...' : 'Cash Received (₹' + ((selectedJob.finalFare || selectedJob.totalAmount || 274) | number:'1.0-0') + ')' }}</span>
+          </button>
+
+          <!-- Button 2: Pay Online via Razorpay UPI QR -->
+          <button class="btn-online-razorpay" [disabled]="isProcessingRazorpay" (click)="onCollectOnlineViaRazorpay()">
+            <span class="btn-icon">💳</span>
+            <span>{{ isProcessingRazorpay ? 'Opening Razorpay...' : 'Customer Paying Online (Razorpay QR)' }}</span>
+          </button>
+
+          <button class="btn-cancel-flat" (click)="showPaymentModal = false">
+            Close & Review Details
           </button>
         </div>
       </div>

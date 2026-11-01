@@ -66,6 +66,23 @@ export class BookingService {
     return this.verifyOtp(bookingId, otp);
   }
 
+  getBookingSettings(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/api/v1/settings/booking`);
+  }
+
+  confirmCashPayment(bookingId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/api/v1/payments/cash-received`, { bookingId });
+  }
+
+  verifyPaymentSignature(payload: {
+    bookingId: number | string;
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/api/v1/payments/verify-signature`, payload);
+  }
+
   completeJob(bookingId: number, finalFare?: number): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/api/v1/drivers/me/bookings/${bookingId}/complete`, { finalFare });
   }

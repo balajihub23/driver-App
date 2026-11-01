@@ -54,7 +54,7 @@ export class WebSocketService {
   supportMessage$: Observable<SupportSocketEvent> = this.supportMessageSubject.asObservable();
   lifecycleEvent$: Observable<LifecycleSocketEvent> = this.lifecycleSubject.asObservable();
 
-  connectWebSocket(userId?: number | string): void {
+  connectWebSocket(userId?: number | string, driverId?: number | string): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
@@ -92,6 +92,10 @@ export class WebSocketService {
             this.ws?.send(subSupport);
             this.ws?.send(subEvents);
           }
+          if (driverId && String(driverId) !== String(userId)) {
+            const subDriverOffers = `SUBSCRIBE\nid:sub-0-driver\ndestination:/topic/booking-offers/${driverId}\n\n\u0000`;
+            this.ws?.send(subDriverOffers);
+          }
         };
 
         this.ws.onmessage = (event) => {
@@ -105,7 +109,7 @@ export class WebSocketService {
                 const data = JSON.parse(jsonStr);
                 const payload = data.payload || data;
 
-                if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || data.eventType === 'DRIVER_OFFER' || payload.type === 'NEW_BOOKING' || payload.type === 'NEW_BOOKING_OFFER' || (payload.bookingId && !payload.status))) {
+                if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || data.eventType === 'DRIVER_OFFER' || data.type === 'SCHEDULED_RIDE_ALERT' || data.eventType === 'SCHEDULED_RIDE_ALERT' || payload.type === 'SCHEDULED_RIDE_ALERT' || payload.type === 'NEW_BOOKING' || payload.type === 'NEW_BOOKING_OFFER' || (payload.bookingId && !payload.status))) {
                   this.emitOffer(payload);
                 } else if (data && (data.type === 'SUPPORT_CHAT_MESSAGE' || data.type === 'SUPPORT_TICKET_STATUS')) {
                   this.emitSupportEvent(data);

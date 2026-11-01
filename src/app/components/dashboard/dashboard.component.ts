@@ -126,7 +126,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
 
           if (this.isOnline && this.isApproved) {
-            this.webSocketService.connectWebSocket(this.driverProfile.userId || this.driverProfile.id);
+            this.webSocketService.connectWebSocket(this.driverProfile.userId, this.driverProfile.id);
             this.startLiveLocationTracking();
           }
           this.checkVehicleStatus();

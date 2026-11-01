@@ -49,6 +49,10 @@ export class JobsComponent implements OnInit, OnDestroy {
 
   showNavModal: boolean = false;
   showEndJobModal: boolean = false;
+  showPaymentModal: boolean = false;
+  isProcessingCash: boolean = false;
+  isProcessingRazorpay: boolean = false;
+  pendingProofUpload: (() => void) | null = null;
 
   ngOnInit(): void {
     this.loadBookings();
@@ -191,7 +195,8 @@ export class JobsComponent implements OnInit, OnDestroy {
   }
 
   onVerifyOtp(): void {
-    if (!this.otpValue || this.otpValue.trim().length < 4) {
+    const rawOtp = String(this.otpValue ?? '').trim();
+    if (!rawOtp || rawOtp.length < 4) {
       this.otpError = 'Please enter the valid 4-digit OTP provided by customer.';
       return;
     }
@@ -201,7 +206,7 @@ export class JobsComponent implements OnInit, OnDestroy {
     this.isVerifyingOtp = true;
     this.otpError = '';
 
-    this.bookingService.verifyOtp(this.selectedJob.id, this.otpValue.trim()).subscribe({
+    this.bookingService.verifyOtp(this.selectedJob.id, rawOtp).subscribe({
       next: (res) => {
         this.isVerifyingOtp = false;
         if (res.success && res.data) {
@@ -266,8 +271,221 @@ export class JobsComponent implements OnInit, OnDestroy {
     this.isPaused = false;
   }
 
+  isMachineryJob(job: any): boolean {
+    if (!job) return false;
+
+    // Check bookingType
+    const bookingType = String(job.bookingType || '').toUpperCase();
+    if (
+      bookingType.includes('EQUIPMENT') ||
+      bookingType.includes('MACHINERY') ||
+      bookingType.includes('HEAVY') ||
+      bookingType.includes('JCB')
+    ) {
+      return true;
+    }
+
+    // Check fareBreakdownSnapshot
+    if (job.fareBreakdownSnapshot) {
+      try {
+        const snap = typeof job.fareBreakdownSnapshot === 'string'
+          ? JSON.parse(job.fareBreakdownSnapshot)
+          : job.fareBreakdownSnapshot;
+        const pType = String(snap.productType || snap.pricingModel || '').toUpperCase();
+        if (
+          pType.includes('EQUIPMENT') ||
+          pType.includes('MACHINERY') ||
+          pType.includes('JCB') ||
+          pType.includes('EXCAVATOR') ||
+          pType.includes('CRANE') ||
+          pType.includes('ROLLER')
+        ) {
+          return true;
+        }
+      } catch (e) {}
+    }
+
+    // Check productType or category
+    const productType = String(job.productType || job.category || '').toUpperCase();
+    if (
+      productType.includes('EQUIPMENT') ||
+      productType.includes('MACHINERY') ||
+      productType.includes('JCB') ||
+      productType.includes('EXCAVATOR') ||
+      productType.includes('CRANE') ||
+      productType.includes('ROLLER')
+    ) {
+      return true;
+    }
+
+    // Check productName / service name keywords
+    const name = String(job.productName || job.serviceName || '').toLowerCase();
+    const machineryKeywords = [
+      'jcb',
+      'excavator',
+      'crane',
+      'roller',
+      'dozer',
+      'loader',
+      'compactor',
+      'tractor',
+      'heavy equipment',
+      'machinery',
+      'backhoe'
+    ];
+    if (machineryKeywords.some(kw => name.includes(kw))) {
+      return true;
+    }
+
+    return false;
+  }
+
   onOpenEndJobModal(): void {
-    this.showEndJobModal = true;
+    if (!this.selectedJob) return;
+
+    if (this.isMachineryJob(this.selectedJob)) {
+      // Machinery: requires site completion photo & work notes
+      this.showEndJobModal = true;
+    } else {
+      // Car / Bike / Cab / Auto: complete ride directly with confirmation
+      if (confirm('Are you sure you want to complete this ride?')) {
+        this.completeJobDirectly();
+      }
+    }
+  }
+
+  completeJobDirectly(): void {
+    if (!this.selectedJob) return;
+
+    if (this.selectedJob.paymentStatus === 'PAID') {
+      this.finalizeJobDirectly();
+    } else {
+      // Prompt payment verification: Cash vs Online
+      this.showPaymentModal = true;
+    }
+  }
+
+  finalizeJobDirectly(): void {
+    if (!this.selectedJob) return;
+    this.bookingService.completeJob(this.selectedJob.id).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.selectedJob = res.data;
+        } else {
+          this.selectedJob.status = 'COMPLETED';
+        }
+        this.clearTimer();
+        this.viewMode = 'DETAILS';
+        alert('Ride completed successfully! Earnings have been credited to your account.');
+        this.loadBookings();
+      },
+      error: (err) => alert(err?.error?.message || 'Failed to complete ride.')
+    });
+  }
+
+  onConfirmCashPayment(): void {
+    if (!this.selectedJob) return;
+    this.isProcessingCash = true;
+
+    this.bookingService.confirmCashPayment(this.selectedJob.id).subscribe({
+      next: (res) => {
+        this.isProcessingCash = false;
+        this.showPaymentModal = false;
+        if (res.success && res.data) {
+          this.selectedJob = res.data;
+        } else {
+          this.selectedJob.status = 'COMPLETED';
+          this.selectedJob.paymentStatus = 'PAID';
+        }
+        this.clearTimer();
+        this.viewMode = 'DETAILS';
+
+        if (this.pendingProofUpload) {
+          this.pendingProofUpload();
+          this.pendingProofUpload = null;
+        }
+
+        alert('Cash payment confirmed! Ride closed and earnings recorded.');
+        this.loadBookings();
+      },
+      error: (err) => {
+        this.isProcessingCash = false;
+        alert(err?.error?.message || 'Could not record cash payment.');
+      }
+    });
+  }
+
+  loadRazorpayScript(callback: () => void): void {
+    if ((window as any).Razorpay) {
+      callback();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => callback();
+    script.onerror = (err) => console.error('Failed to load Razorpay script', err);
+    document.head.appendChild(script);
+  }
+
+  onCollectOnlineViaRazorpay(): void {
+    if (!this.selectedJob) return;
+    this.isProcessingRazorpay = true;
+    const finalAmount = this.selectedJob.finalFare || this.selectedJob.totalAmount || 274;
+
+    this.bookingService.getBookingSettings().subscribe({
+      next: (settingsRes) => {
+        const keyId = settingsRes?.data?.keyId || 'rzp_test_mGa2SfsXusZ9u7';
+        this.loadRazorpayScript(() => {
+          this.isProcessingRazorpay = false;
+          const options: any = {
+            key: keyId,
+            amount: Math.round(finalAmount * 100),
+            currency: 'INR',
+            name: 'Rentron Platform',
+            description: 'Ride Fare #' + (this.selectedJob.bookingNumber || this.selectedJob.id),
+            prefill: {
+              name: this.selectedJob.customerName || 'Customer',
+              contact: this.selectedJob.customerPhone || '9876543210'
+            },
+            theme: { color: '#F59E0B' },
+            handler: (response: any) => {
+              if (response.razorpay_payment_id) {
+                this.bookingService.verifyPaymentSignature({
+                  bookingId: this.selectedJob.id,
+                  razorpayOrderId: response.razorpay_order_id || ('order_' + Date.now()),
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature || 'mock_sig'
+                }).subscribe({
+                  next: (verifyRes) => {
+                    this.showPaymentModal = false;
+                    this.selectedJob.status = 'COMPLETED';
+                    this.selectedJob.paymentStatus = 'PAID';
+                    this.clearTimer();
+                    this.viewMode = 'DETAILS';
+                    alert('Online payment verified! Ride completed successfully.');
+                    this.loadBookings();
+                  },
+                  error: () => {
+                    this.showPaymentModal = false;
+                    this.selectedJob.status = 'COMPLETED';
+                    this.clearTimer();
+                    this.viewMode = 'DETAILS';
+                    this.loadBookings();
+                  }
+                });
+              }
+            }
+          };
+          const rzp = new (window as any).Razorpay(options);
+          rzp.open();
+        });
+      },
+      error: () => {
+        this.isProcessingRazorpay = false;
+        alert('Could not initialize payment gateway.');
+      }
+    });
   }
 
   onJobEndedWithProof(event: { proofPhoto: File | null; description: string }): void {
@@ -283,6 +501,7 @@ export class JobsComponent implements OnInit, OnDestroy {
             this.selectedJob.status = 'COMPLETED';
           }
           this.clearTimer();
+          this.viewMode = 'DETAILS';
           alert('Job marked as COMPLETED! Earnings have been credited to your account.');
           this.loadBookings();
         },
@@ -290,18 +509,27 @@ export class JobsComponent implements OnInit, OnDestroy {
       });
     };
 
-    if (event.proofPhoto) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Url = reader.result as string;
-        this.bookingService.uploadProof(this.selectedJob.id, base64Url).subscribe({
-          next: () => finalize(),
-          error: () => finalize()
-        });
-      };
-      reader.readAsDataURL(event.proofPhoto);
+    const runProof = () => {
+      if (event.proofPhoto) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64Url = reader.result as string;
+          this.bookingService.uploadProof(this.selectedJob.id, base64Url).subscribe({
+            next: () => finalize(),
+            error: () => finalize()
+          });
+        };
+        reader.readAsDataURL(event.proofPhoto);
+      } else {
+        finalize();
+      }
+    };
+
+    if (this.selectedJob.paymentStatus === 'PAID') {
+      runProof();
     } else {
-      finalize();
+      this.pendingProofUpload = runProof;
+      this.showPaymentModal = true;
     }
   }
 
