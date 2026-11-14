@@ -3,6 +3,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { WebSocketService } from '../../core/services/websocket.service';
+import { Subscription } from 'rxjs';
 import { DriverService } from '../../core/services/driver.service';
 
 @Component({
@@ -18,8 +20,13 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   authService = inject(AuthService);
   driverService = inject(DriverService);
+  webSocketService = inject(WebSocketService);
   router = inject(Router);
   platformId = inject(PLATFORM_ID);
+
+  private otpSubscription: Subscription | null = null;
+  testOtp: string = '';
+  showTestOtpBanner: boolean = false;
 
   currentStep: 'PHONE' | 'OTP' = 'PHONE';
   phoneNumber: string = '';
@@ -29,7 +36,28 @@ export class AuthComponent implements OnInit, OnDestroy {
   resendTimer: number = 30;
   private timerInterval: any = null;
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.webSocketService.connectWebSocket();
+    this.otpSubscription = this.webSocketService.authOtp$.subscribe(event => {
+      if (event && event.otp) {
+        const cleanInput = this.phoneNumber.replace(/[^0-9]/g, '');
+        const eventClean = (event.cleanPhone || event.phone || '').replace(/[^0-9]/g, '');
+        if (!cleanInput || !eventClean || cleanInput.endsWith(eventClean) || eventClean.endsWith(cleanInput)) {
+          this.handleIncomingOtp(event.otp);
+        }
+      }
+    });
+  }
+
+  handleIncomingOtp(otp: string): void {
+    if (!otp) return;
+    this.testOtp = otp;
+    this.showTestOtpBanner = true;
+    const digits = otp.split('');
+    digits.forEach((d: string, i: number) => {
+      if (i < 6) this.otpDigits[i] = d;
+    });
+  }
 
   goBack(): void {
     this.errorMessage = '';
@@ -86,10 +114,13 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     this.authService.sendOtp(this.phoneNumber, 'LOGIN').subscribe({
-      next: () => {
+      next: (res: any) => {
         this.loading = false;
         this.currentStep = 'OTP';
         this.startResendTimer();
+        if (res?.data?.testOtp) {
+          this.handleIncomingOtp(res.data.testOtp);
+        }
       },
       error: () => {
         this.loading = false;
@@ -249,5 +280,9 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearTimer();
+    if (this.otpSubscription) {
+      this.otpSubscription.unsubscribe();
+      this.otpSubscription = null;
+    }
   }
 }

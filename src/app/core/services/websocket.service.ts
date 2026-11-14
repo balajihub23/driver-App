@@ -53,6 +53,8 @@ export class WebSocketService {
   jobOffer$: Observable<JobOfferEvent> = this.jobOfferSubject.asObservable();
   supportMessage$: Observable<SupportSocketEvent> = this.supportMessageSubject.asObservable();
   lifecycleEvent$: Observable<LifecycleSocketEvent> = this.lifecycleSubject.asObservable();
+  private authOtpSubject = new Subject<any>();
+  authOtp$: Observable<any> = this.authOtpSubject.asObservable();
 
   connectWebSocket(userId?: number | string, driverId?: number | string): void {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -83,6 +85,10 @@ export class WebSocketService {
           const connectFrame = `CONNECT\naccept-version:1.1,1.0\nheart-beat:10000,10000\n${authHeaders}\n\u0000`;
           this.ws?.send(connectFrame);
 
+          // Subscribe to general auth OTP broadcast for login testing
+          const subAuthOtp = 'SUBSCRIBE\nid:sub-auth-otp\ndestination:/topic/auth-otp\n\n\u0000';
+          this.ws?.send(subAuthOtp);
+
           if (userId) {
             // Send STOMP SUBSCRIBE frames for offers, support messages, and personal user events
             const subOffers = `SUBSCRIBE\nid:sub-0\ndestination:/topic/booking-offers/${userId}\n\n\u0000`;
@@ -109,7 +115,9 @@ export class WebSocketService {
                 const data = JSON.parse(jsonStr);
                 const payload = data.payload || data;
 
-                if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || data.eventType === 'DRIVER_OFFER' || data.type === 'SCHEDULED_RIDE_ALERT' || data.eventType === 'SCHEDULED_RIDE_ALERT' || payload.type === 'SCHEDULED_RIDE_ALERT' || payload.type === 'NEW_BOOKING' || payload.type === 'NEW_BOOKING_OFFER' || (payload.bookingId && !payload.status))) {
+                if (data && (data.type === 'AUTH_OTP' || data.eventType === 'AUTH_OTP')) {
+                  this.authOtpSubject.next(data);
+                } else if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || data.eventType === 'DRIVER_OFFER' || data.type === 'SCHEDULED_RIDE_ALERT' || data.eventType === 'SCHEDULED_RIDE_ALERT' || payload.type === 'SCHEDULED_RIDE_ALERT' || payload.type === 'NEW_BOOKING' || payload.type === 'NEW_BOOKING_OFFER' || (payload.bookingId && !payload.status))) {
                   this.emitOffer(payload);
                 } else if (data && (data.type === 'SUPPORT_CHAT_MESSAGE' || data.type === 'SUPPORT_TICKET_STATUS')) {
                   this.emitSupportEvent(data);
