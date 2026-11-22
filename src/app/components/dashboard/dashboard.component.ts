@@ -86,7 +86,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
   incomingOfferData: any = null;
   showNavModal: boolean = false;
   private pollOffersSub?: Subscription;
-  private dismissedOfferBookingIds = new Set<number>();
+
+  private getDismissedOfferBookingIds(): Set<number> {
+    try {
+      const raw = sessionStorage.getItem('rentron_dismissed_offers');
+      if (raw) {
+        return new Set<number>(JSON.parse(raw));
+      }
+    } catch {}
+    return new Set<number>();
+  }
+
+  private isOfferDismissed(bookingId: number): boolean {
+    return this.getDismissedOfferBookingIds().has(bookingId);
+  }
+
+  private addDismissedOffer(bookingId: number): void {
+    try {
+      const set = this.getDismissedOfferBookingIds();
+      set.add(bookingId);
+      sessionStorage.setItem('rentron_dismissed_offers', JSON.stringify(Array.from(set)));
+    } catch {}
+  }
 
   private wsSubscription?: Subscription;
   private lifecycleSubscription?: Subscription;
@@ -152,7 +173,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   initWebSocketOffers(): void {
     this.wsSubscription = this.webSocketService.jobOffer$.subscribe((offer: JobOfferEvent) => {
       console.log('Incoming real-time WebSocket job offer received:', offer);
-      if (this.isOnline && offer && !this.dismissedOfferBookingIds.has(Number(offer.bookingId))) {
+      if (this.isOnline && offer && !this.isOfferDismissed(Number(offer.bookingId))) {
         this.incomingOfferData = offer;
         this.showIncomingOffer = true;
       }
@@ -306,9 +327,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (res) => {
         const offers = (res && res.success && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
         if (offers.length > 0 && this.isOnline && !this.showIncomingOffer && !this.activeJob) {
-          const validOffer = offers.find((o: any) => 
-            o.status === 'OFFERED' && !this.dismissedOfferBookingIds.has(Number(o.bookingId))
-          );
+          const now = Date.now();
+          const validOffer = offers.find((o: any) => {
+            if (o.status !== 'OFFERED') return false;
+            const bId = Number(o.bookingId);
+            if (this.isOfferDismissed(bId)) return false;
+            if (o.offeredAt) {
+              const offeredTime = new Date(o.offeredAt).getTime();
+              // Don't show offers older than 45 seconds
+              if (now - offeredTime > 45000) return false;
+            }
+            return true;
+          });
           if (validOffer) {
             this.incomingOfferData = {
               bookingId: validOffer.bookingId,
@@ -333,7 +363,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onDismissOffer(offer: any): void {
     this.showIncomingOffer = false;
     if (offer?.bookingId) {
-      this.dismissedOfferBookingIds.add(Number(offer.bookingId));
+      const bId = Number(offer.bookingId);
+      this.addDismissedOffer(bId);
+      this.bookingService.rejectOffer(bId, 'Dismissed by driver').subscribe({
+        next: () => {},
+        error: () => {}
+      });
     }
   }
 
@@ -359,8 +394,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onDeclineOffer(offer: any): void {
     this.showIncomingOffer = false;
     if (offer && offer.bookingId) {
-      this.dismissedOfferBookingIds.add(Number(offer.bookingId));
-      this.bookingService.rejectOffer(offer.bookingId, offer.declineReason || 'Declined by driver').subscribe({
+      const bId = Number(offer.bookingId);
+      this.addDismissedOffer(bId);
+      this.bookingService.rejectOffer(bId, offer.declineReason || 'Declined by driver').subscribe({
         error: () => {}
       });
     }
