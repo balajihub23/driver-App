@@ -4,7 +4,16 @@
     <!-- 1. NEW JOB REQUEST MODAL -->
     @if (currentStep === 'NEW_REQUEST') {
       <div class="offer-sheet animate-slide-up">
-        <div class="sheet-drag-handle"></div>
+        <!-- Top bar with handle and dismiss button -->
+        <div class="sheet-top-bar">
+          <div class="top-bar-placeholder"></div>
+          <div class="sheet-drag-handle"></div>
+          <button type="button" class="btn-sheet-close-dismiss" (click)="onDismissClick()" title="Close popup" aria-label="Close">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M1 1L13 13M1 13L13 1"/>
+            </svg>
+          </button>
+        </div>
 
         <!-- Timer Circle Ring -->
         <div class="timer-ring-wrapper">
@@ -32,7 +41,7 @@
           <div class="attr-row">
             <div class="attr-left">
               <span class="attr-icon yellow-icon">📍</span>
-              <div>
+              <div class="attr-text-box">
                 <span class="attr-label">Pickup Location</span>
                 <strong class="attr-value">{{ offerData.pickupLocation || 'Nearby Site' }}</strong>
               </div>
@@ -44,7 +53,7 @@
             <div class="attr-row">
               <div class="attr-left">
                 <span class="attr-icon yellow-icon">🏁</span>
-                <div>
+                <div class="attr-text-box">
                   <span class="attr-label">Destination</span>
                   <strong class="attr-value">{{ offerData.dropLocation }}</strong>
                 </div>
@@ -55,7 +64,7 @@
           <div class="attr-row">
             <div class="attr-left">
               <span class="attr-icon yellow-icon">🚜</span>
-              <div>
+              <div class="attr-text-box">
                 <span class="attr-label">Vehicle / Machinery</span>
                 <strong class="attr-value">{{ offerData.productName || 'Standard' }}</strong>
               </div>
@@ -66,7 +75,7 @@
           <div class="attr-row">
             <div class="attr-left">
               <span class="attr-icon yellow-icon">🕒</span>
-              <div>
+              <div class="attr-text-box">
                 <span class="attr-label">Est. Duration</span>
                 <strong class="attr-value">{{ offerData.duration || 'Standard' }}</strong>
               </div>
@@ -76,7 +85,7 @@
           <div class="attr-row highlight-earning">
             <div class="attr-left">
               <span class="attr-icon yellow-icon">💰</span>
-              <div>
+              <div class="attr-text-box">
                 <span class="attr-label">Your Earning</span>
                 <strong class="attr-value price-text">₹{{ (offerData.estimatedEarning || offerData.totalAmount || 0) | number:'1.0-0' }}</strong>
               </div>
@@ -94,7 +103,8 @@
 
         <div class="review-link-wrapper text-center">
           <button class="btn-review-link" (click)="onReviewConnectClick()">
-            🔍 View details & instructions
+            <span class="search-icon">🔍</span>
+            <span>View details & instructions</span>
           </button>
         </div>
       </div>
@@ -149,7 +159,16 @@
     <!-- 4. REVIEW & CONNECT MODAL -->
     @if (currentStep === 'REVIEW_CONNECT') {
       <div class="offer-sheet animate-slide-up">
-        <div class="sheet-drag-handle"></div>
+        <!-- Top bar with handle and dismiss button -->
+        <div class="sheet-top-bar">
+          <div class="top-bar-placeholder"></div>
+          <div class="sheet-drag-handle"></div>
+          <button type="button" class="btn-sheet-close-dismiss" (click)="onDismissClick()" title="Close popup" aria-label="Close">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M1 1L13 13M1 13L13 1"/>
+            </svg>
+          </button>
+        </div>
 
         <div class="review-icon-badge text-center">
           <span class="check-icon">✓</span>

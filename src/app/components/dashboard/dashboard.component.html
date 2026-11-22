@@ -210,7 +210,7 @@
 
   <!-- Incoming Booking Offer Modal (Screenshots 1 & 2) -->
   <app-booking-offer-modal [isOpen]="showIncomingOffer" [offerData]="incomingOfferData"
-    (accepted)="onAcceptOffer($event)" (declined)="onDeclineOffer($event)"
+    (accepted)="onAcceptOffer($event)" (declined)="onDeclineOffer($event)" (dismissed)="onDismissOffer($event)"
     (viewDetails)="goToJobDetails($event?.bookingId)"></app-booking-offer-modal>
 
   <!-- Interactive Navigation Map View (Screenshot 3) -->

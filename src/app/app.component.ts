@@ -6,6 +6,7 @@ import { ThemeService } from './core/services/theme.service';
 import { WebSocketService } from './core/services/websocket.service';
 import { NotificationService } from './core/services/notification.service';
 import { AuthService } from './core/services/auth.service';
+import { GlobalAutoTranslateService } from './plugins/language-plugin';
 
 @Component({
   selector: 'app-root',
@@ -21,12 +22,14 @@ export class AppComponent implements OnInit, OnDestroy {
   notificationService = inject(NotificationService);
   authService = inject(AuthService);
   router = inject(Router);
+  globalAutoTranslate = inject(GlobalAutoTranslateService);
 
   private supportSub?: Subscription;
 
   ngOnInit(): void {
     const user = this.authService.currentUser ? this.authService.currentUser() : null;
     const userId = user?.id || 1;
+    this.globalAutoTranslate.startGlobalAutoTranslate();
     this.wsService.connectWebSocket(userId);
 
     // Listen to real-time support messages via STOMP WebSocket

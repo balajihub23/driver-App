@@ -18,27 +18,27 @@
           <button class="camera-btn" title="Change Photo">📷</button>
         </div>
         <div class="hero-info">
-          <h3 class="driver-name">{{ driverProfile?.fullName || editForm.fullName || 'Driver' }}</h3>
+          <h3 class="driver-name notranslate" notranslate translate="no">{{ driverProfile?.fullName || editForm.fullName || 'Driver' }}</h3>
           <p class="driver-role">{{ driverProfile?.selectedMachineryModel || driverProfile?.role || 'Driver Partner' }}
           </p>
           @if (driverProfile?.phone || editForm.phone) {
-          <p class="driver-phone">+91 {{ driverProfile?.phone || editForm.phone }}</p>
+          <p class="driver-phone notranslate" notranslate translate="no">+91 {{ driverProfile?.phone || editForm.phone }}</p>
           }
         </div>
       </div>
 
-      <!-- 3 Metric Cards Row -->
+      <!-- 3 Metric Cards Row (Dynamic Backend Data) -->
       <div class="metrics-row">
         <div class="metric-card">
-          <span class="m-val">{{ driverProfile?.totalJobs || 12 }}</span>
+          <span class="m-val">{{ totalJobsCount }}</span>
           <span class="m-lbl">Jobs</span>
         </div>
         <div class="metric-card">
-          <span class="m-val">⭐ {{ driverProfile?.rating || '4.8' }}</span>
+          <span class="m-val">⭐ {{ driverProfile?.rating || '5.0' }}</span>
           <span class="m-lbl">Rating</span>
         </div>
         <div class="metric-card">
-          <span class="m-val">{{ driverProfile?.experience || '2.5' }}</span>
+          <span class="m-val">{{ driverProfile?.experience || getDriverExperience() || '0' }}</span>
           <span class="m-lbl">Experience</span>
         </div>
       </div>
@@ -103,7 +103,7 @@
           </label>
         </div>
 
-        <div class="menu-item" (click)="navigateTo('LANGUAGE')">
+        <div class="menu-item" (click)="openLanguageModal()">
           <div class="menu-left">
             <span class="m-icon icon-globe">🌐</span>
             <span class="m-title">Language</span>
@@ -1755,3 +1755,4 @@
   </div>
   }
 </div>
+<app-language-switcher [(isOpen)]="isLanguageModalOpen" displayMode="bottom-sheet" (languageChanged)="onLanguageChanged($event)"></app-language-switcher>

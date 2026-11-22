@@ -3,7 +3,7 @@ import { environment } from '../../../environments/environment';
 import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, interval } from 'rxjs';
 import { DriverHeaderComponent } from '../../shared/components/driver-header/driver-header.component';
 import { BottomNavigationComponent } from '../../shared/components/bottom-navigation/bottom-navigation.component';
 import { BookingOfferModalComponent } from '../../shared/components/booking-offer-modal/booking-offer-modal.component';
@@ -85,6 +85,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showIncomingOffer: boolean = false;
   incomingOfferData: any = null;
   showNavModal: boolean = false;
+  private pollOffersSub?: Subscription;
+  private dismissedOfferBookingIds = new Set<number>();
 
   private wsSubscription?: Subscription;
   private lifecycleSubscription?: Subscription;
@@ -116,8 +118,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (profile) {
           this.driverProfile = profile;
           const status = (profile.status || '').toUpperCase();
-          this.isApproved = (status === 'ACTIVE' || status === 'ONLINE' || status === 'ACTIVE_ONLINE');
           this.isPendingVerification = (status === 'PENDING_VERIFICATION' || status === 'DRAFT');
+          this.isApproved = !this.isPendingVerification && status !== 'SUSPENDED' && status !== 'REJECTED';
           this.isOnline = profile.isOnline ?? false;
 
           // Register device push token with backend
@@ -125,9 +127,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.authService.registerDeviceToken(profile.userId);
           }
 
+          // Always connect WebSocket with driver credentials
+          this.webSocketService.connectWebSocket(this.driverProfile.userId, this.driverProfile.id);
+
           if (this.isOnline && this.isApproved) {
-            this.webSocketService.connectWebSocket(this.driverProfile.userId, this.driverProfile.id);
             this.startLiveLocationTracking();
+            this.startOfferPolling();
           }
           this.checkVehicleStatus();
         } else {
@@ -147,7 +152,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   initWebSocketOffers(): void {
     this.wsSubscription = this.webSocketService.jobOffer$.subscribe((offer: JobOfferEvent) => {
       console.log('Incoming real-time WebSocket job offer received:', offer);
-      if (this.isOnline && offer) {
+      if (this.isOnline && offer && !this.dismissedOfferBookingIds.has(Number(offer.bookingId))) {
         this.incomingOfferData = offer;
         this.showIncomingOffer = true;
       }
@@ -236,8 +241,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         next: (res) => {
           if (res.success) {
             this.isOnline = true;
-            this.webSocketService.connectWebSocket(this.driverProfile?.userId || this.driverProfile?.id);
+            this.isApproved = true;
+            this.webSocketService.connectWebSocket(this.driverProfile?.userId, this.driverProfile?.id);
             this.startLiveLocationTracking();
+            this.startOfferPolling();
           } else {
             this.isOnline = false;
             alert(res.message || 'Unable to go online');
@@ -250,8 +257,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     } else {
       this.isOnline = false;
+      this.stopOfferPolling();
       this.locationService.stopTracking();
-      this.webSocketService.disconnectWebSocket();
       this.showIncomingOffer = false;
       this.driverService.toggleOnline(false).subscribe();
     }
@@ -276,9 +283,64 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  startOfferPolling(): void {
+    this.stopOfferPolling();
+    this.checkPendingOffers();
+    this.pollOffersSub = interval(4000).subscribe(() => {
+      if (this.isOnline && !this.showIncomingOffer && !this.activeJob) {
+        this.checkPendingOffers();
+      }
+    });
+  }
+
+  stopOfferPolling(): void {
+    if (this.pollOffersSub) {
+      this.pollOffersSub.unsubscribe();
+      this.pollOffersSub = undefined;
+    }
+  }
+
+  checkPendingOffers(): void {
+    if (!this.isOnline || this.showIncomingOffer || this.activeJob) return;
+    this.bookingService.getMyOffers().subscribe({
+      next: (res) => {
+        const offers = (res && res.success && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
+        if (offers.length > 0 && this.isOnline && !this.showIncomingOffer && !this.activeJob) {
+          const validOffer = offers.find((o: any) => 
+            o.status === 'OFFERED' && !this.dismissedOfferBookingIds.has(Number(o.bookingId))
+          );
+          if (validOffer) {
+            this.incomingOfferData = {
+              bookingId: validOffer.bookingId,
+              bookingNumber: validOffer.bookingNumber,
+              productName: validOffer.productName || validOffer.bookingType || 'Standard Ride',
+              pickupLocation: validOffer.pickupAddress || 'Nearby Pickup Location',
+              dropLocation: validOffer.destinationAddress || 'Destination',
+              distance: validOffer.distanceKm ? `${validOffer.distanceKm} km` : 'Nearby',
+              estimatedEarning: validOffer.driverAmount || validOffer.totalAmount || 0,
+              totalAmount: validOffer.totalAmount || 0,
+              expiresInSeconds: 30,
+              rawPayload: validOffer
+            };
+            this.showIncomingOffer = true;
+          }
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  onDismissOffer(offer: any): void {
+    this.showIncomingOffer = false;
+    if (offer?.bookingId) {
+      this.dismissedOfferBookingIds.add(Number(offer.bookingId));
+    }
+  }
+
   onAcceptOffer(offer: any): void {
     this.showIncomingOffer = false;
     if (offer && offer.bookingId) {
+      this.stopOfferPolling();
       this.bookingService.acceptOffer(offer.bookingId).subscribe({
         next: (res) => {
           if (res.success) {
@@ -297,6 +359,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onDeclineOffer(offer: any): void {
     this.showIncomingOffer = false;
     if (offer && offer.bookingId) {
+      this.dismissedOfferBookingIds.add(Number(offer.bookingId));
       this.bookingService.rejectOffer(offer.bookingId, offer.declineReason || 'Declined by driver').subscribe({
         error: () => {}
       });

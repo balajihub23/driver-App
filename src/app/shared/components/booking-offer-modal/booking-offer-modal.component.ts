@@ -18,6 +18,7 @@ export class BookingOfferModalComponent implements OnInit, OnDestroy, OnChanges 
   @Output() accepted = new EventEmitter<any>();
   @Output() declined = new EventEmitter<any>();
   @Output() viewDetails = new EventEmitter<any>();
+  @Output() dismissed = new EventEmitter<any>();
 
   currentStep: OfferStep = 'NEW_REQUEST';
   remainingSeconds: number = 30;
@@ -103,6 +104,12 @@ export class BookingOfferModalComponent implements OnInit, OnDestroy, OnChanges 
 
   onViewJobDetailsClick(): void {
     this.viewDetails.emit(this.offerData);
+  }
+
+  onDismissClick(): void {
+    this.clearTimer();
+    this.isOpen = false;
+    this.dismissed.emit(this.offerData);
   }
 
   onCloseDone(): void {

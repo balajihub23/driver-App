@@ -88,34 +88,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  background: var(--surface, #ffffff);
+  border-bottom: 1px solid var(--border, #e2e8f0);
   position: sticky;
   top: 0;
   z-index: 50;
+  gap: 10px;
 
   .btn-top-back {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    color: #0f172a;
+    padding: 8px 12px;
+    background: var(--surface-secondary, #f1f5f9);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 12px;
+    color: var(--text-primary, #0f172a);
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 
     &:hover {
-      background: #e2e8f0;
+      background: var(--surface-tertiary, #e2e8f0);
+      transform: translateX(-1px);
     }
 
-    .back-arrow {
-      font-size: 16px;
-      line-height: 1;
+    svg {
+      color: inherit;
     }
     .back-text {
       line-height: 1;
@@ -128,33 +130,33 @@
     align-items: center;
     text-align: center;
     flex: 1;
-    margin: 0 12px;
+    min-width: 0;
 
     .booking-code {
       font-size: 11px;
       font-weight: 700;
-      color: #64748b;
-      letter-spacing: 0.3px;
+      color: var(--primary, #f59e0b);
+      letter-spacing: 0.5px;
+      font-family: monospace;
+      text-transform: uppercase;
     }
 
     .top-bar-title {
       font-size: 15px;
       font-weight: 800;
-      color: #0f172a;
-      margin: 1px 0 0 0;
+      color: var(--text-primary, #0f172a);
+      margin: 2px 0 0 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 180px;
+      max-width: 100%;
     }
   }
 
   .top-bar-right {
-    display: flex;
-    align-items: center;
+    flex-shrink: 0;
   }
 }
-
 
 .jobs-content {
   padding: 16px 20px;
@@ -867,192 +869,605 @@
 }
 
 
-/* 3. FULL JOB DETAILS VIEW (Screenshot 5) */
+/* 3. FULL JOB DETAILS VIEW (Modern Ride-Hailing Style) */
 .job-details-screen {
-  .job-details-title-row {
-    margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
 
-    .booking-ref {
-      font-size: 12px;
-      font-weight: 700;
-      color: #64748b;
-    }
-
-    h2 {
-      font-size: 20px;
-      font-weight: 800;
-      color: #0f172a;
-      margin: 2px 0 0 0;
-    }
-  }
-
-  .earnings-banner-card {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    border: 1px solid #fde68a;
-    border-radius: 18px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
-
-    .earnings-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-
-      .cash-icon {
-        font-size: 28px;
-      }
-
-      .lbl {
-        font-size: 12px;
-        color: #92400e;
-      }
-
-      .earning-amount {
-        font-size: 24px;
-        font-weight: 900;
-        color: #78350f;
-        margin: 0;
-      }
-    }
-  }
-
+  /* Standard Card Style */
   .card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
     border-radius: 18px;
-    padding: 16px;
-    margin-bottom: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+  }
 
-    .card-lbl {
-      font-size: 12px;
-      font-weight: 800;
-      color: #64748b;
-      display: block;
-      margin-bottom: 10px;
-      text-transform: uppercase;
+  /* 1. Earnings Hero Banner */
+  .earnings-hero-card {
+    position: relative;
+    border-radius: 20px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    color: #FFFFFF;
+
+    .earnings-hero-glow {
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(255, 193, 7, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .earnings-main-content {
+      position: relative;
+      z-index: 1;
+
+      .earnings-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+
+        .earnings-meta-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          .earnings-coin-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+          }
+
+          .earnings-labels {
+            display: flex;
+            flex-direction: column;
+
+            .earning-micro-tag {
+              font-size: 10px;
+              font-weight: 800;
+              letter-spacing: 0.8px;
+              color: #FFC107;
+            }
+
+            .earning-subtext {
+              font-size: 12px;
+              color: #94A3B8;
+            }
+          }
+        }
+
+        .payout-status-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 700;
+          background: rgba(16, 185, 129, 0.15);
+          color: #34D399;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+
+          .chip-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #34D399;
+          }
+        }
+      }
+
+      .earnings-value-row {
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+
+        .currency-symbol {
+          font-size: 24px;
+          font-weight: 700;
+          color: #FFC107;
+        }
+
+        .earning-number {
+          font-size: 38px;
+          font-weight: 900;
+          color: #FFFFFF;
+          line-height: 1;
+          letter-spacing: -0.5px;
+        }
+
+        .earning-decimal {
+          font-size: 18px;
+          font-weight: 700;
+          color: #94A3B8;
+        }
+      }
     }
   }
 
-  .info-card {
-    .card-main-text {
-      font-size: 16px;
-      font-weight: 800;
-      color: #0f172a;
-      margin: 4px 0 8px 0;
-    }
-
-    .schedule-badge-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      .sched-time {
-        font-size: 13px;
-        color: #475569;
-      }
-
-      .hours-badge {
-        background: #e0e7ff;
-        color: #3730a3;
-        font-size: 11px;
-        font-weight: 800;
-        padding: 3px 8px;
-        border-radius: 10px;
-      }
-    }
-  }
-
+  /* 2. Customer Card */
   .customer-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
 
     .customer-info-left {
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 0;
 
-      .avatar-circle {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        background: #0f172a;
-        color: #ffffff;
-        font-size: 14px;
-        font-weight: 800;
+      .customer-avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+
+        .avatar-circle {
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .customer-verified-badge {
+          position: absolute;
+          bottom: -2px;
+          right: -2px;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: #10B981;
+          color: #FFFFFF;
+          font-size: 9px;
+          font-weight: 900;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid var(--surface, #1E293B);
+        }
+      }
+
+      .customer-text-col {
         display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+        flex-direction: column;
+        min-width: 0;
 
-      .lbl-cust {
-        font-size: 11px;
-        color: #94a3b8;
-      }
+        .lbl-cust {
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.6px;
+          color: var(--text-muted, #64748B);
+        }
 
-      .cust-name {
-        font-size: 15px;
-        font-weight: 800;
-        color: #0f172a;
-        margin: 0;
+        .cust-name {
+          font-size: 16px;
+          font-weight: 800;
+          color: var(--text-primary, #0F172A);
+          margin: 1px 0 2px 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .cust-meta-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: var(--text-secondary, #64748B);
+
+          .meta-separator {
+            color: var(--border, #CBD5E1);
+          }
+
+          .verified-label {
+            color: #10B981;
+            font-weight: 600;
+          }
+        }
       }
     }
 
     .customer-actions-right {
       display: flex;
+      align-items: center;
       gap: 8px;
+      flex-shrink: 0;
 
-      .btn-circle-action {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        font-size: 16px;
+      .btn-contact-action {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        border: none;
         cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all 0.2s ease;
 
-        &:hover {
-          background: #f1f5f9;
+        &.btn-msg {
+          background: rgba(59, 130, 246, 0.15);
+          color: #3B82F6;
+          border: 1px solid rgba(59, 130, 246, 0.3);
+
+          &:hover {
+            background: rgba(59, 130, 246, 0.25);
+            transform: translateY(-1px);
+          }
+        }
+
+        &.btn-call {
+          background: rgba(16, 185, 129, 0.15);
+          color: #10B981;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+
+          &:hover {
+            background: rgba(16, 185, 129, 0.25);
+            transform: translateY(-1px);
+          }
         }
       }
     }
   }
 
-  .site-location-card {
-    .map-snapshot-box {
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid #cbd5e1;
-      cursor: pointer;
+  /* 3. Connected Route Timeline Card */
+  .route-timeline-card {
+    .route-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border, #E2E8F0);
 
-      .map-img-placeholder {
-        height: 90px;
-        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-        position: relative;
+      .card-section-label {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        color: var(--text-muted, #64748B);
+      }
+
+      .route-trip-tag {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--primary, #F59E0B);
+        background: rgba(245, 158, 11, 0.1);
+        padding: 3px 8px;
+        border-radius: 6px;
+      }
+    }
+
+    .route-timeline-container {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 18px;
+
+      .timeline-step {
+        display: flex;
+        gap: 14px;
+
+        .timeline-node-col {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 24px;
+          flex-shrink: 0;
+
+          .timeline-node {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            &.green-node {
+              background: rgba(16, 185, 129, 0.2);
+              border: 2px solid #10B981;
+              .inner-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background-color: #10B981;
+              }
+            }
+
+            &.red-node {
+              background: rgba(239, 68, 68, 0.2);
+              border: 2px solid #EF4444;
+              border-radius: 4px;
+              .inner-square {
+                width: 6px;
+                height: 6px;
+                background-color: #EF4444;
+              }
+            }
+          }
+
+          .timeline-track-line {
+            width: 2px;
+            flex: 1;
+            min-height: 38px;
+            background: repeating-linear-gradient(
+              to bottom,
+              var(--border, #CBD5E1),
+              var(--border, #CBD5E1) 4px,
+              transparent 4px,
+              transparent 8px
+            );
+            margin: 4px 0;
+          }
+        }
+
+        .timeline-content-col {
+          flex: 1;
+          padding-bottom: 12px;
+
+          .timeline-node-lbl {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            display: block;
+            margin-bottom: 4px;
+
+            &.text-emerald {
+              color: #10B981;
+            }
+            &.text-amber {
+              color: #F59E0B;
+            }
+          }
+
+          .timeline-address-text {
+            font-size: 13.5px;
+            font-weight: 600;
+            line-height: 1.45;
+            color: var(--text-primary, #0F172A);
+            margin: 0;
+          }
+        }
+      }
+    }
+
+    /* Navigation Button */
+    .btn-open-navigation-map {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface-secondary, #F1F5F9);
+      border: 1px solid var(--border, #CBD5E1);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+
+      &:hover {
+        background: var(--surface-tertiary, #E2E8F0);
+        border-color: var(--primary, #FFC107);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      }
+
+      .map-btn-left {
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 12px;
 
-        .map-pin-overlay {
-          font-size: 28px;
+        .map-icon-box {
+          font-size: 24px;
+          line-height: 1;
+        }
+
+        .map-btn-text {
+          display: flex;
+          flex-direction: column;
+
+          .btn-main-txt {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-primary, #0F172A);
+          }
+
+          .btn-sub-txt {
+            font-size: 11px;
+            color: var(--text-muted, #64748B);
+          }
         }
       }
 
-      .map-addr-pill {
-        background: #ffffff;
-        padding: 10px 14px;
+      .map-btn-arrow {
+        color: var(--text-muted, #64748B);
+      }
+    }
+  }
 
-        strong {
-          font-size: 14px;
-          color: #0f172a;
-          display: block;
+  /* 4. Trip Specs Grid */
+  .trip-specs-card {
+    padding: 14px 18px;
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+
+      .spec-cell {
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--border, #E2E8F0);
+        padding-right: 8px;
+
+        &:last-child {
+          border-right: none;
+          padding-right: 0;
         }
 
-        p {
+        .spec-label {
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          color: var(--text-muted, #64748B);
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+
+        .spec-value {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--text-primary, #0F172A);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  /* 5. Dispatch / Completion Action Section */
+  .dispatch-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .completed-receipt-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 16px;
+
+      .receipt-icon-bubble {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #10B981;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+      }
+
+      .receipt-text-col {
+        display: flex;
+        flex-direction: column;
+
+        .receipt-title {
+          font-size: 15px;
+          font-weight: 800;
+          color: #10B981;
+          margin: 0 0 2px 0;
+        }
+
+        .receipt-subtitle {
           font-size: 12px;
-          color: #64748b;
-          margin: 2px 0 0 0;
+          color: var(--text-secondary, #475569);
+          margin: 0;
+          line-height: 1.4;
         }
+      }
+    }
+
+    .btn-return-jobs {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      background: var(--surface-secondary, #F1F5F9);
+      border: 1px solid var(--border, #E2E8F0);
+      color: var(--text-primary, #0F172A);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+
+      &:hover {
+        background: var(--surface-tertiary, #E2E8F0);
+      }
+    }
+
+    .btn-ack-dispatch {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px;
+      background: linear-gradient(135deg, #FFC107 0%, #F59E0B 100%);
+      color: #0F172A;
+      font-size: 15px;
+      font-weight: 800;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3);
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 22px rgba(245, 158, 11, 0.4);
+      }
+    }
+
+    .btn-decline-job {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #EF4444;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.1);
+      }
+    }
+
+    .btn-yellow-end {
+      width: 100%;
+      padding: 14px;
+      background: #EF4444;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 800;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #DC2626;
       }
     }
   }
@@ -1562,6 +1977,296 @@
       &:hover {
         color: #0f172a;
       }
+    }
+  }
+}
+
+/* =========================================================
+   COMPREHENSIVE DARK MODE SUPPORT FOR BOOKING DETAIL SCREENS
+   ========================================================= */
+:host-context([data-theme="dark"]),
+:host-context(.dark-mode) {
+  .job-detail-top-bar {
+    background: var(--surface, #1E293B) !important;
+    border-bottom: 1px solid var(--border, #334155) !important;
+
+    .btn-top-back {
+      background: var(--surface-secondary, #334155) !important;
+      border: 1px solid var(--border, #475569) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+
+      &:hover {
+        background: var(--surface-tertiary, #475569) !important;
+      }
+
+      .back-arrow, .back-text {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+    }
+
+    .top-bar-center {
+      .top-bar-title {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+      .booking-code {
+        color: var(--text-muted, #94A3B8) !important;
+      }
+    }
+  }
+
+  .earnings-banner-card {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%) !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+
+    .earnings-left {
+      .lbl {
+        color: #FBBF24 !important;
+      }
+      .earning-amount {
+        color: #FCD34D !important;
+      }
+    }
+  }
+
+  .job-details-screen {
+    .card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+
+      .card-lbl {
+        color: var(--text-muted, #94A3B8) !important;
+      }
+    }
+
+    .customer-card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+
+      .customer-info-left {
+        .avatar-circle {
+          background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+          color: #FFFFFF !important;
+        }
+        .lbl-cust {
+          color: var(--text-muted, #94A3B8) !important;
+        }
+        .cust-name {
+          color: var(--text-primary, #F8FAFC) !important;
+        }
+        .cust-meta-row {
+          color: #94A3B8 !important;
+          .cust-phone {
+            color: #CBD5E1 !important;
+          }
+          .meta-separator {
+            color: #475569 !important;
+          }
+        }
+      }
+
+      .customer-actions-right {
+        .btn-contact-action {
+          &.btn-msg {
+            background: rgba(59, 130, 246, 0.2) !important;
+            border-color: rgba(59, 130, 246, 0.4) !important;
+            color: #60A5FA !important;
+          }
+          &.btn-call {
+            background: rgba(16, 185, 129, 0.2) !important;
+            border-color: rgba(16, 185, 129, 0.4) !important;
+            color: #34D399 !important;
+          }
+        }
+      }
+    }
+
+    .route-timeline-card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+
+      .route-card-header {
+        border-color: #334155 !important;
+        .card-section-label {
+          color: #94A3B8 !important;
+        }
+      }
+
+      .timeline-track-line {
+        background: repeating-linear-gradient(
+          to bottom,
+          #475569,
+          #475569 4px,
+          transparent 4px,
+          transparent 8px
+        ) !important;
+      }
+
+      .timeline-address-text {
+        color: #F8FAFC !important;
+      }
+
+      .btn-open-navigation-map {
+        background: #334155 !important;
+        border-color: #475569 !important;
+
+        .btn-main-txt {
+          color: #F8FAFC !important;
+        }
+        .btn-sub-txt {
+          color: #94A3B8 !important;
+        }
+        .map-btn-arrow {
+          color: #94A3B8 !important;
+        }
+
+        &:hover {
+          background: #475569 !important;
+        }
+      }
+    }
+
+    .trip-specs-card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+
+      .specs-grid {
+        .spec-cell {
+          border-color: #334155 !important;
+          .spec-label {
+            color: #94A3B8 !important;
+          }
+          .spec-value {
+            color: #F8FAFC !important;
+          }
+        }
+      }
+    }
+
+    .dispatch-actions-container {
+      .completed-receipt-card {
+        background: rgba(16, 185, 129, 0.15) !important;
+        border-color: rgba(16, 185, 129, 0.35) !important;
+
+        .receipt-title {
+          color: #34D399 !important;
+        }
+        .receipt-subtitle {
+          color: #CBD5E1 !important;
+        }
+      }
+
+      .btn-return-jobs {
+        background: #334155 !important;
+        border-color: #475569 !important;
+        color: #F8FAFC !important;
+
+        &:hover {
+          background: #475569 !important;
+        }
+      }
+    }
+
+    .vehicle-specs-card,
+    .info-card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+
+      h4, .card-main-text {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+    }
+  }
+
+  /* Status Banner in Dark Mode */
+  .bg-emerald-50 {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+    color: #34D399 !important;
+  }
+
+  /* Arrived Screen */
+  .arrived-screen {
+    .arrived-card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+
+      .arrived-title {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+      .arrived-subtitle {
+        color: var(--text-secondary, #CBD5E1) !important;
+      }
+
+      .arrived-details-box {
+        background: var(--surface-secondary, #334155) !important;
+        border-color: var(--border, #475569) !important;
+
+        .lbl {
+          color: var(--text-muted, #94A3B8) !important;
+        }
+        .val, .val-name {
+          color: var(--text-primary, #F8FAFC) !important;
+        }
+      }
+    }
+  }
+
+  /* Trip in Progress Screen */
+  .in-progress-screen {
+    .in-progress-location-card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+
+      .loc-micro-label {
+        color: var(--text-muted, #94A3B8) !important;
+      }
+      .loc-addr-text {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+      .btn-map-shortcut {
+        background: var(--surface-secondary, #334155) !important;
+        border: 1px solid var(--border, #475569) !important;
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+    }
+
+    .timer-display-card {
+      background: var(--surface, #1E293B) !important;
+      border: 1px solid var(--border, #334155) !important;
+
+      .timer-digits {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+      .timer-unit {
+        color: var(--text-muted, #94A3B8) !important;
+      }
+    }
+  }
+
+  /* OTP Dialog */
+  .otp-dialog-card {
+    background: var(--surface, #1E293B) !important;
+    border: 1px solid var(--border, #334155) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+
+    h3 {
+      color: var(--text-primary, #F8FAFC) !important;
+    }
+    .otp-sub {
+      color: var(--text-secondary, #CBD5E1) !important;
+    }
+    .otp-digit-input {
+      background: var(--surface-secondary, #334155) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+      border-color: var(--border, #475569) !important;
+    }
+    .btn-cancel-otp {
+      background: var(--surface-secondary, #334155) !important;
+      color: var(--text-secondary, #CBD5E1) !important;
+      border-color: var(--border, #475569) !important;
     }
   }
 }

@@ -5,6 +5,7 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { BottomNavigationComponent } from '../../shared/components/bottom-navigation/bottom-navigation.component';
 import { ImageUploadModalComponent } from '../../shared/components/image-upload-modal/image-upload-modal.component';
 import { DriverService } from '../../core/services/driver.service';
+import { BookingService } from '../../core/services/booking.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 import { DocumentService } from '../../core/services/document.service';
@@ -14,6 +15,7 @@ import { environment } from '../../../environments/environment';
 import { LogoutModalComponent } from '../../shared/components/logout-modal/logout-modal.component';
 
 import { VehicleMasterService, VehicleType, VehicleModel, VehicleSubModel } from '../../core/services/vehicle-master.service';
+import { LanguageManagerService, GlobalAutoTranslateService, SupportedLanguage, LanguageSwitcherComponent } from '../../plugins/language-plugin';
 
 export type ProfileSubView =
   | 'MAIN'
@@ -118,13 +120,15 @@ export interface DriverVehicle {
     RouterModule,
     BottomNavigationComponent,
     ImageUploadModalComponent,
-    LogoutModalComponent
+    LogoutModalComponent,
+    LanguageSwitcherComponent
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
 export class ProfileComponent implements OnInit {
   driverService = inject(DriverService);
+  bookingService = inject(BookingService);
   authService = inject(AuthService);
   themeService = inject(ThemeService);
   documentService = inject(DocumentService);
@@ -133,6 +137,8 @@ export class ProfileComponent implements OnInit {
   route = inject(ActivatedRoute);
   http = inject(HttpClient);
   platformId = inject(PLATFORM_ID);
+
+  totalJobsCount: number = 0;
 
   get isFleetDriver(): boolean {
     const role = isPlatformBrowser(this.platformId) ? localStorage.getItem('selectedRole') : null;
@@ -174,6 +180,22 @@ export class ProfileComponent implements OnInit {
 
   // Language state
   selectedLanguage: string = 'English';
+  isLanguageModalOpen: boolean = false;
+
+  openLanguageModal(): void {
+    this.isLanguageModalOpen = true;
+  }
+
+  onLanguageChanged(langCode: any): void {
+    const match = this.languages.find(l => l.code === langCode);
+    if (match) {
+      this.selectedLanguage = match.name;
+      if (this.driverProfile) {
+        this.driverProfile.preferredLanguage = match.name;
+      }
+      this.driverService.updateProfile({ preferredLanguage: match.name }).subscribe();
+    }
+  }
   languages = [
     { code: 'en', name: 'English', native: 'English' },
     { code: 'hi', name: 'Hindi', native: 'हिंदी' },
@@ -275,6 +297,8 @@ export class ProfileComponent implements OnInit {
   activeDocViewer: { title: string; url: string; isImage: boolean } | null = null;
 
   vehicleMasterService = inject(VehicleMasterService);
+  languageManager = inject(LanguageManagerService);
+  globalAutoTranslate = inject(GlobalAutoTranslateService);
 
   // Dynamic Vehicle Master Catalog
   dynamicVehicleTypes: VehicleType[] = [];
@@ -389,6 +413,11 @@ export class ProfileComponent implements OnInit {
     this.loadPersistentVehicles();
     this.loadVehicleMasterCatalog();
 
+    const activeLang = this.languageManager.getCurrentLanguage();
+    const foundLang = this.languages.find(l => l.code === activeLang);
+    if (foundLang) {
+      this.selectedLanguage = foundLang.name;
+    }
     this.route.queryParams.subscribe(params => {
       if (params['tab'] === 'fleet' || params['view'] === 'FLEET') {
         this.currentView = 'FLEET';
@@ -1495,13 +1524,22 @@ export class ProfileComponent implements OnInit {
           if (data.preferredLanguage) {
             this.selectedLanguage = data.preferredLanguage;
           }
+          if (data.totalJobs != null) {
+            this.totalJobsCount = data.totalJobs;
+          } else if (data.jobsCount != null) {
+            this.totalJobsCount = data.jobsCount;
+          } else if (data.completedJobs != null) {
+            this.totalJobsCount = data.completedJobs;
+          }
         }
         this.loadBackendDocuments();
         this.loadPersistentVehicles();
+        this.loadTotalJobs();
       },
       error: () => {
         this.loadBackendDocuments();
         this.loadPersistentVehicles();
+        this.loadTotalJobs();
       }
     });
 
@@ -1513,6 +1551,41 @@ export class ProfileComponent implements OnInit {
         }
       }
     });
+  }
+
+  loadTotalJobs(): void {
+    // 1. Fetch from driver earnings summary API (which calculates completed bookings)
+    this.driverService.getEarningsSummary().subscribe({
+      next: (res) => {
+        if (res && res.success && res.data && res.data.totalJobs != null) {
+          this.totalJobsCount = res.data.totalJobs;
+        }
+      }
+    });
+
+    // 2. Cross-verify with driver's actual job history list
+    this.bookingService.getMyJobHistory().subscribe({
+      next: (res) => {
+        if (res && res.success && Array.isArray(res.data)) {
+          const completedJobs = res.data.filter((j: any) => j.status === 'COMPLETED').length;
+          if (completedJobs > this.totalJobsCount) {
+            this.totalJobsCount = completedJobs;
+          } else if (this.totalJobsCount === 0 && res.data.length > 0) {
+            this.totalJobsCount = res.data.length;
+          }
+        }
+      }
+    });
+  }
+
+  getDriverExperience(): string {
+    if (this.driverProfile?.experience) return this.driverProfile.experience;
+    if (this.driverProfile?.experienceYears != null) return `${this.driverProfile.experienceYears}`;
+    if (this.vehiclesList && this.vehiclesList.length > 0) {
+      const v = this.vehiclesList.find(veh => veh.experience);
+      if (v?.experience) return v.experience;
+    }
+    return '1+';
   }
 
   loadBackendDocuments(): void {
@@ -1563,6 +1636,10 @@ export class ProfileComponent implements OnInit {
   }
 
   navigateTo(view: ProfileSubView): void {
+    if (view === 'LANGUAGE') {
+      this.openLanguageModal();
+      return;
+    }
     this.currentView = view;
     if (view === 'MY_VEHICLES' || view === 'MAIN') {
       this.loadPersistentVehicles();
@@ -1623,13 +1700,18 @@ export class ProfileComponent implements OnInit {
   }
 
   onApplyLanguage(): void {
-    this.driverService.updateProfile({ preferredLanguage: this.selectedLanguage }).subscribe({
-      next: () => {
-        if (this.driverProfile) {
-          this.driverProfile.preferredLanguage = this.selectedLanguage;
+    const langObj = this.languages.find(l => l.name === this.selectedLanguage || l.code === this.selectedLanguage);
+    const langCode = langObj ? (langObj.code as SupportedLanguage) : SupportedLanguage.EN;
+    this.languageManager.setLanguage(langCode).then(() => {
+      this.globalAutoTranslate.forceReTranslate();
+      this.driverService.updateProfile({ preferredLanguage: this.selectedLanguage }).subscribe({
+        next: () => {
+          if (this.driverProfile) {
+            this.driverProfile.preferredLanguage = this.selectedLanguage;
+          }
+          this.navigateTo('MAIN');
         }
-        this.navigateTo('MAIN');
-      }
+      });
     });
   }
 

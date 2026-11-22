@@ -56,10 +56,21 @@ export class WebSocketService {
   private authOtpSubject = new Subject<any>();
   authOtp$: Observable<any> = this.authOtpSubject.asObservable();
 
+  private currentUserId?: number | string;
+  private currentDriverId?: number | string;
+  private subscribedDestinations = new Set<string>();
+
   connectWebSocket(userId?: number | string, driverId?: number | string): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+    if (userId) this.currentUserId = userId;
+    if (driverId) this.currentDriverId = driverId;
+
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.resubscribeTopics();
+      return;
+    }
+    if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
       return;
     }
 
@@ -75,7 +86,8 @@ export class WebSocketService {
         this.ws = new WebSocket(targetUrl);
 
         this.ws.onopen = () => {
-          console.log('WebSocket connected successfully to:', targetUrl);
+          console.log('[WebSocket] Connected successfully to:', targetUrl);
+          this.subscribedDestinations.clear();
           const token = this.authService.getAccessToken();
           const authHeaders = token
             ? `Authorization:Bearer ${token}\ntoken:${token}\n`
@@ -85,23 +97,7 @@ export class WebSocketService {
           const connectFrame = `CONNECT\naccept-version:1.1,1.0\nheart-beat:10000,10000\n${authHeaders}\n\u0000`;
           this.ws?.send(connectFrame);
 
-          // Subscribe to general auth OTP broadcast for login testing
-          const subAuthOtp = 'SUBSCRIBE\nid:sub-auth-otp\ndestination:/topic/auth-otp\n\n\u0000';
-          this.ws?.send(subAuthOtp);
-
-          if (userId) {
-            // Send STOMP SUBSCRIBE frames for offers, support messages, and personal user events
-            const subOffers = `SUBSCRIBE\nid:sub-0\ndestination:/topic/booking-offers/${userId}\n\n\u0000`;
-            const subSupport = `SUBSCRIBE\nid:sub-1\ndestination:/topic/support-messages/${userId}\n\n\u0000`;
-            const subEvents = `SUBSCRIBE\nid:sub-2\ndestination:/topic/user-events/${userId}\n\n\u0000`;
-            this.ws?.send(subOffers);
-            this.ws?.send(subSupport);
-            this.ws?.send(subEvents);
-          }
-          if (driverId && String(driverId) !== String(userId)) {
-            const subDriverOffers = `SUBSCRIBE\nid:sub-0-driver\ndestination:/topic/booking-offers/${driverId}\n\n\u0000`;
-            this.ws?.send(subDriverOffers);
-          }
+          this.resubscribeTopics();
         };
 
         this.ws.onmessage = (event) => {
@@ -118,6 +114,7 @@ export class WebSocketService {
                 if (data && (data.type === 'AUTH_OTP' || data.eventType === 'AUTH_OTP')) {
                   this.authOtpSubject.next(data);
                 } else if (data && (data.type === 'NEW_BOOKING' || data.type === 'NEW_BOOKING_OFFER' || data.eventType === 'DRIVER_OFFER' || data.type === 'SCHEDULED_RIDE_ALERT' || data.eventType === 'SCHEDULED_RIDE_ALERT' || payload.type === 'SCHEDULED_RIDE_ALERT' || payload.type === 'NEW_BOOKING' || payload.type === 'NEW_BOOKING_OFFER' || (payload.bookingId && !payload.status))) {
+                  console.log('[WebSocket] Job offer received:', payload);
                   this.emitOffer(payload);
                 } else if (data && (data.type === 'SUPPORT_CHAT_MESSAGE' || data.type === 'SUPPORT_TICKET_STATUS')) {
                   this.emitSupportEvent(data);
@@ -127,7 +124,7 @@ export class WebSocketService {
               }
             }
           } catch (e) {
-            console.error('Error parsing WebSocket message:', e);
+            console.error('[WebSocket] Error parsing message:', e);
           }
         };
 
@@ -135,15 +132,16 @@ export class WebSocketService {
           if (!isFallback) {
             tryConnect(fallbackWsUrl, true);
           } else {
-            console.warn('WebSocket server unavailable at', targetUrl, '. Polling/REST fallback mode active.');
+            console.warn('[WebSocket] Unavailable at', targetUrl, '. Polling/REST fallback mode active.');
           }
         };
 
         this.ws.onclose = () => {
           this.ws = null;
+          this.subscribedDestinations.clear();
           setTimeout(() => {
             if (!this.ws) {
-              this.connectWebSocket(userId);
+              this.connectWebSocket(this.currentUserId, this.currentDriverId);
             }
           }, 15000);
         };
@@ -157,10 +155,38 @@ export class WebSocketService {
     tryConnect(primaryWsUrl);
   }
 
+  private subscribeToDestination(destination: string, id: string): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (this.subscribedDestinations.has(destination)) return;
+    this.subscribedDestinations.add(destination);
+    const subFrame = `SUBSCRIBE\nid:${id}\ndestination:${destination}\n\n\u0000`;
+    this.ws.send(subFrame);
+  }
+
+  private resubscribeTopics(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+    this.subscribeToDestination('/topic/auth-otp', 'sub-auth-otp');
+    this.subscribeToDestination('/topic/booking-offers', 'sub-offers-broadcast');
+    this.subscribeToDestination('/topic/bookings/events', 'sub-bookings-events');
+
+    if (this.currentUserId) {
+      this.subscribeToDestination(`/topic/booking-offers/${this.currentUserId}`, `sub-offers-u-${this.currentUserId}`);
+      this.subscribeToDestination(`/topic/support-messages/${this.currentUserId}`, `sub-support-u-${this.currentUserId}`);
+      this.subscribeToDestination(`/topic/user-events/${this.currentUserId}`, `sub-events-u-${this.currentUserId}`);
+      this.subscribeToDestination('/queue/booking-offers', 'sub-queue-offers');
+      this.subscribeToDestination('/user/queue/booking-offers', 'sub-user-queue-offers');
+    }
+
+    if (this.currentDriverId && String(this.currentDriverId) !== String(this.currentUserId)) {
+      this.subscribeToDestination(`/topic/booking-offers/${this.currentDriverId}`, `sub-offers-d-${this.currentDriverId}`);
+      this.subscribeToDestination(`/topic/user-events/${this.currentDriverId}`, `sub-events-d-${this.currentDriverId}`);
+    }
+  }
+
   subscribeToBooking(bookingId: number): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      const subFrame = `SUBSCRIBE\nid:sub-booking-${bookingId}\ndestination:/topic/booking/${bookingId}\n\n\u0000`;
-      this.ws.send(subFrame);
+      this.subscribeToDestination(`/topic/booking/${bookingId}`, `sub-booking-${bookingId}`);
     }
   }
 
@@ -210,6 +236,7 @@ export class WebSocketService {
     if (this.ws) {
       this.ws.close();
       this.ws = null;
+      this.subscribedDestinations.clear();
     }
   }
 }

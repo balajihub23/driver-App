@@ -4,8 +4,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
   z-index: 9999;
   display: flex;
   align-items: flex-end;
@@ -14,28 +14,76 @@
 
 .offer-sheet {
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
+  max-height: 90vh;
+  max-height: 90dvh;
   background: #ffffff;
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
-  padding: 16px 24px 32px 24px;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 12px 18px 24px 18px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
   position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  .sheet-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 6px;
+
+    .top-bar-placeholder {
+      width: 32px;
+    }
+
+    .sheet-drag-handle {
+      width: 38px;
+      height: 4px;
+      background: #cbd5e1;
+      border-radius: 2px;
+      margin: 0;
+    }
+
+    .btn-sheet-close-dismiss {
+      position: static;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+        transform: scale(1.08);
+      }
+    }
+  }
 
   .sheet-drag-handle {
-    width: 44px;
-    height: 5px;
-    background: #e2e8f0;
-    border-radius: 3px;
-    margin: 0 auto 16px auto;
+    width: 38px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 2px;
+    margin: 0 auto 12px auto;
   }
 }
 
 .timer-ring-wrapper {
   position: relative;
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 12px auto;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 6px auto;
 
   .ring-svg {
     width: 100%;
@@ -64,20 +112,20 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 19px;
     font-weight: 800;
     color: #1e293b;
   }
 
   .clock-badge {
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: 0px;
+    right: 0px;
     background: #1e293b;
     color: #ffffff;
-    font-size: 11px;
-    width: 22px;
-    height: 22px;
+    font-size: 10px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -86,30 +134,30 @@
 }
 
 .offer-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
 }
 
 .offer-subtitle {
-  font-size: 13px;
+  font-size: 12px;
   color: #64748b;
-  margin: 4px 0 16px 0;
+  margin: 2px 0 10px 0;
 }
 
 .attributes-box {
   background: #fafafa;
   border: 1px solid #f1f5f9;
-  border-radius: 16px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  border-radius: 14px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
 
   .attr-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: 7px 0;
     border-bottom: 1px solid #f1f5f9;
 
     &:last-child {
@@ -119,39 +167,49 @@
     .attr-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
 
       .attr-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
         background: #fffbeb;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 15px;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+
+      .attr-text-box {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
       }
 
       .attr-label {
-        font-size: 11px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
         color: #94a3b8;
         display: block;
+        letter-spacing: 0.3px;
       }
 
       .attr-value {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
         color: #1e293b;
 
         &.price-text {
-          font-size: 18px;
+          font-size: 17px;
           color: #0f172a;
         }
       }
     }
 
     .distance-badge {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #eab308;
     }
@@ -160,18 +218,24 @@
 
 .sheet-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 4px;
 
   .btn-decline-pill {
     flex: 1;
-    padding: 14px;
+    height: 44px;
+    padding: 0 16px;
     border: none;
     background: #f87171;
     color: #ffffff;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    border-radius: 24px;
+    border-radius: 22px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
 
     &:hover {
       background: #ef4444;
@@ -180,14 +244,18 @@
 
   .btn-accept-pill {
     flex: 1.4;
-    padding: 14px;
+    height: 44px;
+    padding: 0 16px;
     border: none;
     background: #10b981;
     color: #ffffff;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    border-radius: 24px;
+    border-radius: 22px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: background 0.2s;
 
     &:hover:not(:disabled) {
@@ -202,14 +270,18 @@
 
   .btn-review-pill {
     flex: 1.4;
-    padding: 14px;
+    height: 44px;
+    padding: 0 16px;
     border: none;
     background: #facc15;
     color: #1e293b;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    border-radius: 24px;
+    border-radius: 22px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover {
       background: #eab308;
@@ -218,18 +290,30 @@
 }
 
 .review-link-wrapper {
-  margin-top: 10px;
+  margin-top: 8px;
+  text-align: center;
 
   .btn-review-link {
     background: none;
     border: none;
     color: #64748b;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    text-decoration: underline;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    .search-icon {
+      font-size: 13px;
+    }
 
     &:hover {
+      background: #f1f5f9;
       color: #0f172a;
     }
   }
@@ -423,4 +507,153 @@
 
 .animate-slide-up {
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
+/* ========================================================================== */
+/* DARK THEME SYSTEM OVERRIDES (Driver Booking Offer Popup)                   */
+/* ========================================================================== */
+:host-context([data-theme="dark"]),
+:host-context(.dark-mode),
+[data-theme="dark"],
+.dark-mode {
+  .offer-sheet {
+    background: #1E293B !important;
+    color: #F8FAFC !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6) !important;
+
+    .sheet-top-bar {
+      .sheet-drag-handle {
+        background: #475569 !important;
+      }
+
+      .btn-sheet-close-dismiss {
+        background: #334155 !important;
+        border-color: #475569 !important;
+        color: #F8FAFC !important;
+
+        &:hover {
+          background: #475569 !important;
+          color: #FFC107 !important;
+        }
+      }
+    }
+
+    .sheet-drag-handle {
+      background: #475569 !important;
+    }
+
+    .ring-svg {
+      .ring-bg {
+        stroke: #334155 !important;
+      }
+    }
+
+    .ring-text {
+      color: #F8FAFC !important;
+    }
+
+    .offer-title {
+      color: #F8FAFC !important;
+    }
+
+    .offer-subtitle {
+      color: #94A3B8 !important;
+    }
+
+    .attributes-box {
+      background: #0F172A !important;
+      border-color: #334155 !important;
+
+      .attr-row {
+        border-bottom-color: #1E293B !important;
+
+        .attr-left {
+          .attr-icon {
+            background: #1E293B !important;
+            border: 1px solid #334155 !important;
+          }
+
+          .attr-label {
+            color: #94A3B8 !important;
+          }
+
+          .attr-value {
+            color: #F8FAFC !important;
+
+            &.price-text {
+              color: #FFC107 !important;
+            }
+          }
+        }
+
+        .distance-badge {
+          color: #FFC107 !important;
+        }
+      }
+    }
+
+    .booking-type-badge {
+      background: #334155 !important;
+      color: #CBD5E1 !important;
+    }
+
+    .review-link-wrapper {
+      .btn-review-link {
+        color: #94A3B8 !important;
+
+        &:hover {
+          background: #334155 !important;
+          color: #FFC107 !important;
+        }
+      }
+    }
+
+    .review-summary-card {
+      background: #0F172A !important;
+      border-color: #334155 !important;
+
+      .summary-row {
+        border-bottom-color: #1E293B !important;
+
+        .lbl {
+          color: #94A3B8 !important;
+        }
+
+        .val {
+          color: #F8FAFC !important;
+
+          &.price-highlight {
+            color: #FFC107 !important;
+          }
+        }
+      }
+    }
+
+    .reasons-pill-list {
+      .reason-pill {
+        background: #0F172A !important;
+        border-color: #334155 !important;
+
+        .reason-text {
+          color: #CBD5E1 !important;
+        }
+
+        &.active {
+          background: rgba(239, 68, 68, 0.15) !important;
+          border-color: #EF4444 !important;
+
+          .reason-text {
+            color: #F87171 !important;
+          }
+        }
+      }
+    }
+
+    .btn-goback-pill {
+      background: #334155 !important;
+      color: #F8FAFC !important;
+      border-color: #475569 !important;
+    }
+  }
 }

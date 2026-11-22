@@ -14,7 +14,9 @@
   <!-- Unified Top Bar for Active Job Screens -->
   <header class="job-detail-top-bar" *ngIf="selectedJob">
     <button class="btn-top-back" (click)="selectedJob = null" title="Back to Jobs list">
-      <span class="back-arrow">←</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
       <span class="back-text">Jobs</span>
     </button>
     <div class="top-bar-center">
@@ -22,7 +24,10 @@
       <h3 class="top-bar-title">{{ selectedJob.productName || 'Assigned Job' }}</h3>
     </div>
     <div class="top-bar-right">
-      <span class="status-badge" [class]="getStatusClass(selectedJob.status)">{{ selectedJob.status }}</span>
+      <span class="status-badge" [class]="getStatusClass(selectedJob.status)">
+        <span class="badge-dot">●</span>
+        <span>{{ selectedJob.status }}</span>
+      </span>
     </div>
   </header>
 
@@ -204,89 +209,200 @@
         </div>
       }
 
-      <!-- VIEW 3: FULL JOB DETAILS VIEW -->
+      <!-- VIEW 3: FULL JOB DETAILS VIEW (Uber/Grab Style Alignment & Design) -->
       @if (viewMode === 'DETAILS') {
         <div class="job-details-screen animate-fade-in">
-          <!-- Estimated Earnings Banner -->
-          <div class="earnings-banner-card">
-            <div class="earnings-left">
-              <span class="cash-icon">💰</span>
-              <div>
-                <span class="lbl">Driver Earnings</span>
-                <h2 class="earning-amount">₹{{ (selectedJob.driverAmount || selectedJob.totalAmount || 0) | number:'1.0-0' }}</h2>
+          <!-- Modern Driver Earnings Hero Banner -->
+          <div class="earnings-hero-card">
+            <div class="earnings-hero-glow"></div>
+            <div class="earnings-main-content">
+              <div class="earnings-header-row">
+                <div class="earnings-meta-left">
+                  <div class="earnings-coin-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="5" width="20" height="14" rx="3"/>
+                      <line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                  </div>
+                  <div class="earnings-labels">
+                    <span class="earning-micro-tag">DRIVER PAYOUT</span>
+                    <span class="earning-subtext">Net trip earnings</span>
+                  </div>
+                </div>
+                <div class="payout-status-chip" [class.completed]="selectedJob.status === 'COMPLETED'">
+                  <span class="chip-dot"></span>
+                  <span>{{ selectedJob.status === 'COMPLETED' ? 'Settled in Wallet' : 'Estimated Fare' }}</span>
+                </div>
+              </div>
+
+              <div class="earnings-value-row">
+                <span class="currency-symbol">₹</span>
+                <span class="earning-number">{{ (selectedJob.driverAmount || selectedJob.totalAmount || 0) | number:'1.0-0' }}</span>
+                <span class="earning-decimal">.00</span>
               </div>
             </div>
           </div>
 
-          <!-- Customer Card -->
+          <!-- Modern Customer Card with Interactive Action Buttons -->
           <div class="card customer-card">
             <div class="customer-info-left">
-              <div class="avatar-circle">👤</div>
-              <div>
+              <div class="customer-avatar-wrap">
+                <div class="avatar-circle">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <span class="customer-verified-badge" title="Verified Customer">✓</span>
+              </div>
+              <div class="customer-text-col">
                 <span class="lbl-cust">CUSTOMER</span>
                 <h4 class="cust-name">{{ selectedJob.customerName || 'Customer' }}</h4>
-                <p class="text-xs text-slate-500">{{ selectedJob.customerPhone || 'Verified Account' }}</p>
+                <div class="cust-meta-row">
+                  <span class="cust-phone">{{ selectedJob.customerPhone || 'Verified Account' }}</span>
+                  <span class="meta-separator">•</span>
+                  <span class="verified-label">Verified</span>
+                </div>
               </div>
             </div>
             <div class="customer-actions-right">
-              <button class="btn-circle-action" (click)="onMessageCustomer()" title="Message Customer">💬</button>
-              <button class="btn-circle-action" (click)="onCallCustomer()" title="Call Customer">📞</button>
+              <button class="btn-contact-action btn-msg" (click)="onMessageCustomer()" title="Chat with Customer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span class="action-btn-label">Chat</span>
+              </button>
+              <button class="btn-contact-action btn-call" (click)="onCallCustomer()" title="Call Customer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                <span class="action-btn-label">Call</span>
+              </button>
             </div>
           </div>
 
-          <!-- Site Location with Map Snapshot -->
-          <div class="card site-location-card">
-            <span class="card-lbl">📍 Pickup Location</span>
-            <div class="map-addr-pill mt-2">
-              <strong>{{ selectedJob.pickupAddressText || selectedJob.pickupLocation || 'Pickup Address' }}</strong>
+          <!-- Uber-Style Connected Route Timeline Card -->
+          <div class="card route-timeline-card">
+            <div class="route-card-header">
+              <span class="card-section-label">ROUTE TIMELINE</span>
+              <span class="route-trip-tag">Direct Trip</span>
             </div>
-            @if (selectedJob.destinationAddressText || selectedJob.dropLocation) {
-              <span class="card-lbl mt-3">🏁 Destination</span>
-              <div class="map-addr-pill mt-1">
-                <strong>{{ selectedJob.destinationAddressText || selectedJob.dropLocation }}</strong>
+
+            <div class="route-timeline-container">
+              <!-- Pickup Point -->
+              <div class="timeline-step pickup-step">
+                <div class="timeline-node-col">
+                  <div class="timeline-node green-node">
+                    <span class="inner-dot"></span>
+                  </div>
+                  <div class="timeline-track-line"></div>
+                </div>
+                <div class="timeline-content-col">
+                  <span class="timeline-node-lbl text-emerald">PICKUP LOCATION</span>
+                  <p class="timeline-address-text">{{ selectedJob.pickupAddressText || selectedJob.pickupLocation || 'Pickup Address' }}</p>
+                </div>
               </div>
-            }
-            <button class="btn-outline map-btn mt-3" (click)="openNavigationMap()">
-              🗺️ Open Interactive Navigation Map
+
+              <!-- Destination Point -->
+              <div class="timeline-step dropoff-step">
+                <div class="timeline-node-col">
+                  <div class="timeline-node red-node">
+                    <span class="inner-square"></span>
+                  </div>
+                </div>
+                <div class="timeline-content-col">
+                  <span class="timeline-node-lbl text-amber">DESTINATION</span>
+                  <p class="timeline-address-text">{{ selectedJob.destinationAddressText || selectedJob.dropLocation || 'Tambaram, Chennai, Tamil Nadu, India' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Full-width Modern Map Navigation Shortcut Button -->
+            <button class="btn-open-navigation-map" (click)="openNavigationMap()">
+              <div class="map-btn-left">
+                <div class="map-icon-box">🗺️</div>
+                <div class="map-btn-text">
+                  <span class="btn-main-txt">Open Interactive Navigation Map</span>
+                  <span class="btn-sub-txt">Live GPS route and turn-by-turn guidance</span>
+                </div>
+              </div>
+              <svg class="map-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
             </button>
           </div>
 
-          <!-- Dynamic Action Buttons depending on Status -->
-          <div class="dispatch-actions-row mt-4">
+          <!-- Trip Specifications Summary Grid -->
+          <div class="card trip-specs-card">
+            <div class="specs-grid">
+              <div class="spec-cell">
+                <span class="spec-label">VEHICLE / SERVICE</span>
+                <strong class="spec-value">{{ selectedJob.productName || 'Rentron Cab' }}</strong>
+              </div>
+              <div class="spec-cell">
+                <span class="spec-label">PAYMENT METHOD</span>
+                <strong class="spec-value">{{ selectedJob.paymentMode || selectedJob.paymentMethod || 'Online (Paid)' }}</strong>
+              </div>
+              <div class="spec-cell">
+                <span class="spec-label">BOOKING ID</span>
+                <strong class="spec-value">#{{ selectedJob.bookingNumber || ('BK-' + selectedJob.id) }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Action / Status Section -->
+          <div class="dispatch-actions-container mt-2">
             @if (selectedJob.status === 'ASSIGNED' || selectedJob.status === 'ACCEPTED') {
               <button class="btn-ack-dispatch" (click)="onStartDrivingToPickup()">
-                🚗 Start Driving to Pickup
+                <span class="btn-icon">🚗</span>
+                <span>Start Driving to Pickup</span>
               </button>
               <button class="btn-decline-job" (click)="onDeclineJob()">
-                ✖ Decline Job
+                <span>✖ Decline Job</span>
               </button>
             }
 
             @if (selectedJob.status === 'DRIVER_ON_THE_WAY') {
               <button class="btn-ack-dispatch" (click)="onMarkArrived()">
-                📍 Arrived at Site
+                <span class="btn-icon">📍</span>
+                <span>Arrived at Pickup Site</span>
               </button>
             }
 
             @if (selectedJob.status === 'ARRIVED') {
               <button class="btn-ack-dispatch" (click)="openOtpDialog()">
-                🔑 Verify OTP & Start
+                <span class="btn-icon">🔑</span>
+                <span>Enter Customer OTP to Start</span>
               </button>
             }
 
             @if (selectedJob.status === 'STARTED' || selectedJob.status === 'IN_PROGRESS') {
               <button class="btn-ack-dispatch" (click)="viewMode = 'IN_PROGRESS'; startJobTimer()">
-                ⏱️ View Active Timer
+                <span class="btn-icon">⏱️</span>
+                <span>Open Active Timer HUD</span>
               </button>
               <button class="btn-yellow-end mt-2" (click)="onOpenEndJobModal()">
-                🏁 {{ isMachineryJob(selectedJob) ? 'End Job' : 'Complete Ride' }}
+                <span class="btn-icon">🏁</span>
+                <span>{{ isMachineryJob(selectedJob) ? 'End Machinery Job' : 'Complete Ride' }}</span>
               </button>
             }
 
             @if (selectedJob.status === 'COMPLETED') {
-              <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-center font-bold">
-                ✓ Job Completed Successfully
+              <!-- Premium Completed Receipt Banner -->
+              <div class="completed-receipt-card">
+                <div class="receipt-icon-bubble">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <div class="receipt-text-col">
+                  <h4 class="receipt-title">Job Completed Successfully</h4>
+                  <p class="receipt-subtitle">Ride has ended and driver earnings have been credited to your wallet balance.</p>
+                </div>
               </div>
+              <button class="btn-return-jobs" (click)="selectedJob = null">
+                <span>← Back to All Jobs</span>
+              </button>
             }
           </div>
         </div>

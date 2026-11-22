@@ -463,3 +463,200 @@ p {
     border-color: var(--border) !important;
   }
 }
+
+/* Global Dark Theme Job Detail Screen Overrides */
+[data-theme="dark"] {
+  .job-detail-top-bar {
+    background-color: var(--surface, #1E293B) !important;
+    border-color: var(--border, #334155) !important;
+
+    .btn-top-back {
+      background-color: var(--surface-secondary, #334155) !important;
+      border-color: var(--border, #475569) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+
+      .back-arrow, .back-text {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+    }
+
+    .top-bar-title {
+      color: var(--text-primary, #F8FAFC) !important;
+    }
+    .booking-code {
+      color: var(--text-muted, #94A3B8) !important;
+    }
+  }
+
+  .earnings-banner-card {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+
+    .lbl { color: #FBBF24 !important; }
+    .earning-amount { color: #FCD34D !important; }
+  }
+
+  .job-details-screen {
+    .card,
+    .customer-card,
+    .route-timeline-card,
+    .trip-specs-card,
+    .vehicle-specs-card,
+    .info-card {
+      background-color: var(--surface, #1E293B) !important;
+      border-color: var(--border, #334155) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+
+      .card-lbl, .lbl-cust, .card-section-label {
+        color: var(--text-muted, #94A3B8) !important;
+      }
+      .cust-name, h4, strong {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+      p {
+        color: var(--text-secondary, #CBD5E1) !important;
+      }
+    }
+
+    .route-timeline-card {
+      .route-card-header {
+        border-color: var(--border, #334155) !important;
+      }
+      .timeline-track-line {
+        background: repeating-linear-gradient(
+          to bottom,
+          #475569,
+          #475569 4px,
+          transparent 4px,
+          transparent 8px
+        ) !important;
+      }
+      .timeline-address-text {
+        color: #F8FAFC !important;
+      }
+      .btn-open-navigation-map {
+        background-color: var(--surface-secondary, #334155) !important;
+        border-color: var(--border, #475569) !important;
+        .btn-main-txt {
+          color: #F8FAFC !important;
+        }
+        .btn-sub-txt, .map-btn-arrow {
+          color: #94A3B8 !important;
+        }
+      }
+    }
+
+    .trip-specs-card {
+      .spec-cell {
+        border-color: #334155 !important;
+        .spec-label {
+          color: #94A3B8 !important;
+        }
+        .spec-value {
+          color: #F8FAFC !important;
+        }
+      }
+    }
+
+    .completed-receipt-card {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border-color: rgba(16, 185, 129, 0.35) !important;
+      .receipt-title {
+        color: #34D399 !important;
+      }
+      .receipt-subtitle {
+        color: #CBD5E1 !important;
+      }
+    }
+
+    .btn-return-jobs {
+      background-color: var(--surface-secondary, #334155) !important;
+      border-color: var(--border, #475569) !important;
+      color: #F8FAFC !important;
+    }
+
+    .avatar-circle {
+      background-color: var(--surface-secondary, #334155) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+    }
+
+    .btn-circle-action {
+      background-color: var(--surface-secondary, #334155) !important;
+      border-color: var(--border, #475569) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+    }
+
+    .map-addr-pill {
+      background-color: var(--surface-secondary, #334155) !important;
+      border: 1px solid var(--border, #475569) !important;
+      border-radius: 12px !important;
+      padding: 10px 14px !important;
+
+      strong {
+        color: var(--text-primary, #F8FAFC) !important;
+      }
+      p {
+        color: var(--text-secondary, #CBD5E1) !important;
+      }
+    }
+
+    .map-btn, .btn-outline {
+      background-color: var(--surface-secondary, #334155) !important;
+      border-color: var(--border, #475569) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+    }
+  }
+
+  .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+    color: #34D399 !important;
+  }
+
+  .arrived-card {
+    background-color: var(--surface, #1E293B) !important;
+    border-color: var(--border, #334155) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+
+    .arrived-title { color: var(--text-primary, #F8FAFC) !important; }
+    .arrived-subtitle { color: var(--text-secondary, #CBD5E1) !important; }
+    .arrived-details-box {
+      background-color: var(--surface-secondary, #334155) !important;
+      border-color: var(--border, #475569) !important;
+      .val, .val-name { color: var(--text-primary, #F8FAFC) !important; }
+    }
+  }
+
+  .in-progress-location-card,
+  .timer-display-card {
+    background-color: var(--surface, #1E293B) !important;
+    border-color: var(--border, #334155) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+
+    .loc-addr-text, .timer-digits {
+      color: var(--text-primary, #F8FAFC) !important;
+    }
+    .loc-micro-label, .timer-unit {
+      color: var(--text-muted, #94A3B8) !important;
+    }
+  }
+
+  .otp-dialog-card {
+    background-color: var(--surface, #1E293B) !important;
+    border-color: var(--border, #334155) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+
+    h3 { color: var(--text-primary, #F8FAFC) !important; }
+    .otp-sub { color: var(--text-secondary, #CBD5E1) !important; }
+    .otp-digit-input {
+      background-color: var(--surface-secondary, #334155) !important;
+      color: var(--text-primary, #F8FAFC) !important;
+      border-color: var(--border, #475569) !important;
+    }
+    .btn-cancel-otp {
+      background-color: var(--surface-secondary, #334155) !important;
+      color: var(--text-secondary, #CBD5E1) !important;
+      border-color: var(--border, #475569) !important;
+    }
+  }
+}
