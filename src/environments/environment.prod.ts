@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  serverApi: 'https://rentron.in/rentron-gateway/rentron-svc-backend-1.0-SNAPSHOT',
+  serverApi: 'https://driver.rentron.in/rentron-gateway/rentron-svc-backend-1.0-SNAPSHOT',
   mobileAppKey: 'rentron-driver-mobile-app-secret-key-294AB',
   firebaseConfig: {
     "apiKey": "AIzaSyAkQ6ZcQwz6kV0MiTo3WFUn5DEPu7WE6HM",

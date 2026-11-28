@@ -26,6 +26,11 @@ export class SplashComponent implements OnInit {
 
   activeSlideIndex: number = 0;
 
+  private touchStartX: number = 0;
+  private touchStartY: number = 0;
+  private isMouseDown: boolean = false;
+  private readonly minSwipeDistance: number = 35;
+
   slides = [
     {
       title: 'More Jobs. More Earnings.',
@@ -119,6 +124,65 @@ export class SplashComponent implements OnInit {
   nextSlide(): void {
     if (this.activeSlideIndex < 3) {
       this.activeSlideIndex++;
+    }
+  }
+
+  prevSlide(): void {
+    if (this.activeSlideIndex > 0) {
+      this.activeSlideIndex--;
+    }
+  }
+
+  goToSlide(index: number): void {
+    if (index >= 0 && index <= 3) {
+      this.activeSlideIndex = index;
+    }
+  }
+
+  onTouchStart(e: TouchEvent): void {
+    if (this.activeSlideIndex >= 3 || !e.touches || e.touches.length === 0) return;
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+  }
+
+  onTouchEnd(e: TouchEvent): void {
+    if (this.activeSlideIndex >= 3 || !e.changedTouches || e.changedTouches.length === 0) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    this.processSwipe(this.touchStartX, this.touchStartY, endX, endY);
+  }
+
+  onMouseDown(e: MouseEvent): void {
+    if (this.activeSlideIndex >= 3) return;
+    this.isMouseDown = true;
+    this.touchStartX = e.clientX;
+    this.touchStartY = e.clientY;
+  }
+
+  onMouseUp(e: MouseEvent): void {
+    if (!this.isMouseDown || this.activeSlideIndex >= 3) return;
+    this.isMouseDown = false;
+    this.processSwipe(this.touchStartX, this.touchStartY, e.clientX, e.clientY);
+  }
+
+  onMouseLeave(e: MouseEvent): void {
+    if (!this.isMouseDown || this.activeSlideIndex >= 3) return;
+    this.isMouseDown = false;
+    this.processSwipe(this.touchStartX, this.touchStartY, e.clientX, e.clientY);
+  }
+
+  private processSwipe(startX: number, startY: number, endX: number, endY: number): void {
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) >= this.minSwipeDistance) {
+      if (deltaX < 0) {
+        // Swiped Left -> Advance to next slide
+        this.nextSlide();
+      } else {
+        // Swiped Right -> Back to previous slide
+        this.prevSlide();
+      }
     }
   }
 

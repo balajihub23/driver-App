@@ -1,0 +1,115 @@
+<div class="legal-page-wrapper">
+  <!-- Top Bar -->
+  <header class="legal-header">
+    <button type="button" class="btn-back" (click)="goBack()" title="Back" aria-label="Go Back">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <h1 class="header-title">{{ activeTab === 'TERMS' ? 'Partner Terms' : 'Partner Privacy Policy' }}</h1>
+    <div class="header-right-placeholder"></div>
+  </header>
+
+  <!-- Segment Tab Switcher -->
+  <div class="tab-switcher-container">
+    <div class="tab-pill-box">
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab === 'TERMS'" 
+        (click)="setTab('TERMS')">
+        Terms of Service
+      </button>
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="activeTab === 'PRIVACY'" 
+        (click)="setTab('PRIVACY')">
+        Privacy Policy
+      </button>
+    </div>
+  </div>
+
+  <!-- Content Container -->
+  <main class="legal-content animate-fade-in">
+    <!-- TERMS CONTENT -->
+    <section *ngIf="activeTab === 'TERMS'" class="policy-card">
+      <div class="badge-row">
+        <span class="badge-pill">Driver & Fleet Partner Agreement</span>
+        <span class="badge-pill version">v2.4</span>
+      </div>
+
+      <h2>1. Partner Onboarding & Qualification</h2>
+      <p>
+        As an independent Driver, Machinery Operator, or Fleet Owner on <strong>Rentron</strong>, you confirm that you possess 
+        a valid commercial driver's license, machinery operation endorsements (where applicable), and mandatory regulatory permits.
+      </p>
+
+      <h2>2. Vehicle & Machinery Documentation</h2>
+      <p>
+        All onboarded equipment (JCB excavators, loaders, commercial cabs, and utility vehicles) must maintain up-to-date 
+        Registration Certificates (RC), active Insurance Policies, and Pollution/Fitness clearances. 
+        Rentron reserves the right to suspend partner accounts with expired documentation.
+      </p>
+
+      <h2>3. Job Acceptance & Progressive Dispatch</h2>
+      <p>
+        Job offers are dispatched based on proximity, vehicle category match, and partner online availability. 
+        Once a job offer is accepted, the partner agrees to mobilize to the designated site promptly. 
+        Repeatedly cancelling or abandoning accepted jobs may impact partner tier rating.
+      </p>
+
+      <h2>4. Earnings & Payout Settlements</h2>
+      <p>
+        Partner earnings are calculated according to agreed rate cards, distance, and metered equipment runtime. 
+        Settlements are credited directly to your registered bank account or UPI ID in accordance with regular payment cycles.
+      </p>
+
+      <h2>5. Site Safety & Professional Conduct</h2>
+      <p>
+        Operators must prioritize occupational safety at all job sites, utilize mandatory personal protective equipment (PPE), 
+        and adhere to local safety regulations. Substance abuse or reckless operation will result in immediate permanent deactivation.
+      </p>
+
+      <div class="footer-note">
+        <p>Partner Support Desk: <strong>driver-support&#64;rentron.in</strong></p>
+      </div>
+    </section>
+
+    <!-- PRIVACY CONTENT -->
+    <section *ngIf="activeTab === 'PRIVACY'" class="policy-card">
+      <div class="badge-row">
+        <span class="badge-pill">Partner Privacy Standards</span>
+        <span class="badge-pill version">v2.4</span>
+      </div>
+
+      <h2>1. Telemetry & Real-Time GPS Tracking</h2>
+      <p>
+        When your driver status is set to <strong>ONLINE</strong>, the Rentron Driver app continuously transmits high-accuracy 
+        GPS coordinates to our dispatch engine to enable job matching, customer ETA updates, and emergency tracking.
+      </p>
+
+      <h2>2. Document & Identity Verification</h2>
+      <p>
+        We securely collect and store digital copies of your driver's license, Aadhaar/identity proof, bank account details, 
+        and vehicle RC for verification, KYC compliance, and direct payout processing.
+      </p>
+
+      <h2>3. Device Permissions</h2>
+      <p>
+        The driver app requires device permissions including Background Location, Push Notifications (for incoming job alerts), 
+        and Camera/Storage (for uploading documents and vehicle photos).
+      </p>
+
+      <h2>4. Data Confidentiality</h2>
+      <p>
+        Customer contact details provided during active trips are intended solely for trip coordination. 
+        Storing, distributing, or contacting customers after trip completion for personal purposes is strictly prohibited.
+      </p>
+
+      <div class="footer-note">
+        <p>Privacy inquiries: <strong>privacy&#64;rentron.in</strong></p>
+      </div>
+    </section>
+  </main>
+</div>

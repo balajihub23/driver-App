@@ -660,3 +660,28 @@ p {
     }
   }
 }
+
+/* Safe Area & Mobile Navigation / Gesture Bar Responsiveness */
+html, body {
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-app-wrapper {
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 16px)) !important;
+}
+
+/* Ensure all bottom sheets & modals have safe area padding */
+.bottom-nav,
+.fixed-bottom-bar,
+.mobile-bottom-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+

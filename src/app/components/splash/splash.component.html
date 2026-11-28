@@ -4,10 +4,7 @@
   <div class="splash-card initial-splash">
     <div class="logo-header">
       <div class="logo-mark-yellow">
-        <svg viewBox="0 0 100 100" class="r-logo-svg">
-          <path d="M 20 15 L 65 15 C 85 15 85 50 65 50 L 40 50 L 40 85 L 20 85 Z" fill="#FFC107" />
-          <path d="M 40 50 L 75 85 L 55 85 L 20 50 Z" fill="#FFC107" />
-        </svg>
+        <img src="assets/images/rentron_logo.png" alt="Rentron" class="r-logo-img" />
       </div>
       <h1 class="brand-title-yellow">Rentron</h1>
       <p class="brand-subtitle-yellow">OPERATOR</p>
@@ -25,40 +22,47 @@
   } @else {
   <!-- Onboarding Slide Carousel / Welcome Login Screen (Figma Screens 2-6) -->
   <div class="splash-card onboarding-card" [class.welcome-mode]="activeSlideIndex === 3">
-    @if (activeSlideIndex < 3) { <div class="slide-container">
-      <div class="slide-image-box">
-        <img [src]="slides[activeSlideIndex].image" [alt]="slides[activeSlideIndex].title"
-          class="slide-illustration-img" />
-      </div>
-
-      <div class="slide-content">
-        <h2>{{ slides[activeSlideIndex].title }}</h2>
-        <p>{{ slides[activeSlideIndex].description }}</p>
-
-        <div class="dots-indicator">
-          <span [class.active]="activeSlideIndex === 0"></span>
-          <span [class.active]="activeSlideIndex === 1"></span>
-          <span [class.active]="activeSlideIndex === 2"></span>
+    @if (activeSlideIndex < 3) {
+      <div 
+        class="slide-container"
+        (touchstart)="onTouchStart($event)"
+        (touchend)="onTouchEnd($event)"
+        (mousedown)="onMouseDown($event)"
+        (mouseup)="onMouseUp($event)"
+        (mouseleave)="onMouseLeave($event)">
+        <div class="slide-image-box">
+          <img [src]="slides[activeSlideIndex].image" [alt]="slides[activeSlideIndex].title"
+            class="slide-illustration-img" draggable="false" />
         </div>
 
-        <div class="slide-footer">
-          @if (activeSlideIndex < 2) { <button class="btn-skip" (click)="skipSlides()">Skip</button>
+        <div class="slide-content">
+          <h2>{{ slides[activeSlideIndex].title }}</h2>
+          <p>{{ slides[activeSlideIndex].description }}</p>
+
+          <div class="dots-indicator">
+            <span [class.active]="activeSlideIndex === 0" (click)="goToSlide(0)" title="Slide 1"></span>
+            <span [class.active]="activeSlideIndex === 1" (click)="goToSlide(1)" title="Slide 2"></span>
+            <span [class.active]="activeSlideIndex === 2" (click)="goToSlide(2)" title="Slide 3"></span>
+          </div>
+
+          <div class="slide-footer">
+            @if (activeSlideIndex < 2) {
+              <button class="btn-skip" (click)="skipSlides()">Skip</button>
+              <button class="btn-next" (click)="nextSlide()">Next &rarr;</button>
             } @else {
-            <div></div>
+              <div></div>
+              <button class="btn-next btn-get-started" (click)="nextSlide()">Get Started</button>
             }
-            <button class="btn-next" (click)="nextSlide()">
-              {{ activeSlideIndex === 2 ? 'Get Started' : 'Next →' }}
-            </button>
+          </div>
         </div>
       </div>
-  </div>
-  } @else {
+    } @else {
   <!-- Welcome / Role Selection Screen (Matching Figma Screenshot 2) -->
   <div class="welcome-screen">
     <div class="role-header-banner">
       <div class="header-top-row">
         <div class="logo-box">
-          <div class="mini-logo">R</div>
+          <img src="assets/images/rentron_logo.png" alt="Rentron" class="mini-logo-img" />
         </div>
         <span class="partner-badge">PARTNER APP</span>
       </div>

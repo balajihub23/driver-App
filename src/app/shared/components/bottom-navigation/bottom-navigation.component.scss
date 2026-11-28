@@ -10,7 +10,8 @@
   margin: 0 auto;
   width: 100%;
   max-width: 480px;
-  height: 64px;
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background-color: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;

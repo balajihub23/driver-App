@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { Subscription } from 'rxjs';
@@ -10,7 +10,7 @@ import { DriverService } from '../../core/services/driver.service';
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })

@@ -53,6 +53,14 @@ export const routes: Routes = [
     loadComponent: () => import('./components/service-error/service-error.component').then(m => m.ServiceErrorComponent)
   },
   {
+    path: 'terms',
+    loadComponent: () => import('./components/legal-page/legal-page.component').then(m => m.LegalPageComponent)
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./components/legal-page/legal-page.component').then(m => m.LegalPageComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

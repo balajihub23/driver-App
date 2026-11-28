@@ -14,12 +14,7 @@
     @if (currentStep === 'PHONE') {
       <div class="step-phone animate-fade-in">
         <div class="app-icon-yellow-center">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="1" y="3" width="15" height="13" rx="2" />
-            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-            <circle cx="5.5" cy="18.5" r="2.5" />
-            <circle cx="18.5" cy="18.5" r="2.5" />
-          </svg>
+          <img src="assets/images/rentron_logo.png" alt="Rentron" class="app-icon-logo-img" />
         </div>
 
         <h2 class="welcome-heading">Welcome</h2>
@@ -61,7 +56,7 @@
         </button>
 
         <p class="terms-footer">
-          By continuing, you agree to our <a href="#" class="legal-link">Terms of Service</a><br/>and <a href="#" class="legal-link">Privacy Policy</a>
+          By continuing, you agree to our <a routerLink="/terms" class="legal-link">Terms of Service</a><br/>and <a routerLink="/privacy" class="legal-link">Privacy Policy</a>
         </p>
       </div>
     } @else if (currentStep === 'OTP') {

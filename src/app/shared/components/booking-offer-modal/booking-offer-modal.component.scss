@@ -10,17 +10,18 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .offer-sheet {
   width: 100%;
   max-width: 440px;
-  max-height: 90vh;
-  max-height: 90dvh;
+  max-height: 88vh;
+  max-height: 88dvh;
   background: #ffffff;
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
-  padding: 12px 18px 24px 18px;
+  padding: 12px 18px calc(24px + env(safe-area-inset-bottom, 16px)) 18px;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
   position: relative;
   box-sizing: border-box;
@@ -654,6 +655,46 @@
       background: #334155 !important;
       color: #F8FAFC !important;
       border-color: #475569 !important;
+    }
+  }
+}
+
+@media (max-height: 720px) {
+  .offer-sheet {
+    max-height: 94vh;
+    max-height: 94dvh;
+    padding: 8px 14px calc(16px + env(safe-area-inset-bottom, 12px)) 14px;
+
+    .timer-ring-wrapper {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 4px;
+    }
+
+    .offer-title {
+      font-size: 16px;
+    }
+
+    .offer-subtitle {
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .attributes-box {
+      padding: 6px 10px;
+      margin-bottom: 8px;
+
+      .attr-row {
+        padding: 5px 0;
+      }
+    }
+
+    .sheet-actions {
+      .btn-decline-pill,
+      .btn-accept-pill {
+        height: 40px;
+        font-size: 13px;
+      }
     }
   }
 }

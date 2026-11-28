@@ -936,18 +936,61 @@ export class ProfileComponent implements OnInit {
     setTimeout(() => this.vahanFetchMessage = '', 4000);
   }
 
+  private sanitizeVehicleForStorage(item: any): any {
+    if (!item || typeof item !== 'object') return item;
+    if (Array.isArray(item)) return item.map(i => this.sanitizeVehicleForStorage(i));
+
+    const cleaned: any = {};
+    for (const key of Object.keys(item)) {
+      if (key === 'file') continue;
+      const val = item[key];
+      if (typeof val === 'string' && val.startsWith('data:')) {
+        // Strip large base64 data URLs to prevent LocalStorage quota overflow
+        cleaned[key] = '';
+      } else if (val && typeof val === 'object') {
+        cleaned[key] = this.sanitizeVehicleForStorage(val);
+      } else {
+        cleaned[key] = val;
+      }
+    }
+    return cleaned;
+  }
+
   savePersistentVehicles(): void {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.localStorage) {
       try {
-        const jsonStr = JSON.stringify(this.vehiclesList);
-        localStorage.setItem('rentron_shared_vehicles', jsonStr);
-        localStorage.setItem('admin_vehicles_list', jsonStr);
+        const sanitized = this.sanitizeVehicleForStorage(this.vehiclesList);
+        const jsonStr = JSON.stringify(sanitized);
+
+        // Save driver vehicle cache first (essential for driver app & dashboard)
         localStorage.setItem('rentron_driver_vehicles', jsonStr);
+        localStorage.setItem('rentron_shared_vehicles', jsonStr);
+
+        // Also update admin_vehicles_list safely if quota permits
+        try {
+          localStorage.setItem('admin_vehicles_list', jsonStr);
+        } catch {
+          // If storage is tight, clean up secondary admin key
+          try { localStorage.removeItem('admin_vehicles_list'); } catch {}
+        }
+
         if (Array.isArray(this.vehiclesList) && this.vehiclesList.some(v => v.regNumber && v.regNumber.trim().length > 0 && !v.regNumber.startsWith('TN00TEMP') && !v.regNumber.startsWith('TN-XX-TEMP'))) {
           localStorage.setItem('driver_vehicle_completed', 'true');
         }
       } catch (e) {
-        console.warn('LocalStorage quota limit reached, bypassing local cache update:', e);
+        // If quota limit was reached due to prior un-sanitized keys, purge bloated items and retry
+        try {
+          localStorage.removeItem('admin_vehicles_list');
+          localStorage.removeItem('rentron_shared_vehicles');
+          const sanitized = this.sanitizeVehicleForStorage(this.vehiclesList);
+          const jsonStr = JSON.stringify(sanitized);
+          localStorage.setItem('rentron_driver_vehicles', jsonStr);
+          if (Array.isArray(this.vehiclesList) && this.vehiclesList.some(v => v.regNumber && v.regNumber.trim().length > 0 && !v.regNumber.startsWith('TN00TEMP') && !v.regNumber.startsWith('TN-XX-TEMP'))) {
+            localStorage.setItem('driver_vehicle_completed', 'true');
+          }
+        } catch (innerErr) {
+          console.warn('LocalStorage quota limit reached, bypassing local cache update:', innerErr);
+        }
       }
     }
   }
@@ -1636,6 +1679,14 @@ export class ProfileComponent implements OnInit {
   }
 
   navigateTo(view: ProfileSubView): void {
+    if (view === 'TERMS') {
+      this.router.navigate(['/terms']);
+      return;
+    }
+    if (view === 'PRIVACY') {
+      this.router.navigate(['/privacy']);
+      return;
+    }
     if (view === 'LANGUAGE') {
       this.openLanguageModal();
       return;
